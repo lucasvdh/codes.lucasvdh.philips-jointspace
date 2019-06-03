@@ -1,0 +1,96 @@
+{
+  "id": "codes.lucasvdh.philips-jointspace",
+  "version": "0.0.1",
+  "compatibility": ">=1.5.0",
+  "sdk": 2,
+  "name": {
+    "en": "Philips Television Jointspace"
+  },
+  "description": {
+    "en": "Control your Philips TV's via the Jointspace API, supporting models up to 2018",
+    "nl": "Bestuur uw Philips TV's via de Jointspace API, met ondersteuning voor modellen tot 2018"
+  },
+  "category": [
+    "appliances"
+  ],
+  "author": {
+    "name": "Lucas van der Have",
+    "email": "lucasvdhave@gmail.com"
+  },
+  "permissions": [],
+  "images": {
+    "large": "/assets/images/large.png",
+    "small": "/assets/images/small.png"
+  },
+  "drivers": [
+    {
+      "id": "philips-jointspace",
+      "name": {
+        "en": "Philips Television Jointspace Driver",
+        "nl": "Philips Televisie Jointspace Driver"
+      },
+      "class": "tv",
+      "capabilities": [
+        "onoff",
+        "volume_up",
+        "volume_set",
+        "volume_down",
+        "channel_up",
+        "channel_down",
+        "volume_mute"
+      ],
+      "images": {
+        "large": "/drivers/philips-jointspace/assets/images/large.png",
+        "small": "/drivers/philips-jointspace/assets/images/small.png"
+      },
+      "pair": [
+        {
+          "id": "start"
+        },
+        {
+          "id": "validate",
+          "template": "loading"
+        },
+        {
+          "id": "authenticate",
+          "template": "pincode",
+          "options": {
+            "title": "pair.authenticate.intro"
+          }
+        },
+        {
+          "id": "done"
+        }
+      ],
+      "settings": [
+        {
+          "type": "group",
+          "label": {
+            "en": "General settings",
+            "nl": "Algemene instellingen"
+          },
+          "children": [
+            {
+              "id": "settingIPAddress",
+              "type": "text",
+              "label": {
+                "en": "IP address",
+                "nl": "IP adres"
+              },
+              "value": "0.0.0.0"
+            },
+            {
+              "id": "settingDeviceNr",
+              "type": "text",
+              "label": {
+                "en": "Device Nr",
+                "nl": "Device Nr"
+              },
+              "value": "6"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

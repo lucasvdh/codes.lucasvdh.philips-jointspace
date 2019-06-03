@@ -1,0 +1,19 @@
+<script>
+    Homey.setTitle('Adding device...');
+    Homey.emit('almost_done', null, (err, device) => {
+        if (err) {
+            console.log(err);
+            return;
+        }
+
+        console.log(device);
+
+        Homey.createDevice(device, (err, res) => {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            Homey.done();
+        })
+    });
+</script>

@@ -1,0 +1,17 @@
+{
+  "pair": {
+    "start": {
+      "intro": "Enter your device's IP address and Device Nr and give it a name.",
+      "title": "Finding device...",
+      "error": "An error has occurred.",
+      "required": "IP address and Device Nr is a required value.",
+      "ipAddress": "IP address",
+      "apiVersion": "Jointspace API version",
+      "deviceName": "Device name",
+      "saveSettings": "Save settings"
+    },
+    "authenticate": {
+      "intro": "Enter the code displayed on the TV"
+    }
+  }
+}

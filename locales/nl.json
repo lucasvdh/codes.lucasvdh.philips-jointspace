@@ -1,0 +1,17 @@
+{
+  "pair": {
+    "start": {
+      "intro": "Vul het IP adres en Device Nr van uw apparaat in en geef het een naam.",
+      "title": "Apparaat zoeken...",
+      "error": "Er is een fout opgetreden.",
+      "required": "IP adres en Device Nr is verplicht.",
+      "ipAddress": "IP adres",
+      "apiVersion": "Jointspace API versie",
+      "deviceName": "Naam van het apparaat",
+      "saveSettings": "Gegevens opslaan"
+    },
+    "authenticate": {
+      "intro": "Vul de code in die op de TV wordt weergegeven"
+    }
+  }
+}
