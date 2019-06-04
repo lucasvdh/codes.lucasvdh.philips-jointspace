@@ -4,6 +4,7 @@ const Homey = require('homey');
 const net = require('net');
 const request = require('request');
 const JointspaceClient = require('../../lib/JointspaceClient');
+const DigestRequest = require('../../lib/DigestRequest');
 const wol = require('node-wol');
 
 // a list of devices, with their 'id' as key
@@ -46,20 +47,21 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
         let pairingDevice = {
             name: 'Philips TV',
             data: {
-                ipAddress: '192.168.1.50',
-                apiVersion: 6,
                 mac: null,
                 credentials: null,
             },
-            settings: {},
+            settings: {
+                ipAddress: '192.168.1.50',
+                apiVersion: 6,
+            },
         };
 
         socket.on('start_pair', (data, callback) => {
             console.log("Philips TV - starting pair");
 
             // Set passed pair settings in variables
-            pairingDevice.data.ipAddress = data.ipAddress;
-            pairingDevice.data.apiVersion = data.apiVersion;
+            pairingDevice.settings.ipAddress = data.ipAddress;
+            pairingDevice.settings.apiVersion = data.apiVersion;
             pairingDevice.name = data.deviceName;
 
             // Update Jointspace client with config
@@ -69,7 +71,7 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
             socket.showView('validate');
 
             this.jointspaceClient.getSystem().then(() => {
-                if (pairingDevice.data.apiVersion >= 6) {
+                if (pairingDevice.settings.apiVersion >= 6) {
                     this.jointspaceClient.startPair().then((response) => {
                         if (response.error_id === 'SUCCESS') {
                             socket.showView('authenticate');
@@ -85,7 +87,10 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
                     socket.showView('done');
                 }
             }).catch((error) => {
-                socket.emit('error');
+                if (typeof error.code !== 'undefined' && error.code === 'EHOSTUNREACH') {
+                    socket.showView('start');
+                    socket.emit('error', 'host_unreachable');
+                }
             });
         });
 
@@ -101,20 +106,34 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
             });
         });
 
-        socket.on('almost_done', function (data, callback) {
-            console.log('socket almost_done', data);
-            pairingDevice.data.id = guid();
+        socket.on('verify_wol', (data, callback) => {
+            this.jointspaceClient.getInfo().then((response) => {
+                if (typeof response['network/devices'] !== "undefined") {
+                    for (let i in response['network/devices']) {
+                        let networkAdapter = response['network/devices'][i];
+
+                        if (typeof networkAdapter['wake-on-lan'] !== "undefined" && networkAdapter['wake-on-lan'] === 'Enabled') {
+                            pairingDevice.data.mac = networkAdapter["mac"];
+                            callback(null, true);
+                            break;
+                        }
+                    }
+                } else {
+                    this.error('Could not get mac address from tv device')
+                }
+
+                callback(null, false);
+            }).catch((error) => {
+                callback(null, true);
+                this.error(error);
+            });
+        });
+
+        socket.on('almost_done', (data, callback) => {
+            // TODO: maybe this should be based on MAC address
+            pairingDevice.data.id = DigestRequest.md5(pairingDevice.settings.ipAddress);
             console.log('device', pairingDevice);
             callback(null, pairingDevice);
-        });
-    }
-
-    validateIPAddress(ipAddress, apiVersion, callback) {
-        this.jointspaceClient.getSystem().then(function (data) {
-            console.log('Device name', data.name);
-            callback(true);
-        }, function (error) {
-            callback(false);
         });
     }
 

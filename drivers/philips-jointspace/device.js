@@ -12,12 +12,13 @@ const capabilities = {
 class PhilipsTV extends Homey.Device {
 
     onInit() {
-        this._state = {};
         this._data = this.getData();
-        this.client = new JointspaceClient(this._data.credentials.user);
-        this.client.setConfig(this._data.ipAddress, this._data.apiVersion, this._data.credentials.user, this._data.credentials.pass);
+        this._settings = this.getSettings();
 
-        this.log('PhilipsTV Device [' + this._data.credentials.user + '] initialized');
+        this.client = new JointspaceClient(this.getCredentials().user);
+        this.client.setConfig(this.getIPAddress(), this.getAPIVersion(), this.getCredentials().user, this.getCredentials().pass);
+
+        this.log('PhilipsTV Device [' + this.getCredentials().user + '] initialized');
 
         this._onCapabilitiesSet = this._onCapabilitiesSet.bind(this);
         // this._getCapabilityValue = this._getCapabilityValue.bind(this);
@@ -33,8 +34,8 @@ class PhilipsTV extends Homey.Device {
                         if (error) {
                             console.log(error);
                         } else {
-                            wol.wake('70:AF:24:12:EE:C6', {
-                                address: '192.168.1.50'
+                            wol.wake(this.getMACAddress(), {
+                                address: this.getIPAddress()
                             }, function (error) {
                                 if (error) {
                                     // handle error
@@ -56,6 +57,22 @@ class PhilipsTV extends Homey.Device {
         this.ready(() => {
             this.updateDevice();
         });
+    }
+
+    getMACAddress() {
+        return this._data.mac;
+    }
+
+    getIPAddress() {
+        return this._settings.ipAddress;
+    }
+
+    getAPIVersion() {
+        return this._settings.apiVersion;
+    }
+
+    getCredentials() {
+        return this._data.credentials;
     }
 
     updateDevice() {
