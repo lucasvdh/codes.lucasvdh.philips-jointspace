@@ -74,19 +74,46 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
                             socket.showView('authenticate');
                         } else {
                             socket.showView('start');
-                            socket.emit('error', 'Concurrent pairing process');
+                            socket.emit('error', 'concurrent_pairing');
                         }
                     }).catch((error) => {
                         socket.showView('start');
-                        socket.emit('error', error);
+
+                        if (typeof error.statusCode !== "undefined") {
+                            if (error.statusCode === 404) {
+                                socket.emit('error', 'not_found');
+                            } else {
+                                socket.emit('error', error);
+                            }
+                        } else {
+                            socket.emit('error', 'host_unreachable');
+                        }
                     });
                 } else {
                     socket.showView('done');
                 }
             }).catch((error) => {
-                if (typeof error.code !== 'undefined' && error.code === 'EHOSTUNREACH') {
-                    socket.showView('start');
-                    socket.emit('error', 'host_unreachable');
+                socket.showView('start');
+
+                if (typeof error !== "undefined" && error !== null) {
+                    if (typeof error.statusCode !== "undefined") {
+                        console.log(error.statusCode);
+                        if (error.statusCode === 404) {
+                            socket.emit('error', 'not_found');
+                        } else {
+                            socket.emit('error', error);
+                        }
+                    } else if (typeof error.code !== 'undefined') {
+                        if (error.code === 'EHOSTUNREACH') {
+                            socket.emit('error', 'host_unreachable');
+                        } else if (error.code === 'ETIMEDOUT') {
+                            socket.emit('error', 'host_timeout');
+                        } else {
+                            socket.emit('error', error);
+                        }
+                    }
+                } else {
+                    socket.emit('error', error);
                 }
             });
         });
@@ -130,6 +157,10 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
             // TODO: maybe this should be based on MAC address
             pairingDevice.data.id = DigestRequest.md5(pairingDevice.settings.ipAddress);
             console.log('device', pairingDevice);
+            callback(null, pairingDevice);
+        });
+
+        socket.on('get_device', (data, callback) => {
             callback(null, pairingDevice);
         });
     }

@@ -19,49 +19,69 @@
         <td class="info" data-i18n="pair.start.ipAddressDescription"></td>
     </tr>
     <tr>
-        <th data-i18n="pair.start.constructionYear">Model construction year</th>
+        <th data-i18n="pair.start.apiVersion">JointSpace API version</th>
     </tr>
     <tr>
         <td>
             <select id="apiVersion" class="form-control">
-                <option value="1">voor 2016</option>
-                <option value="6" selected>2016 of later</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6" selected>6</option>
             </select>
         </td>
     </tr>
     <tr>
-        <td class="info" data-i18n="pair.start.constructionYearDescription"></td>
+        <td class="info" data-i18n="pair.start.apiVersionDescription"></td>
     </tr>
 </table>
 
 <a class="btn btn-success btn-block btn-lg" data-i18n="pair.start.saveSettings" onclick="saveSettings()">Save</a>
 
 <script>
+    var ipAddressElement = document.getElementById('ipAddress');
+    var apiVersionElement = document.getElementById('apiVersion');
+    var deviceNameElement = document.getElementById('deviceName');
+
     Homey.on('error', function (errortype, callback) {
         if (errortype === 'error') {
-            Homey.alert(__('pair.start.error'), 'error');
+            Homey.alert(__('error.error'), 'error');
             Homey.done();
+        } else if (errortype === 'not_found') {
+            Homey.alert(__('error.endpointNotFound'), 'error');
+        } else if (errortype === 'host_unreachable') {
+            Homey.alert(__('error.hostUnreachable'), 'error');
+        } else if (errortype === 'host_timeout') {
+            Homey.alert(__('error.connectionTimedOut'), 'error');
+        } else if (errortype === 'concurrent_pairing') {
+            Homey.alert(__('error.concurrentPairing'), 'error');
+        } else {
+            Homey.alert(JSON.stringify(errortype));
         }
-        if (errortype === 'host_unreachable') {
-            Homey.alert(__('pair.start.hostUnreachable'), 'error');
-        }
+    });
+
+    Homey.emit('get_device', null, (err, device) => {
+        ipAddressElement.value = device.settings.ipAddress;
+        apiVersionElement.value = device.settings.apiVersion;
+        deviceNameElement.value = device.name;
     });
 
     function saveSettings() {
         console.log('Saving settings...');
 
-        // variables
-        var inputIPAddress = document.getElementById('ipAddress').value;
-        var inputApiVersion = document.getElementById('apiVersion').value;
-        var inputDeviceName = document.getElementById('deviceName').value;
+        let ipAddress = ipAddressElement.value,
+            apiVersion = apiVersionElement.value,
+            deviceName = deviceNameElement.value;
 
         // If required values are filled in
-        if (inputIPAddress != '') {
+        if (ipAddress !== '') {
             // Build data array
             var data = {
-                ipAddress: inputIPAddress,
-                apiVersion: inputApiVersion,
-                deviceName: inputDeviceName
+                ipAddress: ipAddress,
+                apiVersion: apiVersion,
+                deviceName: deviceName
             };
 
             console.log('Saving device data', data);
