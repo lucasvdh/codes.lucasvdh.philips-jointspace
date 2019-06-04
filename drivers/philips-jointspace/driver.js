@@ -1,11 +1,8 @@
 'use strict';
 
 const Homey = require('homey');
-const net = require('net');
-const request = require('request');
 const JointspaceClient = require('../../lib/JointspaceClient');
 const DigestRequest = require('../../lib/DigestRequest');
-const wol = require('node-wol');
 
 // a list of devices, with their 'id' as key
 // it is generally advisable to keep a list of
@@ -48,7 +45,7 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
             name: 'Philips TV',
             data: {
                 mac: null,
-                credentials: null,
+                credentials: {},
             },
             settings: {
                 ipAddress: '192.168.1.50',
@@ -124,7 +121,7 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
 
                 callback(null, false);
             }).catch((error) => {
-                callback(null, true);
+                callback(null, false);
                 this.error(error);
             });
         });
@@ -192,23 +189,6 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
 
     }
 
-    post(url, args) {
-        // post the command to the TV
-        // console.log("Post to tv ", url, args)
-        request({
-                url: url,
-                method: "POST",
-                json: args
-            }, function (error, response, body) {
-                if (!error && response.statusCode == 200) {
-                    // ready
-                } else {
-                    console.log(" Command to Philips TV, gives an error in response", error, response)
-                    // callback (error);
-                }
-            }
-        );
-    };
 }
 
 module.exports = PhilipsJointSpaceDriver;

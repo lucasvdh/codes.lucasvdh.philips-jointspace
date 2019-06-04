@@ -1,7 +1,8 @@
-'use strict';
+"use strict";
 
 const Homey = require('homey');
 const JointspaceClient = require('../../lib/JointspaceClient.js');
+const wol = require('node-wol');
 
 const CAPABILITIES_SET_DEBOUNCE = 100;
 
