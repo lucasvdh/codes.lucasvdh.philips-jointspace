@@ -1,14 +1,15 @@
 {
   "id": "codes.lucasvdh.philips-jointspace",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "compatibility": ">=1.5.0",
   "sdk": 2,
   "name": {
-    "en": "Philips Television Jointspace"
+    "en": "Philips TV Remote Control",
+    "nl": "Philips TV Afstandsbediening"
   },
   "description": {
-    "en": "Control your Philips TV's via the Jointspace API, supporting models up to 2018",
-    "nl": "Bestuur uw Philips TV's via de Jointspace API, met ondersteuning voor modellen tot 2018"
+    "en": "Control your Philips TV's via the Jointspace API, supporting models up to at least 2018",
+    "nl": "Bestuur uw Philips TV's via de Jointspace API, met ondersteuning voor modellen tot in ieder geval 2018"
   },
   "category": [
     "appliances"
@@ -26,8 +27,8 @@
     {
       "id": "philips-jointspace",
       "name": {
-        "en": "Philips Television Jointspace Driver",
-        "nl": "Philips Televisie Jointspace Driver"
+        "en": "Philips Television",
+        "nl": "Philips Televisie"
       },
       "class": "tv",
       "capabilities": [
@@ -55,8 +56,14 @@
           "id": "authenticate",
           "template": "pincode",
           "options": {
-            "title": "pair.authenticate.intro"
+            "title": {
+              "en": "Enter the code displayed on the TV",
+              "nl": "Vul de code in die op de TV wordt weergegeven"
+            }
           }
+        },
+        {
+          "id": "verify"
         },
         {
           "id": "done"
@@ -71,7 +78,7 @@
           },
           "children": [
             {
-              "id": "settingIPAddress",
+              "id": "ipAddress",
               "type": "text",
               "label": {
                 "en": "IP address",
@@ -80,11 +87,11 @@
               "value": "0.0.0.0"
             },
             {
-              "id": "settingDeviceNr",
+              "id": "apiVersion",
               "type": "text",
               "label": {
-                "en": "Device Nr",
-                "nl": "Device Nr"
+                "en": "API version",
+                "nl": "API versie"
               },
               "value": "6"
             }
