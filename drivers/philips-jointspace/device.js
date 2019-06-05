@@ -17,7 +17,12 @@ class PhilipsTV extends Homey.Device {
         this._settings = this.getSettings();
 
         this.client = new JointspaceClient(this.getCredentials().user);
-        this.client.setConfig(this.getIPAddress(), this.getAPIVersion(), this.getCredentials().user, this.getCredentials().pass);
+
+        if (this.hasCredentials()) {
+            this.client.setConfig(this.getIPAddress(), this.getAPIVersion(), this.getCredentials().user, this.getCredentials().pass);
+        } else {
+            this.client.setConfig(this.getIPAddress(), this.getAPIVersion());
+        }
 
         this.log('PhilipsTV Device [' + this.getCredentials().user + '] initialized');
 
@@ -74,6 +79,12 @@ class PhilipsTV extends Homey.Device {
 
     getCredentials() {
         return this._data.credentials;
+    }
+
+    hasCredentials() {
+        return this._data.credentials !== null
+            && (typeof this._data.credentials.user !== "undefined")
+            && this._data.credentials.user !== null;
     }
 
     updateDevice() {

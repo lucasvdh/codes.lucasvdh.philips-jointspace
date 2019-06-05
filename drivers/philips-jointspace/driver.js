@@ -131,22 +131,22 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
         });
 
         socket.on('verify_wol', (data, callback) => {
-            this.jointspaceClient.getInfo().then((response) => {
-                if (typeof response['network/devices'] !== "undefined") {
-                    for (let i in response['network/devices']) {
-                        let networkAdapter = response['network/devices'][i];
+            this.jointspaceClient.getNetworkDevices().then((networkDevices) => {
+                if (Array.isArray(networkDevices)) {
+                    for (let i in networkDevices) {
+                        let networkDevice = networkDevices[i];
 
-                        if (typeof networkAdapter['wake-on-lan'] !== "undefined" && networkAdapter['wake-on-lan'] === 'Enabled') {
-                            pairingDevice.data.mac = networkAdapter["mac"];
+                        if (typeof networkDevice['wake-on-lan'] !== "undefined" && networkDevice['wake-on-lan'] === 'Enabled') {
+                            pairingDevice.data.mac = networkDevice["mac"];
                             callback(null, true);
                             break;
                         }
                     }
                 } else {
                     this.error('Could not get mac address from tv device')
+                    console.log('Could not get mac address from tv', JSON.stringify(networkDevices));
+                    callback(null, false);
                 }
-
-                callback(null, false);
             }).catch((error) => {
                 callback(null, false);
                 this.error(error);
