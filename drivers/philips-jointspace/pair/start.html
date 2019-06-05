@@ -57,6 +57,8 @@
             Homey.alert(__('error.connectionTimedOut'), 'error');
         } else if (errortype === 'concurrent_pairing') {
             Homey.alert(__('error.concurrentPairing'), 'error');
+        } else if (errortype === 'pair_timeout') {
+            Homey.alert(__('error.pairingTimeout'), 'error');
         } else {
             Homey.alert(JSON.stringify(errortype));
         }

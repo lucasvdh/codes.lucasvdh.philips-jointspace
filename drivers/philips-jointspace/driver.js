@@ -125,13 +125,29 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
                 pairingDevice.data.credentials = credentials;
                 callback(null, true);
             }).catch((error) => {
-                console.log('error', error);
-                callback(null, false);
+                if (typeof error.error_id !== "undefined") {
+                    if (error.error_id === 'INVALID_PIN') {
+                        console.log('The pin "' + code + '" is not valid');
+                        callback(null, false);
+                    } else if (error.error_id === 'TIMEOUT') {
+                        console.log('Received a pairing session timeout');
+                        socket.showView('start');
+                        socket.emit('error', 'pair_timeout');
+                    } else {
+                        console.log('Unexpected pairing error', JSON.stringify(error));
+                        callback(null, false);
+                    }
+                } else {
+                    console.log('Unexpected pairing error', JSON.stringify(error));
+                    callback(null, false);
+                }
             });
         });
 
         socket.on('verify_wol', (data, callback) => {
             this.jointspaceClient.getNetworkDevices().then((networkDevices) => {
+                console.log('Checking WOL, got network devices:', networkDevices);
+
                 if (Array.isArray(networkDevices)) {
                     for (let i in networkDevices) {
                         let networkDevice = networkDevices[i];
@@ -143,7 +159,6 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
                         }
                     }
                 } else {
-                    this.error('Could not get mac address from tv device')
                     console.log('Could not get mac address from tv', JSON.stringify(networkDevices));
                     callback(null, false);
                 }
