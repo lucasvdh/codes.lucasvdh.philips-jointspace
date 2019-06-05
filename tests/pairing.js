@@ -10,7 +10,11 @@ let questions = [{
     }, {
         type: 'number',
         name: 'apiVersion',
-        message: "What\'s your API version? (1-6)",
+        message: "What\'s your API version? (1 to 6)",
+    }, {
+        type: 'number',
+        name: 'port',
+        message: "What port number should be used? Either 1925 or 1926",
     }],
     deviceId = 'testing',
     client = new JointspaceClient(deviceId);
@@ -19,6 +23,9 @@ inquirer.prompt(questions).then(answers => {
     console.log('Updating client config');
     client.setConfig(answers.ipAddress, answers.apiVersion);
     client.setSecure(false);
+    client.setPort(answers.port);
+
+    // client.debug = true;
 
     console.log('Sending system info call');
     client.getSystem().then((response) => {
@@ -30,7 +37,7 @@ inquirer.prompt(questions).then(answers => {
         if (typeof systemFeatures.pairing_type !== "undefined") {
             let pairingType = systemFeatures.pairing_type;
 
-            client.setSecure(systemFeatures.secured_transport);
+            client.setSecure(systemFeatures.secured_transport === 'true');
 
             if (pairingType === "digest_auth_pairing") {
                 console.log('Starting pairing process');
@@ -44,16 +51,23 @@ inquirer.prompt(questions).then(answers => {
                             'name': 'pin',
                             'message': 'What\'s the pin code displayed on the tv?'
                         }]).then(answers => {
-                            console.log('Sending ping:', answers.pin);
+                            console.log('Sending pin verification:', answers.pin);
 
                             client.confirmPair(answers.pin).then((credentials) => {
-                                console.log('Pairing process completed succesfully!');
-                                console.log('Your tv is now accessible with the following credentials', credentials);
+                                console.log('Pairing process completed successfully!');
+                                console.log('Your tv is now accessible with the following digest credentials', credentials);
                             }).catch((error) => {
-                                if (typeof error.statusCode !== "undefined" && error.statusCode === 401) {
-                                    console.log('The pin was incorrect or an HMAC signing issue occured\n\n', JSON.stringify(error));
+                                if (typeof error.error_id !== "undefined") {
+                                    if (error.error_id === 'INVALID_PIN') {
+                                        console.log('The pin "' + answers.pin + '" is not valid');
+                                    } else if (error.error_id === 'TIMEOUT') {
+                                        console.log('Received a pairing session timeout');
+                                    } else {
+                                        console.log('Unexpected pairing error', JSON.stringify(error));
+                                    }
+                                } else {
+                                    console.log('Unexpected pairing error', JSON.stringify(error));
                                 }
-                                console.log('An error occurred when trying to confirm the pairing process\n\n', JSON.stringify(error));
                             });
                         });
                     } else {
@@ -63,6 +77,12 @@ inquirer.prompt(questions).then(answers => {
                     if (typeof error.statusCode !== "undefined") {
                         if (error.statusCode === 404) {
                             console.log('Could not find api endpoint, got 404. Incorrect api version?');
+                        } else {
+                            console.log('Unexpected error\n', JSON.stringify(error));
+                        }
+                    } else if (typeof error.code !== "undefined") {
+                        if (error.code === 'ECONNRESET') {
+                            console.log('Could not reach api endpoint, connection was reset. Incorrect port number?');
                         } else {
                             console.log('Unexpected error\n', JSON.stringify(error));
                         }
