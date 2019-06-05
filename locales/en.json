@@ -25,6 +25,7 @@
   },
   "error": {
     "generic": "An error occured",
+    "pairingTimeout": "The pairing session has expired, please try again.",
     "endpointNotFound": "Was able to reach the TV but not the API. The API version is probably incorrect.",
     "hostUnreachable": "Could not reach the TV on this IP address. Is the IP correct and the TV turned on? Otherwise try a different API version.",
     "connectionTimedOut": "The connection to the TV timed out. Is the IP correct and the TV turned on? Otherwise try a different API version.",

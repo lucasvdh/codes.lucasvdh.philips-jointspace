@@ -24,6 +24,7 @@
   },
   "error": {
     "generic": "Er is een fout opgetreden",
+    "pairingTimeout": "De koppelsessie is verlopen, probeer het nogmaals.",
     "endpointNotFound": "Kon de tv wel bereiken maar niet de API. Waarschijnlijk is de API versie incorrect.",
     "hostUnreachable": "Kon de tv niet bereiken op dit IP-adres. Is het IP juist en staat de tv aan? Probeer anders een andere API versie.",
     "connectionTimedOut": "The connection to the TV timed out. Is the IP correct and the TV turned on? Probeer anders een andere API versie.",

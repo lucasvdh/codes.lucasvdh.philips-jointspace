@@ -23,6 +23,32 @@
     "large": "/assets/images/large.png",
     "small": "/assets/images/small.png"
   },
+  "capabilities": {
+    "ambilight_onoff": {
+      "type": "boolean",
+      "title": {
+        "en": "Ambilight",
+        "nl": "Ambilight"
+      },
+      "getable": true,
+      "setable": true,
+      "uiComponent": "toggle",
+      "uiQuickAction": true,
+      "icon": "/assets/capabilities/ambilight.svg"
+    },
+    "ambihue_onoff": {
+      "type": "boolean",
+      "title": {
+        "en": "Ambilight + Hue",
+        "nl": "Ambilight + Hue"
+      },
+      "getable": true,
+      "setable": true,
+      "uiComponent": "toggle",
+      "uiQuickAction": true,
+      "icon": "/assets/capabilities/hue.svg"
+    }
+  },
   "drivers": [
     {
       "id": "philips-jointspace",
@@ -38,7 +64,9 @@
         "volume_down",
         "channel_up",
         "channel_down",
-        "volume_mute"
+        "volume_mute",
+        "ambilight_onoff",
+        "ambihue_onoff"
       ],
       "images": {
         "large": "/drivers/philips-jointspace/assets/images/large.png",
