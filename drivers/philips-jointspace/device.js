@@ -5,10 +5,57 @@ const JointspaceClient = require('../../lib/JointspaceClient.js');
 const wol = require('node-wol');
 
 const CAPABILITIES_SET_DEBOUNCE = 100;
+const UPDATE_INTERVAL = 5000;
 
 const capabilities = {
     'onoff': 'on'
 };
+
+const keyCapabilities = [
+    "key_stop",
+    "key_play",
+    "key_pause",
+    "key_play_pause",
+    "key_online",
+    "key_record",
+    "key_rewind",
+    "key_fast_forward",
+    "key_toggle_ambilight",
+    "key_source",
+    "key_toggle_subtitles",
+    "key_teletext",
+    "key_viewmode",
+    "key_watch_tv",
+    "key_confirm",
+    "key_previous",
+    "key_next",
+    "key_adjust",
+    "key_cursor_left",
+    "key_cursor_up",
+    "key_cursor_right",
+    "key_cursor_down",
+    "key_info",
+    "key_digit_1",
+    "key_digit_2",
+    "key_digit_3",
+    "key_digit_4",
+    "key_digit_5",
+    "key_digit_6",
+    "key_digit_7",
+    "key_digit_8",
+    "key_digit_9",
+    "key_digit_0",
+    "key_dot",
+    "key_options",
+    "key_back",
+    "key_info",
+    "key_home",
+    "key_find",
+    "key_red",
+    "key_green",
+    "key_yellow",
+    "key_blue"
+];
 
 class PhilipsTV extends Homey.Device {
 
@@ -16,53 +63,84 @@ class PhilipsTV extends Homey.Device {
         this._data = this.getData();
         this._settings = this.getSettings();
 
-        this.client = new JointspaceClient(this.getCredentials().user);
+        this.deviceLog('registering listeners');
+        this.registerListeners();
 
-        if (this.hasCredentials()) {
-            this.client.setConfig(this.getIPAddress(), this.getAPIVersion(), this.getCredentials().user, this.getCredentials().pass);
-        } else {
-            this.client.setConfig(this.getIPAddress(), this.getAPIVersion());
-        }
+        this.deviceLog('registering flow card conditions');
+        this.registerFlowCardConditions();
 
-        this.log('PhilipsTV Device [' + this.getCredentials().user + '] initialized');
+        this.ready(() => {
+            this.deviceLog('initializing monitor');
+            this.initMonitor();
 
+            this.deviceLog('initialized');
+        });
+    }
+
+    registerListeners() {
         this._onCapabilitiesSet = this._onCapabilitiesSet.bind(this);
         // this._getCapabilityValue = this._getCapabilityValue.bind(this);
 
-        // this.registerMultipleCapabilityListener(this.getCapabilities(), this._onCapabilitiesSet, CAPABILITIES_SET_DEBOUNCE);
+        this.registerMultipleCapabilityListener(keyCapabilities, (capability, options) => {
+            return this._onCapabilitiesKeySet(capability, options);
+        }, CAPABILITIES_SET_DEBOUNCE);
 
-        this.registerCapabilityListener('onoff', (value) => {
-            if (value === true) {
-                return new Promise((resolve, reject) => {
-                    this.client.setPowerState('On').then((response) => {
-                        resolve(response);
-                    }).catch((error) => {
-                        if (error) {
-                            console.log(error);
-                        } else {
-                            wol.wake(this.getMACAddress(), {
-                                address: this.getIPAddress()
-                            }, function (error) {
-                                if (error) {
-                                    // handle error
-                                    reject(error);
-                                }
+        this.registerCapabilityListener('onoff', value => {
+            return this._onCapabilityOnOffSet(value);
+        });
 
-                                setTimeout(() => {
-                                    this.client.setPowerState('On').then(resolve).catch(reject);
-                                }, 10000);
-                            });
-                        }
-                    });
-                });
+        this.registerCapabilityListener('ambilight_onoff', value => {
+            return this._onCapabilityAmbilightOnOffSet(value);
+        });
+
+        this.registerCapabilityListener('ambihue_onoff', value => {
+            return this._onCapabilityAmbihueOnOffSet(value);
+        });
+
+        this.registerCapabilityListener('speaker_next', () => {
+            return this.sendKey('Next');
+        });
+
+        this.registerCapabilityListener('speaker_prev', () => {
+            return this.sendKey('Previous');
+        });
+
+        this.registerCapabilityListener('speaker_playing', value => {
+            if (value) {
+                this.sendKey('Play');
             } else {
-                return this.client.setPowerState('Standby');
+                this.sendKey('Pause');
             }
-        });
 
-        this.ready(() => {
-            this.updateDevice();
+            // Just return true, it takes way too long to wait for a response
+            return true;
         });
+    }
+
+    registerFlowCardConditions() {
+        let ambilightOnCondition = new Homey.FlowCardCondition('is_ambilight_on');
+
+        ambilightOnCondition
+            .register()
+            .registerRunListener((args, state) => {
+                return Promise.resolve(this.getCapabilityValue('ambilight_onoff'));
+
+            })
+    }
+
+    initMonitor() {
+        let initialTimeout = 10000;
+
+        if (this.getCapabilityValue('onoff') === true) {
+            initialTimeout = 500;
+        }
+
+        try {
+            this.updateDevice(initialTimeout);
+        } catch (error) {
+            console.error('Monitor failed with: ', error);
+            this.initMonitor();
+        }
     }
 
     getMACAddress() {
@@ -87,20 +165,57 @@ class PhilipsTV extends Homey.Device {
             && this._data.credentials.user !== null;
     }
 
-    updateDevice() {
-        this.client.getInfo().then((response) => {
-            this.setCapabilityValue('onoff', (response.powerstate.powerstate === 'On'))
-                .catch(this.error);
-        }).catch(this.error);
+    updateDevice(timeout) {
+        setTimeout(() => {
+            Promise.all([
+                this.getJointspaceClient().getInfo().then((response) => {
+                    this.setCapabilityValue('onoff', (response.powerstate.powerstate === 'On'))
+                        .catch(this.error);
+                }),
+                this.getJointspaceClient().getAudioData().then((response) => {
+                    let percentileVolume = (response.current === 0 ? 0 : response.current / (response.max / 100));
 
-        this.client.getAudioData().then((response) => {
-            let percentileVolume = (response.current === 0 ? 0 : response.current / (response.max / 100));
+                    this.setCapabilityValue('volume_set', percentileVolume)
+                        .catch(this.error);
+                    this.setCapabilityValue('volume_mute', (response.muted === true))
+                        .catch(this.error);
+                })
+            ]).then(results => {
+                this.updateDevice(UPDATE_INTERVAL);
+            }).catch(this.error);
+        }, timeout);
+    }
 
-            this.setCapabilityValue('volume_set', percentileVolume)
-                .catch(this.error);
-            this.setCapabilityValue('volume_mute', (response.muted === true))
-                .catch(this.error);
-        }).catch(this.error);
+    powerOnDevice(resolve, reject, tries = 2) {
+        tries--;
+
+        if (tries === 0) {
+            reject('Failed to wake up device');
+            return;
+        }
+
+        this.getJointspaceClient().setPowerState('On').then((response) => {
+            resolve(response);
+        }).catch((error) => {
+            if (error) {
+                console.log(error);
+            }
+
+            wol.wake(this.getMACAddress(), {
+                address: this.getIPAddress()
+            }, (error) => {
+                if (error) {
+                    // handle error
+                    reject(error);
+                }
+
+                setTimeout(() => {
+                    this.getJointspaceClient().setPowerState('On').then(resolve).catch(() => {
+                        this.powerOnDevice(resolve, reject, tries);
+                    });
+                }, 5000);
+            });
+        });
     }
 
     // _getCapabilityValue(capabilityId) {
@@ -112,28 +227,164 @@ class PhilipsTV extends Homey.Device {
     //     }
     // }
 
+    _onCapabilityOnOffSet(value) {
+        if (value === true) {
+            return new Promise((resolve, reject) => {
+                this.powerOnDevice(resolve, reject);
+            });
+        } else {
+            return this.getJointspaceClient().setPowerState('Standby');
+        }
+    }
+
+    _onCapabilityAmbilightOnOffSet(value) {
+        let ambilight;
+
+        if (value === true) {
+            ambilight = {"styleName": "FOLLOW_VIDEO", "isExpert": false, "menuSetting": "RELAX"};
+        } else {
+            ambilight = {"styleName": "OFF", "isExpert": false, "menuSetting": "RELAX"};
+        }
+
+        return this.getJointspaceClient().setAmbilight(ambilight);
+    }
+
+    _onCapabilityAmbihueOnOffSet(value) {
+        let setting = {
+            "values": [
+                {
+                    "value": {
+                        "Nodeid": 2131230774,
+                        "Controllable": "true",
+                        "Available": "true",
+                        "data": {
+                            "value": (value ? "true" : "false"),
+                        }
+                    }
+                }
+            ]
+        };
+
+        return this.getJointspaceClient().setSetting(setting);
+    }
+
     _onCapabilitiesSet(valueObj, optsObj) {
         console.log(valueObj, optsObj);
 
-        // if (valueObj.)
+        return true;
     }
 
-    _getDevice() {
-        let device = null;
-
-        return device;
+    sendKey(key) {
+        return this.getJointspaceClient().sendKey(key).error(this.error);
     }
 
-    _onSync() {
-        for (let capabilityId in capabilities) {
-            if (!this.hasCapability(capabilityId)) continue;
+    deviceLog(message) {
+        this.log('PhilipsTV Device [' + this._data.id + '] ' + message);
+    }
 
-            let capabilityValue = this._getCapabilityValue(capabilityId);
+    getJointspaceClient() {
+        if (typeof this._client === "undefined" || this._client === null) {
+            this._client = new JointspaceClient(this.getCredentials().user);
 
-            this.setCapabilityValue(capabilityId, capabilityValue)
-                .catch(err => {
-                    this.error(err, 'capabilityId:', capabilityId, 'convertedValue:', capabilityValue);
-                });
+            if (this.hasCredentials()) {
+                this._client.setConfig(this.getIPAddress(), this.getAPIVersion(), this.getCredentials().user, this.getCredentials().pass);
+            } else {
+                this._client.setConfig(this.getIPAddress(), this.getAPIVersion());
+            }
+        }
+
+        return this._client;
+    }
+
+    _onCapabilitiesKeySet(capability, options) {
+        console.log(capability, options);
+
+        if (typeof capability.key_stop !== "undefined") {
+            return this.sendKey('Stop');
+        } else if (typeof capability.key_play !== "undefined") {
+            return this.sendKey('Play');
+        } else if (typeof capability.key_back !== "undefined") {
+            return this.sendKey('Back');
+        } else if (typeof capability.key_play_pause !== "undefined") {
+            return this.sendKey('PlayPause');
+        } else if (typeof capability.key_online !== "undefined") {
+            return this.sendKey('Online');
+        } else if (typeof capability.key_record !== "undefined") {
+            return this.sendKey('Record');
+        } else if (typeof capability.key_rewind !== "undefined") {
+            return this.sendKey('Rewind');
+        } else if (typeof capability.key_fast_forward !== "undefined") {
+            return this.sendKey('FastForward');
+        } else if (typeof capability.key_toggle_ambilight !== "undefined") {
+            return this.sendKey('AmbilightOnOff');
+        } else if (typeof capability.key_source !== "undefined") {
+            return this.sendKey('Source');
+        } else if (typeof capability.key_toggle_subtitles !== "undefined") {
+            return this.sendKey('SubtitlesOnOff');
+        } else if (typeof capability.key_teletext !== "undefined") {
+            return this.sendKey('Teletext');
+        } else if (typeof capability.key_viewmode !== "undefined") {
+            return this.sendKey('Viewmode');
+        } else if (typeof capability.key_watch_tv !== "undefined") {
+            return this.sendKey('WatchTV');
+        } else if (typeof capability.key_confirm !== "undefined") {
+            return this.sendKey('Confirm');
+        } else if (typeof capability.key_previous !== "undefined") {
+            return this.sendKey('Previous');
+        } else if (typeof capability.key_next !== "undefined") {
+            return this.sendKey('Next');
+        } else if (typeof capability.key_adjust !== "undefined") {
+            return this.sendKey('Adjust');
+        } else if (typeof capability.key_cursor_left !== "undefined") {
+            return this.sendKey('CursorLeft');
+        } else if (typeof capability.key_cursor_up !== "undefined") {
+            return this.sendKey('CursorUp');
+        } else if (typeof capability.key_cursor_right !== "undefined") {
+            return this.sendKey('CursorRight');
+        } else if (typeof capability.key_cursor_down !== "undefined") {
+            return this.sendKey('CursorDown');
+        } else if (typeof capability.key_info !== "undefined") {
+            return this.sendKey('Info');
+        } else if (typeof capability.key_digit_0 !== "undefined") {
+            return this.sendKey('Digit0');
+        } else if (typeof capability.key_digit_1 !== "undefined") {
+            return this.sendKey('Digit1');
+        } else if (typeof capability.key_digit_2 !== "undefined") {
+            return this.sendKey('Digit2');
+        } else if (typeof capability.key_digit_3 !== "undefined") {
+            return this.sendKey('Digit3');
+        } else if (typeof capability.key_digit_4 !== "undefined") {
+            return this.sendKey('Digit4');
+        } else if (typeof capability.key_digit_5 !== "undefined") {
+            return this.sendKey('Digit5');
+        } else if (typeof capability.key_digit_6 !== "undefined") {
+            return this.sendKey('Digit6');
+        } else if (typeof capability.key_digit_7 !== "undefined") {
+            return this.sendKey('Digit7');
+        } else if (typeof capability.key_digit_8 !== "undefined") {
+            return this.sendKey('Digit8');
+        } else if (typeof capability.key_digit_9 !== "undefined") {
+            return this.sendKey('Digit9');
+        } else if (typeof capability.key_dot !== "undefined") {
+            return this.sendKey('Dot');
+        } else if (typeof capability.key_options !== "undefined") {
+            return this.sendKey('Options');
+        } else if (typeof capability.key_back !== "undefined") {
+            return this.sendKey('Back');
+        } else if (typeof capability.key_info !== "undefined") {
+            return this.sendKey('Info');
+        } else if (typeof capability.key_home !== "undefined") {
+            return this.sendKey('Home');
+        } else if (typeof capability.key_find !== "undefined") {
+            return this.sendKey('Find');
+        } else if (typeof capability.key_red !== "undefined") {
+            return this.sendKey('RedColour');
+        } else if (typeof capability.key_yellow !== "undefined") {
+            return this.sendKey('YellowColour');
+        } else if (typeof capability.key_green !== "undefined") {
+            return this.sendKey('GreenColour');
+        } else if (typeof capability.key_blue !== "undefined") {
+            return this.sendKey('BlueColour');
         }
     }
 }

@@ -61,7 +61,7 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
             pairingDevice.settings.apiVersion = data.apiVersion;
             pairingDevice.name = data.deviceName;
 
-            // Update Jointspace client with config
+            // Update Jointspace _client with config
             this.jointspaceClient.setConfig(data.ipAddress, data.apiVersion);
 
             // Continue to next view

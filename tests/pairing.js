@@ -20,12 +20,12 @@ let questions = [{
     client = new JointspaceClient(deviceId);
 
 inquirer.prompt(questions).then(answers => {
-    console.log('Updating client config');
+    console.log('Updating _client config');
     client.setConfig(answers.ipAddress, answers.apiVersion);
     client.setSecure(false);
     client.setPort(answers.port);
 
-    // client.debug = true;
+    // _client.debug = true;
 
     console.log('Sending system info call');
     client.getSystem().then((response) => {
@@ -62,6 +62,8 @@ inquirer.prompt(questions).then(answers => {
                                         console.log('The pin "' + answers.pin + '" is not valid');
                                     } else if (error.error_id === 'TIMEOUT') {
                                         console.log('Received a pairing session timeout');
+                                    } else if (error.error_id === 'ECONNRESET') {
+                                        console.log('The connection was reset during pairing, this shouldn\'t happen');
                                     } else {
                                         console.log('Unexpected pairing error', JSON.stringify(error));
                                     }

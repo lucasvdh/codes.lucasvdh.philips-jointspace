@@ -32,9 +32,55 @@
       },
       "getable": true,
       "setable": true,
-      "uiComponent": "toggle",
+      "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "/assets/capabilities/ambilight.svg"
+      "icon": "drivers/philips-jointspace/assets/capabilities/ambilight.svg",
+      "$flow": {
+        "triggers": [
+          {
+            "id": "ambilight_onoff_changed",
+            "title": {
+              "en": "Ambilight state changed",
+              "nl": "Ambilight veranderd"
+            },
+            "tokens": [
+              {
+                "name": "value",
+                "type": "boolean",
+                "title": {
+                  "en": "Turned on",
+                  "nl": "Staat aan"
+                },
+                "example": true
+              }
+            ]
+          }
+        ],
+        "conditions": [
+          {
+            "id": "is_abmilight_on",
+            "title": {
+              "en": "Ambilight is !{{on|off}}",
+              "nl": "Abmilight staat !{{aan|uit}}"
+            }
+          }
+        ],
+        "actions": [
+          {
+            "id": "switch_ambilight",
+            "title": {
+              "en": "Switch ambilight",
+              "nl": "Wijzig ambilight"
+            },
+            "args": [
+              {
+                "name": "ambilight_onoff",
+                "type": "boolean"
+              }
+            ]
+          }
+        ]
+      }
     },
     "ambihue_onoff": {
       "type": "boolean",
@@ -44,9 +90,526 @@
       },
       "getable": true,
       "setable": true,
-      "uiComponent": "toggle",
+      "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "/assets/capabilities/hue.svg"
+      "icon": "drivers/philips-jointspace/assets/capabilities/hue.svg"
+    },
+    "current_application": {
+      "type": "enum",
+      "values": [],
+      "title": {
+        "en": "Current app",
+        "nl": "Huidige app"
+      },
+      "getable": true,
+      "setable": true,
+      "uiComponent": "picker",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/application.svg"
+    },
+    "key_stop": {
+      "type": "boolean",
+      "title": {
+        "en": "Stop",
+        "nl": "Stop"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/stop.svg"
+    },
+    "key_play": {
+      "type": "boolean",
+      "title": {
+        "en": "Play",
+        "nl": "Play"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/play.svg"
+    },
+    "key_pause": {
+      "type": "boolean",
+      "title": {
+        "en": "Pause",
+        "nl": "Pauze"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "media",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/pause.svg"
+    },
+    "key_play_pause": {
+      "type": "boolean",
+      "title": {
+        "en": "Play/pause",
+        "nl": "Play/pauze"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "media",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/play_pause.svg"
+    },
+    "key_online": {
+      "type": "boolean",
+      "title": {
+        "en": "Online",
+        "nl": "Online"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/online.svg"
+    },
+    "key_record": {
+      "type": "boolean",
+      "title": {
+        "en": "Record",
+        "nl": "Opnemen"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/record.svg"
+    },
+    "key_rewind": {
+      "type": "boolean",
+      "title": {
+        "en": "Rewind",
+        "nl": "Terugspoelen"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/rewind.svg"
+    },
+    "key_fast_forward": {
+      "type": "boolean",
+      "title": {
+        "en": "Fast forward",
+        "nl": "Doorspoelen"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/fast_forward.svg"
+    },
+    "key_toggle_ambilight": {
+      "type": "boolean",
+      "title": {
+        "en": "Ambilight toggle",
+        "nl": "Ambilight aan/uit"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/toggle_ambilight.svg"
+    },
+    "key_source": {
+      "type": "boolean",
+      "title": {
+        "en": "Source",
+        "nl": "Source"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/source.svg"
+    },
+    "key_toggle_subtitles": {
+      "type": "boolean",
+      "title": {
+        "en": "Subtitle on/off",
+        "nl": "Ondertiteling aan/uit"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/toggle_subtitles.svg"
+    },
+    "key_teletext": {
+      "type": "boolean",
+      "title": {
+        "en": "Teletext",
+        "nl": "Teletekst"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/teletext.svg"
+    },
+    "key_viewmode": {
+      "type": "boolean",
+      "title": {
+        "en": "Viewmode",
+        "nl": "Weergavemodus"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/viewmode.svg"
+    },
+    "key_watch_tv": {
+      "type": "boolean",
+      "title": {
+        "en": "Watch TV",
+        "nl": "TV kijken"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/watch_tv.svg"
+    },
+    "key_confirm": {
+      "type": "boolean",
+      "title": {
+        "en": "Confirm",
+        "nl": "Bevestig"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/confirm.svg"
+    },
+    "key_previous": {
+      "type": "boolean",
+      "title": {
+        "en": "Previous",
+        "nl": "Vorige"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/previous.svg"
+    },
+    "key_next": {
+      "type": "boolean",
+      "title": {
+        "en": "Next",
+        "nl": "Volgende"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/next.svg"
+    },
+    "key_adjust": {
+      "type": "boolean",
+      "title": {
+        "en": "adjust",
+        "nl": "Aanpassen"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/adjust.svg"
+    },
+    "key_cursor_left": {
+      "type": "boolean",
+      "title": {
+        "en": "Cursor left",
+        "nl": "Wijzer links"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/cursor_left.svg"
+    },
+    "key_cursor_up": {
+      "type": "boolean",
+      "title": {
+        "en": "Cursor up",
+        "nl": "Wijzer omhoog"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/cursor_up.svg"
+    },
+    "key_cursor_right": {
+      "type": "boolean",
+      "title": {
+        "en": "Cursor right",
+        "nl": "Wijzer rechts"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/cursor_right.svg"
+    },
+    "key_cursor_down": {
+      "type": "boolean",
+      "title": {
+        "en": "Cursor down",
+        "nl": "Wijzer beneden"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/cursor_down.svg"
+    },
+    "key_info": {
+      "type": "boolean",
+      "title": {
+        "en": "Info",
+        "nl": "Info"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/info.svg"
+    },
+    "key_digit_1": {
+      "type": "boolean",
+      "title": {
+        "en": "Digit 1",
+        "nl": "Nummmer 1"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/digit_1.svg"
+    },
+    "key_digit_2": {
+      "type": "boolean",
+      "title": {
+        "en": "Digit 2",
+        "nl": "Nummmer 2"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/digit_2.svg"
+    },
+    "key_digit_3": {
+      "type": "boolean",
+      "title": {
+        "en": "Digit 3",
+        "nl": "Nummmer 3"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/digit_3.svg"
+    },
+    "key_digit_4": {
+      "type": "boolean",
+      "title": {
+        "en": "Digit 4",
+        "nl": "Nummmer 4"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/digit_4.svg"
+    },
+    "key_digit_5": {
+      "type": "boolean",
+      "title": {
+        "en": "Digit 5",
+        "nl": "Nummmer 5"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/digit_5.svg"
+    },
+    "key_digit_6": {
+      "type": "boolean",
+      "title": {
+        "en": "Digit 6",
+        "nl": "Nummmer 6"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/digit_6.svg"
+    },
+    "key_digit_7": {
+      "type": "boolean",
+      "title": {
+        "en": "Digit 7",
+        "nl": "Nummmer 7"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/digit_7.svg"
+    },
+    "key_digit_8": {
+      "type": "boolean",
+      "title": {
+        "en": "Digit 8",
+        "nl": "Nummmer 8"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/digit_8.svg"
+    },
+    "key_digit_9": {
+      "type": "boolean",
+      "title": {
+        "en": "Digit 9",
+        "nl": "Nummmer 9"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/digit_9.svg"
+    },
+    "key_digit_0": {
+      "type": "boolean",
+      "title": {
+        "en": "Digit 0",
+        "nl": "Nummmer 0"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/digit_0.svg"
+    },
+    "key_dot": {
+      "type": "boolean",
+      "title": {
+        "en": "Dot",
+        "nl": "Punt"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/dot.svg"
+    },
+    "key_options": {
+      "type": "boolean",
+      "title": {
+        "en": "Settings",
+        "nl": "Instellingen"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/settings.svg"
+    },
+    "key_back": {
+      "type": "boolean",
+      "title": {
+        "en": "Back",
+        "nl": "Terug"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/back.svg"
+    },
+    "key_home": {
+      "type": "boolean",
+      "title": {
+        "en": "Home",
+        "nl": "Home"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/home.svg"
+    },
+    "key_find": {
+      "type": "boolean",
+      "title": {
+        "en": "Find",
+        "nl": "Zoeken"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/find.svg"
+    },
+    "key_red": {
+      "type": "boolean",
+      "title": {
+        "en": "Red",
+        "nl": "Rood"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/red.svg"
+    },
+    "key_green": {
+      "type": "boolean",
+      "title": {
+        "en": "Green",
+        "nl": "Groen"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/green.svg"
+    },
+    "key_yellow": {
+      "type": "boolean",
+      "title": {
+        "en": "Yellow",
+        "nl": "Geel"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/yellow.svg"
+    },
+    "key_blue": {
+      "type": "boolean",
+      "title": {
+        "en": "Blue",
+        "nl": "Blauw"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/blue.svg"
     }
   },
   "drivers": [
@@ -59,14 +622,60 @@
       "class": "tv",
       "capabilities": [
         "onoff",
+        "ambilight_onoff",
+        "ambihue_onoff",
+        "key_play",
+        "key_pause",
+        "key_stop",
+        "key_back",
+        "key_confirm",
+        "key_home",
+        "key_previous",
+        "key_next",
+        "key_source",
+        "key_rewind",
+        "key_fast_forward",
         "volume_up",
-        "volume_set",
         "volume_down",
+        "volume_mute",
+        "key_cursor_left",
+        "key_cursor_up",
+        "key_cursor_right",
+        "key_cursor_down",
         "channel_up",
         "channel_down",
-        "volume_mute",
-        "ambilight_onoff",
-        "ambihue_onoff"
+        "volume_set",
+        "speaker_next",
+        "speaker_prev",
+        "speaker_playing",
+        "key_play_pause",
+        "key_online",
+        "key_record",
+        "key_toggle_ambilight",
+        "key_toggle_subtitles",
+        "key_teletext",
+        "key_viewmode",
+        "key_watch_tv",
+        "key_adjust",
+        "key_info",
+        "key_digit_1",
+        "key_digit_2",
+        "key_digit_3",
+        "key_digit_4",
+        "key_digit_5",
+        "key_digit_6",
+        "key_digit_7",
+        "key_digit_8",
+        "key_digit_9",
+        "key_digit_0",
+        "key_dot",
+        "key_options",
+        "key_info",
+        "key_find",
+        "key_red",
+        "key_green",
+        "key_yellow",
+        "key_blue"
       ],
       "images": {
         "large": "/drivers/philips-jointspace/assets/images/large.png",

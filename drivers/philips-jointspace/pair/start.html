@@ -44,6 +44,7 @@
     var ipAddressElement = document.getElementById('ipAddress');
     var apiVersionElement = document.getElementById('apiVersion');
     var deviceNameElement = document.getElementById('deviceName');
+    var loading = true;
 
     Homey.on('error', function (errortype, callback) {
         if (errortype === 'error') {
@@ -68,9 +69,16 @@
         ipAddressElement.value = device.settings.ipAddress;
         apiVersionElement.value = device.settings.apiVersion;
         deviceNameElement.value = device.name;
+
+        loading = false;
     });
 
     function saveSettings() {
+        if (loading) {
+            console.log('Loading ..')
+        }
+        loading = true;
+
         console.log('Saving settings...');
 
         let ipAddress = ipAddressElement.value,
@@ -90,6 +98,8 @@
 
             // Continue to back-end, pass along data
             Homey.emit('start_pair', data);
+        } else {
+            loading = false;
         }
     }
 

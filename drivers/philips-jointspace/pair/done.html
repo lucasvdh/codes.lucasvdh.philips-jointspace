@@ -1,4 +1,6 @@
 <script>
+    let creatingDevice = false;
+
     Homey.setTitle('Adding device...');
     Homey.emit('almost_done', null, (err, device) => {
         if (err) {
@@ -6,7 +8,11 @@
             return;
         }
 
-        console.log(device);
+        if (creatingDevice) {
+            console.log('Already creating device');
+            return;
+        }
+        creatingDevice = true;
 
         Homey.createDevice(device, (err, res) => {
             if (err) {
