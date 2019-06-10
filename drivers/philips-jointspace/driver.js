@@ -50,25 +50,53 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
             settings: {
                 ipAddress: '192.168.1.50',
                 apiVersion: 6,
+                secure: false,
+                port: 1926,
             },
         };
 
         socket.on('start_pair', (data, callback) => {
             console.log("Philips TV - starting pair");
+            console.log(data);
 
             // Set passed pair settings in variables
             pairingDevice.settings.ipAddress = data.ipAddress;
             pairingDevice.settings.apiVersion = data.apiVersion;
+            pairingDevice.settings.port = data.port;
             pairingDevice.name = data.deviceName;
 
             // Update Jointspace _client with config
-            this.jointspaceClient.setConfig(data.ipAddress, data.apiVersion);
+            this.jointspaceClient.setConfig(data.ipAddress, data.apiVersion, null, null, null, data.port);
 
             // Continue to next view
             socket.showView('validate');
 
-            this.jointspaceClient.getSystem().then(() => {
-                if (pairingDevice.settings.apiVersion >= 6) {
+            this.jointspaceClient.getSystem().then((response) => {
+                let systemFeatures;
+
+                // Get system feature to check if http or https should be used
+                if (
+                    typeof response.featuring !== "undefined"
+                    || typeof response.featuring.systemfeatures !== "undefined"
+                ) {
+                    systemFeatures = response.featuring.systemfeatures;
+
+                    pairingDevice.settings.secure = systemFeatures.secured_transport === 'true';
+
+                    // Setting secure transport based on system settings
+                    this.jointspaceClient.setSecure(pairingDevice.settings.secure);
+                }
+
+                if (typeof systemFeatures.pairing_type !== "undefined") {
+                    let pairingType = systemFeatures.pairing_type;
+
+                    if (pairingType === "digest_auth_pairing") {
+
+                    } else {
+                        socket.showView('start');
+                        socket.emit('error', 'unknown_pairing_type', pairingType);
+                    }
+
                     this.jointspaceClient.startPair().then((response) => {
                         if (response.error_id === 'SUCCESS') {
                             socket.showView('authenticate');
@@ -79,14 +107,22 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
                     }).catch((error) => {
                         socket.showView('start');
 
+                        console.log(error);
+
                         if (typeof error.statusCode !== "undefined") {
                             if (error.statusCode === 404) {
                                 socket.emit('error', 'not_found');
                             } else {
-                                socket.emit('error', error);
+                                socket.emit('error', JSON.stringify(error));
+                            }
+                        } else if (typeof error.code !== "undefined") {
+                            if (error.code === 'ECONNRESET') {
+                                socket.emit('error', 'host_unreachable');
+                            } else {
+                                socket.emit('error', JSON.stringify(error));
                             }
                         } else {
-                            socket.emit('error', 'host_unreachable');
+                            socket.emit('error', JSON.stringify(error));
                         }
                     });
                 } else {
@@ -104,7 +140,7 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
                             socket.emit('error', error);
                         }
                     } else if (typeof error.code !== 'undefined') {
-                        if (error.code === 'EHOSTUNREACH') {
+                        if (error.code === 'EHOSTUNREACH' || error.code === 'ECONNRESET') {
                             socket.emit('error', 'host_unreachable');
                         } else if (error.code === 'ETIMEDOUT') {
                             socket.emit('error', 'host_timeout');
@@ -118,9 +154,7 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
             });
         });
 
-        socket.on('pincode', (pincode, callback) => {
-            let code = pincode.join('');
-
+        socket.on('pincode', (code, callback) => {
             this.jointspaceClient.confirmPair(code).then((credentials) => {
                 pairingDevice.data.credentials = credentials;
                 callback(null, true);

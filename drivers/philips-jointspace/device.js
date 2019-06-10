@@ -63,15 +63,18 @@ class PhilipsTV extends Homey.Device {
         this._data = this.getData();
         this._settings = this.getSettings();
 
+        this.setCapabilityValue('onoff', false);
+
         this.deviceLog('registering listeners');
         this.registerListeners();
 
-        this.deviceLog('registering flow card conditions');
-        this.registerFlowCardConditions();
+        this.deviceLog('flow card conditions temporarily disabled');
+        // this.deviceLog('registering flow card conditions');
+        // this.registerFlowCardConditions();
 
         this.ready(() => {
             this.deviceLog('initializing monitor');
-            this.initMonitor();
+            this.initMonitor(0);
 
             this.deviceLog('initialized');
         });
@@ -128,19 +131,21 @@ class PhilipsTV extends Homey.Device {
             })
     }
 
-    initMonitor() {
-        let initialTimeout = 10000;
+    initMonitor(initialTimeout = 10000) {
 
         if (this.getCapabilityValue('onoff') === true) {
             initialTimeout = 500;
         }
 
-        try {
-            this.updateDevice(initialTimeout);
-        } catch (error) {
+        new Promise((resolve, reject) => {
+            this.updateDevice(initialTimeout, resolve, reject);
+        }).then(() => {
+            this.deviceLog('monitor initialized');
+        }).catch(error => {
             console.error('Monitor failed with: ', error);
+            this.deviceLog('re-initializing monitor');
             this.initMonitor();
-        }
+        });
     }
 
     getMACAddress() {
@@ -155,6 +160,14 @@ class PhilipsTV extends Homey.Device {
         return this._settings.apiVersion;
     }
 
+    getSecure() {
+        return this._settings.secure !== false;
+    }
+
+    getPort() {
+        return this._settings.port;
+    }
+
     getCredentials() {
         return this._data.credentials;
     }
@@ -165,7 +178,7 @@ class PhilipsTV extends Homey.Device {
             && this._data.credentials.user !== null;
     }
 
-    updateDevice(timeout) {
+    updateDevice(timeout, resolve, reject) {
         setTimeout(() => {
             Promise.all([
                 this.getJointspaceClient().getInfo().then((response) => {
@@ -181,38 +194,44 @@ class PhilipsTV extends Homey.Device {
                         .catch(this.error);
                 })
             ]).then(results => {
-                this.updateDevice(UPDATE_INTERVAL);
-            }).catch(this.error);
+                resolve();
+
+                // Call next loop
+                new Promise((resolve1, reject1) => {
+                    this.updateDevice(UPDATE_INTERVAL, resolve1, reject1);
+                }).then(() => {
+                    this.deviceLog('monitor updated device values')
+                }).catch(reject);
+            }).catch(reject);
         }, timeout);
     }
 
-    powerOnDevice(resolve, reject, tries = 2) {
+    powerOnDevice(resolve, reject, tries = 3) {
         tries--;
 
-        if (tries === 0) {
+        if (tries < 0) {
             reject('Failed to wake up device');
             return;
         }
 
+        this.deviceLog('powering on device, number of tries left: ' + tries);
+
         this.getJointspaceClient().setPowerState('On').then((response) => {
+            this.deviceLog('successfully sent power on');
             resolve(response);
         }).catch((error) => {
-            if (error) {
-                console.log(error);
-            }
+            this.deviceLog('couldn\'t reach device, sending WOL and trying again');
 
-            wol.wake(this.getMACAddress(), {
-                address: this.getIPAddress()
-            }, (error) => {
+            wol.wake(this.getMACAddress(), (error) => {
                 if (error) {
                     // handle error
                     reject(error);
                 }
 
+                this.deviceLog('sent WOL to ' + this.getMACAddress() + ', retrying power on in 5 seconds');
+
                 setTimeout(() => {
-                    this.getJointspaceClient().setPowerState('On').then(resolve).catch(() => {
-                        this.powerOnDevice(resolve, reject, tries);
-                    });
+                    this.powerOnDevice(resolve, reject, tries);
                 }, 5000);
             });
         });
@@ -229,9 +248,18 @@ class PhilipsTV extends Homey.Device {
 
     _onCapabilityOnOffSet(value) {
         if (value === true) {
-            return new Promise((resolve, reject) => {
+            this.deviceLog('turning on device');
+
+            (new Promise((resolve, reject) => {
                 this.powerOnDevice(resolve, reject);
+            })).then((response) => {
+                this.deviceLog('Powered on', response);
+            }).catch((error) => {
+                this.deviceLog('Power on failed');
+                console.log(error);
             });
+
+            return true;
         } else {
             return this.getJointspaceClient().setPowerState('Standby');
         }
@@ -274,8 +302,8 @@ class PhilipsTV extends Homey.Device {
         return true;
     }
 
-    sendKey(key) {
-        return this.getJointspaceClient().sendKey(key).error(this.error);
+    async sendKey(key) {
+        return await this.getJointspaceClient().sendKey(key).catch(this.error);
     }
 
     deviceLog(message) {
@@ -287,9 +315,23 @@ class PhilipsTV extends Homey.Device {
             this._client = new JointspaceClient(this.getCredentials().user);
 
             if (this.hasCredentials()) {
-                this._client.setConfig(this.getIPAddress(), this.getAPIVersion(), this.getCredentials().user, this.getCredentials().pass);
+                this._client.setConfig(
+                    this.getIPAddress(),
+                    this.getAPIVersion(),
+                    this.getCredentials().user,
+                    this.getCredentials().pass,
+                    this.getSecure(),
+                    this.getPort()
+                );
             } else {
-                this._client.setConfig(this.getIPAddress(), this.getAPIVersion());
+                this._client.setConfig(
+                    this.getIPAddress(),
+                    this.getAPIVersion(),
+                    null,
+                    null,
+                    this.getSecure(),
+                    this.getPort()
+                );
             }
         }
 

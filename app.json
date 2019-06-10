@@ -34,53 +34,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/ambilight.svg",
-      "$flow": {
-        "triggers": [
-          {
-            "id": "ambilight_onoff_changed",
-            "title": {
-              "en": "Ambilight state changed",
-              "nl": "Ambilight veranderd"
-            },
-            "tokens": [
-              {
-                "name": "value",
-                "type": "boolean",
-                "title": {
-                  "en": "Turned on",
-                  "nl": "Staat aan"
-                },
-                "example": true
-              }
-            ]
-          }
-        ],
-        "conditions": [
-          {
-            "id": "is_abmilight_on",
-            "title": {
-              "en": "Ambilight is !{{on|off}}",
-              "nl": "Abmilight staat !{{aan|uit}}"
-            }
-          }
-        ],
-        "actions": [
-          {
-            "id": "switch_ambilight",
-            "title": {
-              "en": "Switch ambilight",
-              "nl": "Wijzig ambilight"
-            },
-            "args": [
-              {
-                "name": "ambilight_onoff",
-                "type": "boolean"
-              }
-            ]
-          }
-        ]
-      }
+      "icon": "drivers/philips-jointspace/assets/capabilities/ambilight.svg"
     },
     "ambihue_onoff": {
       "type": "boolean",
@@ -139,7 +93,7 @@
       },
       "getable": false,
       "setable": true,
-      "uiComponent": "media",
+      "uiComponent": "button",
       "uiQuickAction": true,
       "icon": "drivers/philips-jointspace/assets/capabilities/pause.svg"
     },
@@ -151,7 +105,7 @@
       },
       "getable": false,
       "setable": true,
-      "uiComponent": "media",
+      "uiComponent": "button",
       "uiQuickAction": true,
       "icon": "drivers/philips-jointspace/assets/capabilities/play_pause.svg"
     },
@@ -691,7 +645,6 @@
         },
         {
           "id": "authenticate",
-          "template": "pincode",
           "options": {
             "title": {
               "en": "Enter the code displayed on the TV",

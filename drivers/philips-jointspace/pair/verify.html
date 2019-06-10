@@ -1,7 +1,8 @@
 <link href="../assets/pairing.css" rel="stylesheet">
 
 <p id="verifying" data-i18n="pair.verify.verifying">Checking Wake-on-LAN configuration</p>
-<p id="verified" class="hidden" data-i18n="pair.verify.verified">Wake-on-LAN enabled and working correctly</p>
+<p id="verified" class="hidden" data-i18n="pair.verify.verified">Wake-on-LAN enabled and working correctly, adding
+    device.</p>
 <div id="error" class="hidden">
     <p data-i18n="pair.verify.errorTitle" class="title">
         Could not verify WOL
@@ -21,15 +22,15 @@
     var errorElement = document.getElementById('error');
 
     Homey.emit('verify_wol', null, (err, hasWOL) => {
-        verifyingElement.setAttribute('class', 'hidden');
+        verifyingElement.classList.add('hidden');
 
         if (hasWOL) {
-            verifiedElement.setAttribute('class', '');
+            verifiedElement.classList.remove('hidden');
             setTimeout(() => {
                 nextView();
-            }, 2000);
+            }, 1000);
         } else {
-            errorElement.setAttribute('class', '');
+            errorElement.classList.remove('hidden');
         }
     });
 
