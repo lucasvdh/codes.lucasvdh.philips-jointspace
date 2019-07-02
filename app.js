@@ -78,4 +78,4 @@ class PhilipsTV extends Homey.App {
 
 }
 
-module.exports = MyApp;
+module.exports = PhilipsTV;
