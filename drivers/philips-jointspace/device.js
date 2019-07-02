@@ -250,16 +250,12 @@ class PhilipsTV extends Homey.Device {
         if (value === true) {
             this.deviceLog('turning on device');
 
-            (new Promise((resolve, reject) => {
+            return (new Promise((resolve, reject) => {
                 this.powerOnDevice(resolve, reject);
             })).then((response) => {
                 this.deviceLog('Powered on', response);
-            }).catch((error) => {
-                this.deviceLog('Power on failed');
-                console.log(error);
-            });
-
-            return true;
+                return response;
+            })
         } else {
             return this.getJointspaceClient().setPowerState('Standby');
         }
