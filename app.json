@@ -36,6 +36,69 @@
       "uiQuickAction": true,
       "icon": "drivers/philips-jointspace/assets/capabilities/ambilight.svg"
     },
+    "ambilight_mode": {
+      "type": "enum",
+      "title": {
+        "en": "Ambilight mode",
+        "nl": "Ambilight modus"
+      },
+      "getable": true,
+      "setable": true,
+      "uiComponent": "picker",
+      "uiQuickAction": true,
+      "icon": "drivers/philips-jointspace/assets/capabilities/ambilight.svg",
+      "values": [
+        {
+          "id": "off",
+          "title": {
+            "en": "Off",
+            "nl": "Uit"
+          }
+        },
+        {
+          "id": "follow_video",
+          "title": {
+            "en": "Follow video",
+            "nl": "Volg beeld"
+          }
+        },
+        {
+          "id": "follow_audio",
+          "title": {
+            "en": "Follow audio",
+            "nl": "Volg geluid"
+          }
+        },
+        {
+          "id": "follow_color",
+          "title": {
+            "en": "Follow color",
+            "nl": "Volg kleur"
+          }
+        },
+        {
+          "id": "lounge",
+          "title": {
+            "en": "Lounge",
+            "nl": "Lounge"
+          }
+        },
+        {
+          "id": "expert",
+          "title": {
+            "en": "Expert",
+            "nl": "Expert"
+          }
+        },
+        {
+          "id": "grid",
+          "title": {
+            "en": "Grid",
+            "nl": "Grid"
+          }
+        }
+      ]
+    },
     "ambihue_onoff": {
       "type": "boolean",
       "title": {
@@ -689,5 +752,45 @@
         }
       ]
     }
-  ]
+  ],
+  "flow": {
+    "actions": [
+      {
+        "id": "open_application",
+        "title": {
+          "en": "Open an application",
+          "nl": "Open een app"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=philips-jointspace"
+          },
+          {
+            "name": "app",
+            "type": "autocomplete"
+          }
+        ]
+      },
+      {
+        "id": "send_key",
+        "title": {
+          "en": "Send a key",
+          "nl": "Stuur een knop"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=philips-jointspace"
+          },
+          {
+            "name": "option",
+            "type": "autocomplete"
+          }
+        ]
+      }
+    ]
+  }
 }

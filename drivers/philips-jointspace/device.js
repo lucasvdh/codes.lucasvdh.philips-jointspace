@@ -63,7 +63,7 @@ class PhilipsTV extends Homey.Device {
         this._data = this.getData();
         this._settings = this.getSettings();
 
-        this.setCapabilityValue('onoff', false);
+        this.setCapabilityValue('onoff', true);
 
         this.deviceLog('registering listeners');
         this.registerListeners();
