@@ -1,10 +1,8 @@
 'use strict';
 
 const Homey = require('homey');
-const net = require('net');
-const request = require('request');
 const JointspaceClient = require('../../lib/JointspaceClient');
-const wol = require('node-wol');
+const DigestRequest = require('../../lib/DigestRequest');
 
 // a list of devices, with their 'id' as key
 // it is generally advisable to keep a list of
@@ -46,75 +44,173 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
         let pairingDevice = {
             name: 'Philips TV',
             data: {
+                mac: null,
+                credentials: {},
+            },
+            settings: {
                 ipAddress: '192.168.1.50',
                 apiVersion: 6,
-                mac: null,
-                credentials: null,
+                secure: false,
+                port: 1926,
             },
-            settings: {},
         };
 
         socket.on('start_pair', (data, callback) => {
             console.log("Philips TV - starting pair");
+            console.log(data);
 
             // Set passed pair settings in variables
-            pairingDevice.data.ipAddress = data.ipAddress;
-            pairingDevice.data.apiVersion = data.apiVersion;
+            pairingDevice.settings.ipAddress = data.ipAddress;
+            pairingDevice.settings.apiVersion = data.apiVersion;
+            pairingDevice.settings.port = data.port;
             pairingDevice.name = data.deviceName;
 
-            // Update Jointspace client with config
-            this.jointspaceClient.setConfig(data.ipAddress, data.apiVersion);
+            // Update Jointspace _client with config
+            this.jointspaceClient.setConfig(data.ipAddress, data.apiVersion, null, null, null, data.port);
 
             // Continue to next view
             socket.showView('validate');
 
-            this.jointspaceClient.getSystem().then(() => {
-                if (pairingDevice.data.apiVersion >= 6) {
+            this.jointspaceClient.getSystem().then((response) => {
+                let systemFeatures;
+
+                // Get system feature to check if http or https should be used
+                if (
+                    typeof response.featuring !== "undefined"
+                    || typeof response.featuring.systemfeatures !== "undefined"
+                ) {
+                    systemFeatures = response.featuring.systemfeatures;
+
+                    pairingDevice.settings.secure = systemFeatures.secured_transport === 'true';
+
+                    // Setting secure transport based on system settings
+                    this.jointspaceClient.setSecure(pairingDevice.settings.secure);
+                }
+
+                if (typeof systemFeatures.pairing_type !== "undefined") {
+                    let pairingType = systemFeatures.pairing_type;
+
+                    if (pairingType === "digest_auth_pairing") {
+
+                    } else {
+                        socket.showView('start');
+                        socket.emit('error', 'unknown_pairing_type', pairingType);
+                    }
+
                     this.jointspaceClient.startPair().then((response) => {
                         if (response.error_id === 'SUCCESS') {
                             socket.showView('authenticate');
                         } else {
                             socket.showView('start');
-                            socket.emit('error', 'Concurrent pairing process');
+                            socket.emit('error', 'concurrent_pairing');
                         }
                     }).catch((error) => {
                         socket.showView('start');
-                        socket.emit('error', error);
+
+                        console.log(error);
+
+                        if (typeof error.statusCode !== "undefined") {
+                            if (error.statusCode === 404) {
+                                socket.emit('error', 'not_found');
+                            } else {
+                                socket.emit('error', JSON.stringify(error));
+                            }
+                        } else if (typeof error.code !== "undefined") {
+                            if (error.code === 'ECONNRESET') {
+                                socket.emit('error', 'host_unreachable');
+                            } else {
+                                socket.emit('error', JSON.stringify(error));
+                            }
+                        } else {
+                            socket.emit('error', JSON.stringify(error));
+                        }
                     });
                 } else {
                     socket.showView('done');
                 }
             }).catch((error) => {
-                socket.emit('error');
+                socket.showView('start');
+
+                if (typeof error !== "undefined" && error !== null) {
+                    if (typeof error.statusCode !== "undefined") {
+                        console.log(error.statusCode);
+                        if (error.statusCode === 404) {
+                            socket.emit('error', 'not_found');
+                        } else {
+                            socket.emit('error', error);
+                        }
+                    } else if (typeof error.code !== 'undefined') {
+                        if (error.code === 'EHOSTUNREACH' || error.code === 'ECONNRESET') {
+                            socket.emit('error', 'host_unreachable');
+                        } else if (error.code === 'ETIMEDOUT') {
+                            socket.emit('error', 'host_timeout');
+                        } else {
+                            socket.emit('error', error);
+                        }
+                    }
+                } else {
+                    socket.emit('error', error);
+                }
             });
         });
 
-        socket.on('pincode', (pincode, callback) => {
-            let code = pincode.join('');
-
+        socket.on('pincode', (code, callback) => {
             this.jointspaceClient.confirmPair(code).then((credentials) => {
                 pairingDevice.data.credentials = credentials;
                 callback(null, true);
             }).catch((error) => {
-                console.log('error', error);
-                callback(null, false);
+                if (typeof error.error_id !== "undefined") {
+                    if (error.error_id === 'INVALID_PIN') {
+                        console.log('The pin "' + code + '" is not valid');
+                        callback(null, false);
+                    } else if (error.error_id === 'TIMEOUT') {
+                        console.log('Received a pairing session timeout');
+                        socket.showView('start');
+                        socket.emit('error', 'pair_timeout');
+                    } else {
+                        console.log('Unexpected pairing error', JSON.stringify(error));
+                        callback(null, false);
+                    }
+                } else {
+                    console.log('Unexpected pairing error', JSON.stringify(error));
+                    callback(null, false);
+                }
             });
         });
 
-        socket.on('almost_done', function (data, callback) {
-            console.log('socket almost_done', data);
-            pairingDevice.data.id = guid();
+        socket.on('verify_wol', (data, callback) => {
+            this.jointspaceClient.getNetworkDevices().then((networkDevices) => {
+                console.log('Checking WOL, got network devices:', networkDevices);
+
+                if (Array.isArray(networkDevices)) {
+                    for (let i in networkDevices) {
+                        let networkDevice = networkDevices[i];
+
+                        if (typeof networkDevice['wake-on-lan'] !== "undefined" && networkDevice['wake-on-lan'] === 'Enabled') {
+                            pairingDevice.data.mac = networkDevice["mac"];
+                            callback(null, true);
+                            break;
+                        }
+                    }
+                } else {
+                    console.log('Could not get mac address from tv', JSON.stringify(networkDevices));
+                    callback(null, false);
+                }
+            }).catch((error) => {
+                callback(null, false);
+                this.error(error);
+            });
+        });
+
+        socket.on('almost_done', (data, callback) => {
+            // TODO: maybe this should be based on MAC address
+            pairingDevice.data.id = DigestRequest.md5(pairingDevice.settings.ipAddress);
             console.log('device', pairingDevice);
             callback(null, pairingDevice);
         });
-    }
 
-    validateIPAddress(ipAddress, apiVersion, callback) {
-        this.jointspaceClient.getSystem().then(function (data) {
-            console.log('Device name', data.name);
-            callback(true);
-        }, function (error) {
-            callback(false);
+        socket.on('get_device', (data, callback) => {
+            callback(null, pairingDevice);
         });
     }
 
@@ -173,23 +269,6 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
 
     }
 
-    post(url, args) {
-        // post the command to the TV
-        // console.log("Post to tv ", url, args)
-        request({
-                url: url,
-                method: "POST",
-                json: args
-            }, function (error, response, body) {
-                if (!error && response.statusCode == 200) {
-                    // ready
-                } else {
-                    console.log(" Command to Philips TV, gives an error in response", error, response)
-                    // callback (error);
-                }
-            }
-        );
-    };
 }
 
 module.exports = PhilipsJointSpaceDriver;

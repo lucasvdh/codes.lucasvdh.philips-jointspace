@@ -1,17 +1,35 @@
 {
   "pair": {
     "start": {
-      "intro": "Vul het IP adres en Device Nr van uw apparaat in en geef het een naam.",
+      "intro": "Het is belangrijk dat uw tv aan staat voordat u doorgaat.",
       "title": "Apparaat zoeken...",
-      "error": "Er is een fout opgetreden.",
-      "required": "IP adres en Device Nr is verplicht.",
-      "ipAddress": "IP adres",
+      "ipAddress": "IP-adres",
+      "ipAddressDescription": "Zorg ervoor dat het IP-adres van uw tv niet wijzigt door deze een statisch adres toe te wijzen in uw router aan de hand van het MAC-adres.",
       "apiVersion": "Jointspace API versie",
       "deviceName": "Naam van het apparaat",
-      "saveSettings": "Gegevens opslaan"
+      "saveSettings": "Gegevens opslaan",
+      "constructionYear": "Model bouwjaar",
+      "constructionYearDescription": "Dit bepaalt welke versie van de API wordt gebruikt om met uw tv te communiceren. Tv's vóór 2016 vereisen geen koppelingsproces. Als uw apparaat correct wordt toegevoegd maar uw tv niet reageert, moet u mogelijk de nieuwere versie selecteren."
     },
     "authenticate": {
-      "intro": "Vul de code in die op de TV wordt weergegeven"
+      "intro": "Vul de code in die op de TV wordt weergegeven",
+      "submit": "Versturen"
+    },
+    "verify": {
+      "verifying": "Controleren van de Wake-on-LAN configuratie...",
+      "verified": "Wake-on-LAN is ingeschakeld en functioneert correct!",
+      "errorTitle": "Kon WOL niet verifi&euml;ren",
+      "errorDescription": "Het aan / uit-gedrag van de tv werkt mogelijk niet zoals verwacht als Wake-on-LAN niet is ingeschakeld. <br/> Wanneer uw tv op stand-by wordt gezet, kunt u deze daarna ongeveer nog 10 minuten lang besturen voordat deze volledig wordt uitgeschakeld. Zonder Wake-on-LAN is er hierna geen manier om uw tv weer aan te zetten.",
+      "confirm": "Begrepen"
     }
+  },
+  "error": {
+    "generic": "Er is een fout opgetreden",
+    "incorrectPincode": "De pincode is incorrect",
+    "pairingTimeout": "De koppelsessie is verlopen, probeer het nogmaals.",
+    "endpointNotFound": "Kon de tv wel bereiken maar niet de API. Waarschijnlijk is de API versie incorrect.",
+    "hostUnreachable": "Kon de tv niet bereiken op dit IP-adres. Is het IP juist en staat de tv aan? Probeer anders een andere API versie.",
+    "connectionTimedOut": "The connection to the TV timed out. Is the IP correct and the TV turned on? Probeer anders een andere API versie.",
+    "concurrentPairing": "Er reeds een koppelingverzoek gestart, wacht 60 seconden en probeer het opnieuw."
   }
 }

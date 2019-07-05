@@ -1,0 +1,41 @@
+<link href="../assets/pairing.css" rel="stylesheet">
+
+<p id="verifying" data-i18n="pair.verify.verifying">Checking Wake-on-LAN configuration</p>
+<p id="verified" class="hidden" data-i18n="pair.verify.verified">Wake-on-LAN enabled and working correctly, adding
+    device.</p>
+<div id="error" class="hidden">
+    <p data-i18n="pair.verify.errorTitle" class="title">
+        Could not verify WOL
+    </p>
+    <p data-i18n="pair.verify.errorDescription">
+        The on/off behaviour of the TV might not work as expected if Wake-on-LAN is not enabled. <br/>
+        When your TV is put on standby you'll be able to send commands to it for about 10 minutes before it turns off
+        completely. Without Wake-on-LAN there'll be no way to turn your TV back on.
+    </p>
+
+    <a class="btn btn-primary btn-block btn-lg" data-i18n="pair.verify.confirm" onclick="nextView()">Confirm</a>
+</div>
+
+<script>
+    var verifyingElement = document.getElementById('verifying');
+    var verifiedElement = document.getElementById('verified');
+    var errorElement = document.getElementById('error');
+
+    Homey.emit('verify_wol', null, (err, hasWOL) => {
+        verifyingElement.classList.add('hidden');
+
+        if (hasWOL) {
+            verifiedElement.classList.remove('hidden');
+            setTimeout(() => {
+                nextView();
+            }, 1000);
+        } else {
+            errorElement.classList.remove('hidden');
+        }
+    });
+
+    function nextView() {
+        Homey.showView('done');
+    }
+
+</script>

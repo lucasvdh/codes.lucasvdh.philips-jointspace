@@ -1,0 +1,50 @@
+<div class="container">
+    <div class="center">
+        <p>&nbsp;</p>
+
+        <p data-i18n="pair.authenticate.intro">Enter the code displayed on the TV</p>
+
+        <p>&nbsp;</p>
+
+        <input id="pincode" type="number" onkeypress="onKeyPress()" class="pincode" maxlength="4" max="4">
+
+        <p>&nbsp;</p>
+    </div>
+</div>
+<a id="saveButton" class="btn btn-success btn-block btn-lg" data-i18n="pair.authenticate.submit"
+   onclick="submitPincode()">Submit</a>
+
+<script>
+    var pincodeElement = document.getElementById('pincode'),
+        saveButtonElement = document.getElementById('saveButton'),
+        loading = false;
+
+    function submitPincode() {
+        if (loading) {
+            return;
+        }
+        loading = true;
+        saveButtonElement.classList.add('loading-fade-out');
+
+        let pincode = pincodeElement.value;
+
+        Homey.emit('pincode', pincode, (err, success) => {
+            loading = false;
+
+            if (success) {
+                Homey.nextView();
+            } else {
+                Homey.alert(__('error.incorrectPincode'), 'error', () => {
+                    pincodeElement.value = '';
+                    pincodeElement.focus();
+                });
+                saveButtonElement.classList.remove('loading-fade-out');
+            }
+        });
+    }
+
+    setTimeout(() => {
+        pincodeElement.focus();
+    }, 200);
+
+</script>
