@@ -4,14 +4,15 @@
   "compatibility": ">=1.5.0",
   "sdk": 2,
   "name": {
-    "en": "Philips TV Remote Control",
-    "nl": "Philips TV Afstandsbediening"
+    "en": "Philips TV",
+    "nl": "Philips TV"
   },
   "description": {
-    "en": "Control your Philips TV's via the Jointspace API, supporting models up to at least 2018",
-    "nl": "Bestuur uw Philips TV's via de Jointspace API, met ondersteuning voor modellen tot in ieder geval 2018"
+    "en": "Control your Philips TV's via the Jointspace API, supporting models ~2014 to 2019",
+    "nl": "Bestuur je Philips TV's via de Jointspace API, met ondersteuning voor modellen van ~2014 tot 2019"
   },
   "category": [
+    "video",
     "appliances"
   ],
   "author": {
