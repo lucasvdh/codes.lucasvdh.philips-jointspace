@@ -91,42 +91,41 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
                     let pairingType = systemFeatures.pairing_type;
 
                     if (pairingType === "digest_auth_pairing") {
+                        // We've got an android tv which required pairing
+                        this.jointspaceClient.startPair().then((response) => {
+                            if (response.error_id === 'SUCCESS') {
+                                socket.showView('authenticate');
+                            } else {
+                                socket.showView('start');
+                                socket.emit('error', 'concurrent_pairing');
+                            }
+                        }).catch((error) => {
+                            socket.showView('start');
 
+                            console.log(error);
+
+                            if (typeof error.statusCode !== "undefined") {
+                                if (error.statusCode === 404) {
+                                    socket.emit('error', 'not_found');
+                                } else {
+                                    socket.emit('error', JSON.stringify(error));
+                                }
+                            } else if (typeof error.code !== "undefined") {
+                                if (error.code === 'ECONNRESET') {
+                                    socket.emit('error', 'host_unreachable');
+                                } else {
+                                    socket.emit('error', JSON.stringify(error));
+                                }
+                            } else {
+                                socket.emit('error', JSON.stringify(error));
+                            }
+                        });
                     } else {
                         socket.showView('start');
                         socket.emit('error', 'unknown_pairing_type', pairingType);
                     }
-
-                    this.jointspaceClient.startPair().then((response) => {
-                        if (response.error_id === 'SUCCESS') {
-                            socket.showView('authenticate');
-                        } else {
-                            socket.showView('start');
-                            socket.emit('error', 'concurrent_pairing');
-                        }
-                    }).catch((error) => {
-                        socket.showView('start');
-
-                        console.log(error);
-
-                        if (typeof error.statusCode !== "undefined") {
-                            if (error.statusCode === 404) {
-                                socket.emit('error', 'not_found');
-                            } else {
-                                socket.emit('error', JSON.stringify(error));
-                            }
-                        } else if (typeof error.code !== "undefined") {
-                            if (error.code === 'ECONNRESET') {
-                                socket.emit('error', 'host_unreachable');
-                            } else {
-                                socket.emit('error', JSON.stringify(error));
-                            }
-                        } else {
-                            socket.emit('error', JSON.stringify(error));
-                        }
-                    });
                 } else {
-                    socket.showView('done');
+                    socket.showView('verify');
                 }
             }).catch((error) => {
                 socket.showView('start');
