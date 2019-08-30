@@ -181,26 +181,22 @@ class PhilipsTV extends Homey.Device {
 
     updateDevice(timeout, resolve, reject) {
         setTimeout(() => {
-            let systemPromise = this.getJointspaceClient().getInfo().then((response) => {
-                this.setCapabilityValue('onoff', (response.powerstate.powerstate === 'On'))
-                    .catch(this.error);
-            }).catch(error => {
-                this.setCapabilityValue('onoff', false)
-                    .catch(this.error);
-            });
-
-            let audioPromise = this.getJointspaceClient().getAudioData().then((response) => {
-                let percentileVolume = (response.current === 0 ? 0 : response.current / (response.max / 100));
-
-                this.setCapabilityValue('volume_set', percentileVolume)
-                    .catch(this.error);
-                this.setCapabilityValue('volume_mute', (response.muted === true))
-                    .catch(this.error);
-            });
-
             Promise.all([
-                systemPromise,
-                audioPromise
+                this.getJointspaceClient().getInfo().then((response) => {
+                    this.setCapabilityValue('onoff', (response.powerstate.powerstate === 'On'))
+                        .catch(this.error);
+                }).catch(error => {
+                    this.setCapabilityValue('onoff', false)
+                        .catch(this.error);
+                }),
+                this.getJointspaceClient().getAudioData().then((response) => {
+                    let percentileVolume = (response.current === 0 ? 0 : response.current / (response.max / 100));
+
+                    this.setCapabilityValue('volume_set', percentileVolume)
+                        .catch(this.error);
+                    this.setCapabilityValue('volume_mute', (response.muted === true))
+                        .catch(this.error);
+                })
             ]).then(results => {
                 resolve();
 
@@ -230,7 +226,6 @@ class PhilipsTV extends Homey.Device {
         }).catch((error) => {
             this.deviceLog('couldn\'t reach device, sending WOL and trying again');
 
-            // Just spam the WOL, sometimes once isn't enough
             // Add callback to last WOL
             wol.wake(this.getMACAddress(), (error) => {
                 if (error) {
