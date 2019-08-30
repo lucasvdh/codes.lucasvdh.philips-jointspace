@@ -62,6 +62,7 @@ class PhilipsTV extends Homey.Device {
     onInit() {
         this._data = this.getData();
         this._settings = this.getSettings();
+        this.poweringOnOrOff = false;
 
         this.setCapabilityValue('onoff', true);
 
@@ -180,19 +181,26 @@ class PhilipsTV extends Homey.Device {
 
     updateDevice(timeout, resolve, reject) {
         setTimeout(() => {
-            Promise.all([
-                this.getJointspaceClient().getInfo().then((response) => {
-                    this.setCapabilityValue('onoff', (response.powerstate.powerstate === 'On'))
-                        .catch(this.error);
-                }),
-                this.getJointspaceClient().getAudioData().then((response) => {
-                    let percentileVolume = (response.current === 0 ? 0 : response.current / (response.max / 100));
+            let systemPromise = this.getJointspaceClient().getInfo().then((response) => {
+                this.setCapabilityValue('onoff', (response.powerstate.powerstate === 'On'))
+                    .catch(this.error);
+            }).catch(error => {
+                this.setCapabilityValue('onoff', false)
+                    .catch(this.error);
+            });
 
-                    this.setCapabilityValue('volume_set', percentileVolume)
-                        .catch(this.error);
-                    this.setCapabilityValue('volume_mute', (response.muted === true))
-                        .catch(this.error);
-                })
+            let audioPromise = this.getJointspaceClient().getAudioData().then((response) => {
+                let percentileVolume = (response.current === 0 ? 0 : response.current / (response.max / 100));
+
+                this.setCapabilityValue('volume_set', percentileVolume)
+                    .catch(this.error);
+                this.setCapabilityValue('volume_mute', (response.muted === true))
+                    .catch(this.error);
+            });
+
+            Promise.all([
+                systemPromise,
+                audioPromise
             ]).then(results => {
                 resolve();
 
@@ -206,7 +214,7 @@ class PhilipsTV extends Homey.Device {
         }, timeout);
     }
 
-    powerOnDevice(resolve, reject, tries = 3) {
+    powerOnDevice(resolve, reject, tries = 15) {
         tries--;
 
         if (tries < 0) {
@@ -222,6 +230,8 @@ class PhilipsTV extends Homey.Device {
         }).catch((error) => {
             this.deviceLog('couldn\'t reach device, sending WOL and trying again');
 
+            // Just spam the WOL, sometimes once isn't enough
+            // Add callback to last WOL
             wol.wake(this.getMACAddress(), (error) => {
                 if (error) {
                     // handle error
@@ -247,17 +257,30 @@ class PhilipsTV extends Homey.Device {
     // }
 
     _onCapabilityOnOffSet(value) {
-        if (value === true) {
-            this.deviceLog('turning on device');
+        if (this.poweringOnOrOff === false) {
+            this.poweringOnOrOff = true;
+            if (value === true) {
+                this.deviceLog('turning on device');
 
-            return (new Promise((resolve, reject) => {
-                this.powerOnDevice(resolve, reject);
-            })).then((response) => {
-                this.deviceLog('Powered on', response);
-                return response;
-            })
+                return (new Promise((resolve, reject) => {
+                    this.powerOnDevice(resolve, reject);
+                })).then((response) => {
+                    this.poweringOnOrOff = false;
+                    this.deviceLog('Powered on', response);
+                    return response;
+                }).catch(() => {
+                    this.poweringOnOrOff = false;
+                });
+            } else {
+                return this.getJointspaceClient().setPowerState('Standby').then(() => {
+                    this.poweringOnOrOff = false;
+                }).catch(() => {
+                    this.poweringOnOrOff = false;
+                });
+            }
         } else {
-            return this.getJointspaceClient().setPowerState('Standby');
+            console.log('Still powering on or off');
+            return Promise.reject('Still powering on or off');
         }
     }
 
