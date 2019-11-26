@@ -1,6 +1,6 @@
 {
   "id": "codes.lucasvdh.philips-jointspace",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "compatibility": ">=1.5.0",
   "sdk": 2,
   "name": {
@@ -8,8 +8,8 @@
     "nl": "Philips TV"
   },
   "description": {
-    "en": "Control your Philips TV's via the Jointspace API, supporting models ~2014 to 2019",
-    "nl": "Bestuur je Philips TV's via de Jointspace API, met ondersteuning voor modellen van ~2014 tot 2019"
+    "en": "Control your Philips TV's via Jointspace, supporting models ~2014 to 2019",
+    "nl": "Bestuur je Philips TV's via Jointspace, met ondersteuning voor modellen van ~2014 tot 2019"
   },
   "category": [
     "video",
@@ -24,6 +24,20 @@
     "large": "/assets/images/large.png",
     "small": "/assets/images/small.png"
   },
+  "contributing": {
+    "donate": {
+      "paypal": {
+        "username": "lucasvdh"
+      }
+    }
+  },
+  "bugs": {
+    "url": "https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues"
+  },
+  "homeyCommunityTopicId": 14064,
+  "source": "https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace",
+  "homepage": "https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace",
+  "support": "mailto:lucasvdhave@gmail.com",
   "capabilities": {
     "ambilight_onoff": {
       "type": "boolean",
@@ -695,6 +709,7 @@
         "key_yellow",
         "key_blue"
       ],
+      "energy": {},
       "images": {
         "large": "/drivers/philips-jointspace/assets/images/large.png",
         "small": "/drivers/philips-jointspace/assets/images/small.png"
