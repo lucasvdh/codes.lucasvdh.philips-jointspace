@@ -1,0 +1,46 @@
+{
+  "0.3.4": {
+    "en": "Add new app store support",
+    "nl": "Voeg nieuwe app store-ondersteuning toe"
+  },
+  "0.3.3": {
+    "en": "Improve test script edge-cases",
+    "nl": "Verbeter de edge-cases van het testscript"
+  },
+  "0.3.2": {
+    "en": "Fix power on behaviour",
+    "nl": "Fix power on gedrag"
+  },
+  "0.3.1": {
+    "en": "Bug fixes",
+    "nl": "Bugfixes"
+  },
+  "0.3.0": {
+    "en": "New Flow cards",
+    "nl": "Nieuwe Flow-kaarten"
+  },
+  "0.2.0": {
+    "en": "Better pairing, background monitor and TV type selection",
+    "nl": "Betere koppeling, achtergrondmonitor en tv-type selectie"
+  },
+  "0.1.5": {
+    "en": "Bug fixes",
+    "nl": "Bugfixes"
+  },
+  "0.1.4": {
+    "en": "Pairing fixes and ambilight support",
+    "nl": "Fixes voor koppelen en ambilight-ondersteuning"
+  },
+  "0.1.3": {
+    "en": "Bug fixes and test script",
+    "nl": "Bugfixes en testscript"
+  },
+  "0.1.1": {
+    "en": "Pairing restyle",
+    "nl": "Apparaat toevoegen restyle"
+  },
+  "0.1.0": {
+    "en": "Initial version",
+    "nl": "Eerste versie"
+  }
+}
