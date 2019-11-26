@@ -20,7 +20,7 @@ function guid() {
 class PhilipsJointSpaceDriver extends Homey.Driver {
 
     init(device_data, callback) {
-        devices_data.forEach(function (device_data) {
+        devices_data.forEach((device_data) => {
             Homey.log('Philips TV - init device: ' + JSON.stringify(device_data));
             this.initDevice(device_data);
         });
