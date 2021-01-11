@@ -133,20 +133,24 @@ class PhilipsTV extends Homey.Device {
     }
 
     initMonitor(initialTimeout = 10000) {
+        setTimeout(() => {
+            try{
+                if (this.getCapabilityValue('onoff') === true) {
+                    initialTimeout = 500;
+                }
 
-        if (this.getCapabilityValue('onoff') === true) {
-            initialTimeout = 500;
-        }
-
-        new Promise((resolve, reject) => {
-            this.updateDevice(initialTimeout, resolve, reject);
-        }).then(() => {
-            this.deviceLog('monitor initialized');
-        }).catch(error => {
-            console.error('Monitor failed with: ', error);
-            this.deviceLog('re-initializing monitor');
+                new Promise((resolve, reject) => {
+                    this.updateDevice(initialTimeout, resolve, reject);
+                }).then(() => {
+                    this.deviceLog('monitor updated device values');
+                }).catch(error => {
+                    console.error('Monitor failed with: ', error);
+                });
+            }catch(error){
+                console.error('Monitor failed with: ', error);
+            }
             this.initMonitor();
-        });
+        }, initialTimeout);
     }
 
     getMACAddress() {
@@ -179,35 +183,26 @@ class PhilipsTV extends Homey.Device {
             && this._data.credentials.user !== null;
     }
 
-    updateDevice(timeout, resolve, reject) {
-        setTimeout(() => {
-            Promise.all([
-                this.getJointspaceClient().getInfo().then((response) => {
-                    this.setCapabilityValue('onoff', (response.powerstate.powerstate === 'On'))
-                        .catch(this.error);
-                }).catch(error => {
-                    this.setCapabilityValue('onoff', false)
-                        .catch(this.error);
-                }),
-                this.getJointspaceClient().getAudioData().then((response) => {
-                    let percentileVolume = (response.current === 0 ? 0 : response.current / (response.max / 100));
+    updateDevice(resolve, reject) {
+        Promise.all([
+            this.getJointspaceClient().getInfo().then((response) => {
+                this.setCapabilityValue('onoff', (response.powerstate.powerstate === 'On'))
+                    .catch(this.error);
+            }).catch(error => {
+                this.setCapabilityValue('onoff', false)
+                    .catch(this.error);
+            }),
+            this.getJointspaceClient().getAudioData().then((response) => {
+                let percentileVolume = (response.current === 0 ? 0 : response.current / (response.max / 100));
 
-                    this.setCapabilityValue('volume_set', percentileVolume)
-                        .catch(this.error);
-                    this.setCapabilityValue('volume_mute', (response.muted === true))
-                        .catch(this.error);
-                })
-            ]).then(results => {
-                resolve();
-
-                // Call next loop
-                new Promise((resolve1, reject1) => {
-                    this.updateDevice(UPDATE_INTERVAL, resolve1, reject1);
-                }).then(() => {
-                    this.deviceLog('monitor updated device values')
-                }).catch(reject);
-            }).catch(reject);
-        }, timeout);
+                this.setCapabilityValue('volume_set', percentileVolume)
+                    .catch(this.error);
+                this.setCapabilityValue('volume_mute', (response.muted === true))
+                    .catch(this.error);
+            })
+        ]).then(results => {
+            resolve();
+        }).catch(reject);
     }
 
     powerOnDevice(resolve, reject, tries = 15) {
