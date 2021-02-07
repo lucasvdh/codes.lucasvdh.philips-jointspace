@@ -57,6 +57,9 @@ const keyCapabilities = [
     "key_blue"
 ];
 
+// Used for storing last volume before muting by mute button to set it back
+var lastNonNullVolume = 0;
+
 class PhilipsTV extends Homey.Device {
 
     onInit() {
@@ -68,6 +71,8 @@ class PhilipsTV extends Homey.Device {
 
         this.deviceLog('registering listeners');
         this.registerListeners();
+
+        this.setSettingsVolumeSlider();
 
         this.deviceLog('flow card conditions temporarily disabled');
         // this.deviceLog('registering flow card conditions');
@@ -119,6 +124,48 @@ class PhilipsTV extends Homey.Device {
             // Just return true, it takes way too long to wait for a response
             return true;
         });
+
+        this.registerCapabilityListener('volume_up', value => {
+            this.sendKey('VolumeUp');
+            return Promise.resolve();
+        });
+        this.registerCapabilityListener('volume_down', value => {
+            this.sendKey('VolumeDown');
+            return Promise.resolve();
+        });
+        this.registerCapabilityListener('volume_mute', value => {
+            // @todo volume has to be set - fixed value for now; later use function to get live
+            // ;
+            let volume = this.getCapabilityValue('volume_set');
+            if (volume == 0) {
+                // if volume is 0, it was already updated and use last non null value
+                volume = lastNonNullVolume;
+            } else if (volume < this._settings.volumeMax) {
+                // if volume is >0 and <max, update last volume
+                lastNonNullVolume = volume;
+            } else {
+                // if somehow current volume is bigger than max, set volume to half the max
+                volume = (this._settings.volumeMax / 2).toFixed(0);
+            }
+            if (value) {
+                // mute true
+                this.setVolume(volume, true);
+                // update volume_set cap value so it matches "mute"
+                this.setCapabilityValue('volume_set', 0);
+            } else {
+                this.setVolume(volume, false);
+            }            
+            return Promise.resolve();
+        });
+        this.registerCapabilityListener('volume_set', value => {
+            value = value.toFixed(0);
+            if (value > this._settings.volumeMax) {
+                value = this._settings.volumeMax;
+            }
+            this.setVolume(value);
+            return Promise.resolve();
+        });
+
     }
 
     registerFlowCardConditions() {
@@ -193,15 +240,16 @@ class PhilipsTV extends Homey.Device {
                     .catch(this.error);
             }),
             this.getJointspaceClient().getAudioData().then((response) => {
-                let percentileVolume = (response.current === 0 ? 0 : response.current / (response.max / 100));
-
-                this.setCapabilityValue('volume_set', percentileVolume)
-                    .catch(this.error);
-                this.setCapabilityValue('volume_mute', (response.muted === true))
-                    .catch(this.error);
-            })
-        ]).then(results => {
-            resolve();
+                    if (response.current > 0 && response.current <= this._settings.volumeMax) {
+                        lastNonNullVolume = response.current;
+                    }
+                    this.setCapabilityValue('volume_set', response.current)
+                        .catch(this.error);
+                    this.setCapabilityValue('volume_mute', (response.muted === true))
+                        .catch(this.error);
+                })
+            ]).then(results => {
+                resolve();
         }).catch(reject);
     }
 
@@ -311,8 +359,22 @@ class PhilipsTV extends Homey.Device {
         return true;
     }
 
+    
+    async setSettingsVolumeSlider() {
+        // Adjust slider to max volume available on TV. Also set step to 1 not to send decimals
+        this.setCapabilityOptions('volume_set', {
+            min: 0,
+            max: this._settings.volumeMax,
+            step: 1.0
+        });
+    }
+
     async sendKey(key) {
         return await this.getJointspaceClient().sendKey(key).catch(this.error);
+    }
+
+    async setVolume(volume, mute) {
+        return await this.getJointspaceClient().setVolume(volume, mute).catch(this.error);
     }
 
     deviceLog(message) {

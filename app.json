@@ -765,6 +765,30 @@
               "value": "6"
             }
           ]
+        },
+        {
+          "type": "group",
+          "label": {
+            "en": "Device settings"
+          },
+          "children": [
+            {
+              "id": "volumeMax",
+              "type": "number",
+              "label": {
+                "en": "Volume Max"
+              },
+              "value": 60
+            },
+            {
+              "id": "volumeMin",
+              "type": "number",
+              "label": {
+                "en": "Volume Min"
+              },
+              "value": 0
+            }
+          ]
         }
       ]
     }
