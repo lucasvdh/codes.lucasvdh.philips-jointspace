@@ -1,4 +1,8 @@
 {
+  "0.3.7": {
+    "en": "Fix the on/off detection crashing after a while",
+    "nl": "Fix het vastlopen van de aan/uit detectie"
+  },
   "0.3.4": {
     "en": "Add new app store support",
     "nl": "Voeg nieuwe app store-ondersteuning toe"
