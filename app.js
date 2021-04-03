@@ -1,5 +1,10 @@
 'use strict';
 
+if (process.env.DEBUG === '1') {
+    //require("inspector").open(9229, "0.0.0.0", false);
+    require('inspector').open(9229, "0.0.0.0");
+}
+
 const Homey = require('homey');
 
 class PhilipsTV extends Homey.App {
