@@ -181,7 +181,7 @@ class PhilipsTV extends Homey.Device {
 
     initMonitor(initialTimeout = 10000) {
         setTimeout(() => {
-            try{
+            try {
                 if (this.getCapabilityValue('onoff') === true) {
                     initialTimeout = 500;
                 }
@@ -193,7 +193,7 @@ class PhilipsTV extends Homey.Device {
                 }).catch(error => {
                     console.error('Monitor failed with: ', error);
                 });
-            }catch(error){
+            } catch (error) {
                 console.error('Monitor failed with: ', error);
             }
             this.initMonitor();
