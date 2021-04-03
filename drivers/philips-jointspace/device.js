@@ -170,7 +170,7 @@ class PhilipsTV extends Homey.Device {
     }
 
     registerFlowCardConditions() {
-        let ambilightOnCondition = new Homey.FlowCardCondition('is_ambilight_on');
+        let ambilightOnCondition = this.homey.FlowCardCondition('is_ambilight_on');
 
         ambilightOnCondition
             .register()

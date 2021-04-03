@@ -1,8 +1,8 @@
 {
   "id": "codes.lucasvdh.philips-jointspace",
   "version": "0.3.7",
-  "compatibility": ">=1.5.0",
-  "sdk": 2,
+  "sdk": 3,
+  "compatibility": ">=5.0.0",
   "name": {
     "en": "Philips TV",
     "nl": "Philips TV"

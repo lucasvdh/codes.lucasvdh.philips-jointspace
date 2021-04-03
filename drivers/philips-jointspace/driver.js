@@ -21,7 +21,7 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
 
     init(device_data, callback) {
         devices_data.forEach(function (device_data) {
-            Homey.log('Philips TV - init device: ' + JSON.stringify(device_data));
+            this.homey.log('Philips TV - init device: ' + JSON.stringify(device_data));
             this.initDevice(device_data);
         });
         callback();
@@ -40,7 +40,7 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
         devices[device_data.id].data = device_data;
     }
 
-    onPair(socket) {
+    onPair(session) {
         let pairingDevice = {
             name: 'Philips TV',
             data: {
@@ -55,9 +55,8 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
             },
         };
 
-        socket.on('start_pair', (data, callback) => {
+        session.on('start_pair', async (data) => {
             console.log("Philips TV - starting pair");
-            console.log(data);
 
             // Set passed pair settings in variables
             pairingDevice.settings.ipAddress = data.ipAddress;
@@ -69,7 +68,7 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
             this.jointspaceClient.setConfig(data.ipAddress, data.apiVersion, null, null, null, data.port);
 
             // Continue to next view
-            socket.showView('validate');
+            session.showView('validate');
 
             this.jointspaceClient.getSystem().then((response) => {
                 let systemFeatures;
@@ -94,91 +93,91 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
                         // We've got an android tv which required pairing
                         this.jointspaceClient.startPair().then((response) => {
                             if (response.error_id === 'SUCCESS') {
-                                socket.showView('authenticate');
+                                session.showView('authenticate');
                             } else {
-                                socket.showView('start');
-                                socket.emit('error', 'concurrent_pairing');
+                                session.showView('start');
+                                session.emit('error', 'concurrent_pairing');
                             }
                         }).catch((error) => {
-                            socket.showView('start');
+                            session.showView('start');
 
                             console.log(error);
 
                             if (typeof error.statusCode !== "undefined") {
                                 if (error.statusCode === 404) {
-                                    socket.emit('error', 'not_found');
+                                    session.emit('error', 'not_found');
                                 } else {
-                                    socket.emit('error', JSON.stringify(error));
+                                    session.emit('error', JSON.stringify(error));
                                 }
                             } else if (typeof error.code !== "undefined") {
                                 if (error.code === 'ECONNRESET') {
-                                    socket.emit('error', 'host_unreachable');
+                                    session.emit('error', 'host_unreachable');
                                 } else {
-                                    socket.emit('error', JSON.stringify(error));
+                                    session.emit('error', JSON.stringify(error));
                                 }
                             } else {
-                                socket.emit('error', JSON.stringify(error));
+                                session.emit('error', JSON.stringify(error));
                             }
                         });
                     } else {
-                        socket.showView('start');
-                        socket.emit('error', 'unknown_pairing_type', pairingType);
+                        session.showView('start');
+                        session.emit('error', 'unknown_pairing_type', pairingType);
                     }
                 } else {
-                    socket.showView('verify');
+                    session.showView('verify');
                 }
             }).catch((error) => {
-                socket.showView('start');
+                session.showView('start');
 
                 if (typeof error !== "undefined" && error !== null) {
                     if (typeof error.statusCode !== "undefined") {
                         console.log(error.statusCode);
                         if (error.statusCode === 404) {
-                            socket.emit('error', 'not_found');
+                            session.emit('error', 'not_found');
                         } else {
-                            socket.emit('error', error);
+                            session.emit('error', error);
                         }
                     } else if (typeof error.code !== 'undefined') {
                         if (error.code === 'EHOSTUNREACH' || error.code === 'ECONNRESET') {
-                            socket.emit('error', 'host_unreachable');
+                            session.emit('error', 'host_unreachable');
                         } else if (error.code === 'ETIMEDOUT') {
-                            socket.emit('error', 'host_timeout');
+                            session.emit('error', 'host_timeout');
                         } else {
-                            socket.emit('error', error);
+                            session.emit('error', error);
                         }
                     }
                 } else {
-                    socket.emit('error', error);
+                    session.emit('error', error);
                 }
             });
         });
 
-        socket.on('pincode', (code, callback) => {
+        session.on('pincode', async (code) => {
             this.jointspaceClient.confirmPair(code).then((credentials) => {
                 pairingDevice.data.credentials = credentials;
-                callback(null, true);
+                return true;
             }).catch((error) => {
                 if (typeof error.error_id !== "undefined") {
                     if (error.error_id === 'INVALID_PIN') {
                         console.log('The pin "' + code + '" is not valid');
-                        callback(null, false);
+                        return false;
                     } else if (error.error_id === 'TIMEOUT') {
                         console.log('Received a pairing session timeout');
-                        socket.showView('start');
-                        socket.emit('error', 'pair_timeout');
+                        session.showView('start');
+                        session.emit('error', 'pair_timeout');
                     } else {
                         console.log('Unexpected pairing error', JSON.stringify(error));
-                        callback(null, false);
+                        return false;
                     }
                 } else {
                     console.log('Unexpected pairing error', JSON.stringify(error));
-                    callback(null, false);
+                    return false;
                 }
             });
         });
 
-        socket.on('verify_wol', (data, callback) => {
-            this.jointspaceClient.getNetworkDevices().then((networkDevices) => {
+        session.on('verify_wol', async () => {
+            return this.jointspaceClient.getNetworkDevices().then((networkDevices) => {
                 console.log('Checking WOL, got network devices:', networkDevices);
 
                 if (Array.isArray(networkDevices)) {
@@ -187,38 +186,38 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
 
                         if (typeof networkDevice['wake-on-lan'] !== "undefined" && networkDevice['wake-on-lan'] === 'Enabled') {
                             pairingDevice.data.mac = networkDevice["mac"];
-                            callback(null, true);
-                            break;
+                            return true;
                         }
                     }
-                } else {
-                    console.log('Could not get mac address from tv', JSON.stringify(networkDevices));
-                    callback(null, false);
                 }
+
+                console.log('Could not get mac address from tv', JSON.stringify(networkDevices));
+                return false;
             }).catch((error) => {
-                callback(null, false);
                 this.error(error);
+                return false;
             });
         });
 
-        socket.on('almost_done', (data, callback) => {
+        session.on('almost_done', async () => {
             // TODO: maybe this should be based on MAC address
             pairingDevice.data.id = DigestRequest.md5(pairingDevice.settings.ipAddress);
             console.log('device', pairingDevice);
-            callback(null, pairingDevice);
+
+            return pairingDevice;
         });
 
-        socket.on('get_device', (data, callback) => {
-            callback(null, pairingDevice);
+        session.on('get_device', async () => {
+            return pairingDevice;
         });
     }
 
     added(device_data, callback) {
         // run when a device has been added by the user (as of v0.8.33)
-        Homey.log("Philips TV - device added: " + JSON.stringify(device_data));
+        this.homey.log("Philips TV - device added: " + JSON.stringify(device_data));
         // update devices data array
         initDevice(device_data);
-        Homey.log('Philips TV - add done. devices =' + JSON.stringify(devices));
+        this.homey.log('Philips TV - add done. devices =' + JSON.stringify(devices));
         callback(null, true);
     }
 
@@ -226,14 +225,14 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
         // run when the user has renamed the device in Homey.
         // It is recommended to synchronize a device's name, so the user is not confused
         // when it uses another remote to control that device (e.g. the manufacturer's app).
-        Homey.log("Philips TV - device renamed: " + JSON.stringify(device_data) + " new name: " + new_name);
+        this.homey.log("Philips TV - device renamed: " + JSON.stringify(device_data) + " new name: " + new_name);
         // update the devices array we keep
         devices[device_data.id].data.name = new_name;
     }
 
     deleted(device_data) {
         // run when the user has deleted the device from Homey
-        Homey.log("Philips TV - device deleted: " + JSON.stringify(device_data));
+        this.homey.log("Philips TV - device deleted: " + JSON.stringify(device_data));
         // remove from the devices array we keep
         delete devices[device_data.id];
     }
@@ -247,17 +246,17 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
         // callback( "Your error message", null );
         // else callback( null, true );
 
-        Homey.log('Philips TV - Settings were changed: ' + JSON.stringify(device_data) + ' / ' + JSON.stringify(newSettingsObj) + ' / old = ' + JSON.stringify(oldSettingsObj) + ' / changedKeysArr = ' + JSON.stringify(changedKeysArr));
+        this.homey.log('Philips TV - Settings were changed: ' + JSON.stringify(device_data) + ' / ' + JSON.stringify(newSettingsObj) + ' / old = ' + JSON.stringify(oldSettingsObj) + ' / changedKeysArr = ' + JSON.stringify(changedKeysArr));
 
         try {
             changedKeysArr.forEach(function (key) {
                 switch (key) {
                     case 'settingIPAddress':
-                        Homey.log('Philips TV - IP address changed to ' + newSettingsObj.settingIPAddress);
+                        this.homey.log('Philips TV - IP address changed to ' + newSettingsObj.settingIPAddress);
                         // FIXME: check if IP is valid, otherwise return callback with an error
                         break;
                     case 'settingDeviceNr':
-                        Homey.log('Philips TV - Device Nr changed to ' + newSettingsObj.settingDeviceNr);
+                        this.homey.log('Philips TV - Device Nr changed to ' + newSettingsObj.settingDeviceNr);
                         break;
                 }
             })
@@ -275,12 +274,12 @@ module.exports = PhilipsJointSpaceDriver;
 module.exports.capabilities = {
     onoff: {
         get: function (device_data, callback) {
-            Homey.log(device_data)
-            Homey.log("Philips TV - getting device on/off status of " + device_data.id);
+            this.homey.log(device_data)
+            this.homey.log("Philips TV - getting device on/off status of " + device_data.id);
 
         },
         set: function (device_data, onoff, callback) {
-            Homey.log('Philips TV - Setting device_status of ' + device_data.id + ' to ' + onoff);
+            this.homey.log('Philips TV - Setting device_status of ' + device_data.id + ' to ' + onoff);
 
         }
     }
