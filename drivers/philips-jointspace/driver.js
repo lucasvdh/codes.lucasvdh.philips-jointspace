@@ -24,11 +24,14 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
             Homey.log('Philips TV - init device: ' + JSON.stringify(device_data));
             this.initDevice(device_data);
         });
+
         callback();
     }
 
     onInit() {
         this.log('MyDriver has been inited');
+
+        this.registerFlowCards();
 
         this.jointspaceClient = new JointspaceClient();
     }
@@ -266,6 +269,24 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
             callback(error)
         }
 
+    }
+
+    registerFlowCards() {
+        this.applicationOpenedTrigger = new Homey.FlowCardTriggerDevice('application_opened')
+            .register();
+    }
+
+    triggerApplicationOpenedTrigger(device, args = {}) {
+        return this.triggerFlowCard(device, this.applicationOpenedTrigger, args);
+    }
+
+    triggerFlowCard(device, flowCardObject, args = {}) {
+        return new Promise((resolve, reject) => {
+            flowCardObject.trigger(device, args).then(resolve).catch(error => {
+                console.log(error);
+                reject(error);
+            });
+        })
     }
 
 }

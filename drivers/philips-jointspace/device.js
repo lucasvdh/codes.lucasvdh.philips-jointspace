@@ -62,9 +62,13 @@ class PhilipsTV extends Homey.Device {
     onInit() {
         this._data = this.getData();
         this._settings = this.getSettings();
+        this._driver = this.getDriver();
+        this._applications = null;
         this.poweringOnOrOff = false;
 
-        this.setCapabilityValue('onoff', true);
+        this.fixCapabilities();
+
+        this.setCapabilityValue('onoff', false);
 
         this.deviceLog('registering listeners');
         this.registerListeners();
@@ -81,6 +85,20 @@ class PhilipsTV extends Homey.Device {
 
             this.deviceLog('initialized');
         });
+    }
+
+    fixCapabilities() {
+        let newCapabilities = [
+            'current_application',
+        ];
+
+        for (let i in newCapabilities) {
+            let newCapability = newCapabilities[i];
+
+            if (!this.hasCapability(newCapability)) {
+                this.addCapability(newCapability);
+            }
+        }
     }
 
     registerListeners() {
@@ -200,6 +218,36 @@ class PhilipsTV extends Homey.Device {
         return this._data.credentials;
     }
 
+    getApplications() {
+        return new Promise((resolve, reject) => {
+            if (this._applications === null) {
+                this.getJointspaceClient().getApplications().then(response => {
+                    return response.applications.map(application => {
+                        return {
+                            "id": application.id,
+                            "name": application.label,
+                            "intent": application.intent
+                        }
+                    });
+                }).catch(reject).then(applications => {
+                    this._applications = applications;
+
+                    resolve(applications);
+                });
+            } else {
+                resolve(this._applications);
+            }
+        });
+    }
+
+    openApplication(application) {
+        return this.getJointspaceClient().launchActivity(application.intent).then(() => {
+            return this._driver.triggerApplicationOpenedTrigger(this, {
+                app: application.name
+            }).catch(this.error);
+        })
+    }
+
     hasCredentials() {
         return this._data.credentials !== null
             && (typeof this._data.credentials.user !== "undefined")
@@ -211,6 +259,39 @@ class PhilipsTV extends Homey.Device {
             this.getJointspaceClient().getInfo().then((response) => {
                 this.setCapabilityValue('onoff', (response.powerstate.powerstate === 'On'))
                     .catch(this.error);
+                if (typeof response['activities/current'].component !== "undefined") {
+                    let activeComponent = response['activities/current'].component;
+
+                    this.getApplications().then(applications => {
+                        let currentApplication = applications.filter(
+                            application =>
+                                application.intent.component.packageName === activeComponent.packageName
+                                && application.intent.component.className === activeComponent.className
+                        ).pop();
+
+                        let currentDeviceApplication = this.getCapabilityValue('current_application');
+
+                        if (typeof currentApplication !== "undefined") {
+                            this.setCapabilityValue('current_application', currentApplication.name)
+                                .catch(this.error);
+
+                            if (currentDeviceApplication !== currentApplication.name) {
+                                this._driver.triggerApplicationOpenedTrigger(this, {
+                                    app: currentApplication.name
+                                });
+                            }
+                        } else {
+                            this.setCapabilityValue('current_application', null)
+                                .catch(this.error);
+
+                            if (currentDeviceApplication !== null) {
+                                this._driver.triggerApplicationOpenedTrigger(this, {
+                                    app: null
+                                });
+                            }
+                        }
+                    });
+                }
             }).catch(error => {
                 this.setCapabilityValue('onoff', false)
                     .catch(this.error);

@@ -127,16 +127,15 @@
       "icon": "drivers/philips-jointspace/assets/capabilities/hue.svg"
     },
     "current_application": {
-      "type": "enum",
-      "values": [],
+      "type": "string",
       "title": {
         "en": "Current app",
         "nl": "Huidige app"
       },
       "getable": true,
       "setable": true,
-      "uiComponent": "picker",
-      "uiQuickAction": true,
+      "uiComponent": null,
+      "uiQuickAction": false,
       "icon": "drivers/philips-jointspace/assets/capabilities/application.svg"
     },
     "key_stop": {
@@ -794,6 +793,32 @@
     }
   ],
   "flow": {
+    "triggers": [
+      {
+        "id": "application_opened",
+        "title": {
+          "en": "An app was opened",
+          "nl": "Er is een app geopend"
+        },
+        "tokens": [
+          {
+            "name": "app",
+            "type": "string",
+            "title": {
+              "en": "App"
+            },
+            "example": "Netflix"
+          }
+        ],
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=philips-jointspace"
+          }
+        ]
+      }
+    ],
     "actions": [
       {
         "id": "open_application",
