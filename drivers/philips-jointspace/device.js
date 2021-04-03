@@ -57,9 +57,6 @@ const keyCapabilities = [
     "key_blue"
 ];
 
-// Used for storing last volume before muting by mute button to set it back
-var lastNonNullVolume = 0;
-
 class PhilipsTV extends Homey.Device {
 
     onInit() {
@@ -126,45 +123,23 @@ class PhilipsTV extends Homey.Device {
         });
 
         this.registerCapabilityListener('volume_up', value => {
-            this.sendKey('VolumeUp');
-            return Promise.resolve();
+            return this.sendKey('VolumeUp');
         });
         this.registerCapabilityListener('volume_down', value => {
-            this.sendKey('VolumeDown');
-            return Promise.resolve();
+            return this.sendKey('VolumeDown');
         });
         this.registerCapabilityListener('volume_mute', value => {
-            // @todo volume has to be set - fixed value for now; later use function to get live
-            // let volume = this.getCapabilityValue('volume_set');
-            //
-            // if (volume === 0) {
-            //     // if volume is 0, it was already updated and use last non null value
-            //     volume = lastNonNullVolume;
-            // } else if (volume < this._settings.volumeMax) {
-            //     // if volume is >0 and <max, update last volume
-            //     lastNonNullVolume = volume;
-            // } else {
-            //     // if somehow current volume is bigger than max, set volume to half the max
-            //     volume = (this._settings.volumeMax / 2).toFixed(0);
-            // }
-            // if (value) {
-            //     // mute true
-            //     this.setVolume(volume, true);
-            //     // update volume_set cap value so it matches "mute"
-            //     this.setCapabilityValue('volume_set', 0);
-            // } else {
-            //     this.setVolume(volume, false);
-            // }
+            // Get the current volume of the TV and default to half of max volume
+            let currentVolume = this.getCapabilityValue('volume_set') || Math.round(this._settings.volumeMax / 2);
 
-            return value ? this.getJointspaceClient().mute() : this.getJointspaceClient().unMute();
+            return this.getJointspaceClient().setVolume(currentVolume, value);
         });
         this.registerCapabilityListener('volume_set', value => {
             value = value.toFixed(0);
             if (value > this._settings.volumeMax) {
                 value = this._settings.volumeMax;
             }
-            this.setVolume(value);
-            return Promise.resolve();
+            return this.setVolume(value);
         });
 
     }
@@ -241,19 +216,18 @@ class PhilipsTV extends Homey.Device {
                     .catch(this.error);
             }),
             this.getJointspaceClient().getAudioData().then((response) => {
-                if (response.current > 0 && response.current <= this._settings.volumeMax) {
-                    lastNonNullVolume = response.current;
+                let muted = (response.muted === true);
+
+                this.setCapabilityValue('volume_mute', muted)
+                    .catch(this.error);
+
+                // We only want to update the current volume on our device if the TV is not muted. When muted, the TV
+                // returns the current volume as zero. We don't set this zero value because we
+                // need to provide the current volume whilst unmuting the TV.
+                if (!muted) {
+                    this.setCapabilityValue('volume_set', response.current)
+                        .catch(this.error);
                 }
-
-                let percentileVolume = (response.current === 0 ? 0 : response.current / (response.max / 100));
-
-                // TODO: determine which of these has to be used
-                this.setCapabilityValue('volume_set', percentileVolume)
-                    .catch(this.error);
-                this.setCapabilityValue('volume_set', response.current)
-                    .catch(this.error);
-                this.setCapabilityValue('volume_mute', (response.muted === true))
-                    .catch(this.error);
             })
         ]).then(results => {
             resolve();
