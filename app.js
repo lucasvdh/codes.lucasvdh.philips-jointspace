@@ -33,24 +33,16 @@ class PhilipsTV extends Homey.App {
 
     async onFlowActionOpenApplication(args) {
         let device = args.device,
-            app = args.app,
-            client = device.getJointspaceClient();
+            app = args.app;
 
-        return client.launchActivity(app.intent);
+        return device.openApplication(app);
     }
 
     async onFlowApplicationAutocomplete(query, args) {
-        let device = args.device,
-            client = device.getJointspaceClient();
+        let device = args.device;
 
-        return client.getApplications().then(response => {
-            return response.applications.map(application => {
-                return {
-                    "id": application.id,
-                    "name": application.label,
-                    "intent": application.intent
-                }
-            }).filter(result => {
+        return device.getApplications().then(applications => {
+            return applications.filter(result => {
                 return result.name.toLowerCase().indexOf(query.toLowerCase()) > -1;
             });
         });

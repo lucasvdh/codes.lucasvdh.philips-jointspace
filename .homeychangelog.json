@@ -3,6 +3,10 @@
     "en": "Fixes multiple issues regarding volume. Volume up/down/mute buttons and slider.",
     "nl": "Lost meerdere problemen op met betrekking tot het volume. Volume omhoog/naar beneden/dempen knoppen en volume slider."
   },
+  "0.4.0": {
+    "en": "New flow trigger: an app was opened",
+    "nl": "Nieuwe flow trigger: er is een app geopend"
+  },
   "0.3.7": {
     "en": "Fix the on/off detection crashing after a while",
     "nl": "Fix het vastlopen van de aan/uit detectie"
