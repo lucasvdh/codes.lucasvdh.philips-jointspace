@@ -121,8 +121,8 @@ class PhilipsTV extends Homey.Device {
                 this.sendKey('Pause');
             }
 
-            // Just return true, it takes way too long to wait for a response
-            return true;
+            // Just resolve, it takes way too long to wait for a response
+            return Promise.resolve();
         });
 
         this.registerCapabilityListener('volume_up', value => {
@@ -135,27 +135,28 @@ class PhilipsTV extends Homey.Device {
         });
         this.registerCapabilityListener('volume_mute', value => {
             // @todo volume has to be set - fixed value for now; later use function to get live
-            // ;
-            let volume = this.getCapabilityValue('volume_set');
-            if (volume == 0) {
-                // if volume is 0, it was already updated and use last non null value
-                volume = lastNonNullVolume;
-            } else if (volume < this._settings.volumeMax) {
-                // if volume is >0 and <max, update last volume
-                lastNonNullVolume = volume;
-            } else {
-                // if somehow current volume is bigger than max, set volume to half the max
-                volume = (this._settings.volumeMax / 2).toFixed(0);
-            }
-            if (value) {
-                // mute true
-                this.setVolume(volume, true);
-                // update volume_set cap value so it matches "mute"
-                this.setCapabilityValue('volume_set', 0);
-            } else {
-                this.setVolume(volume, false);
-            }            
-            return Promise.resolve();
+            // let volume = this.getCapabilityValue('volume_set');
+            //
+            // if (volume === 0) {
+            //     // if volume is 0, it was already updated and use last non null value
+            //     volume = lastNonNullVolume;
+            // } else if (volume < this._settings.volumeMax) {
+            //     // if volume is >0 and <max, update last volume
+            //     lastNonNullVolume = volume;
+            // } else {
+            //     // if somehow current volume is bigger than max, set volume to half the max
+            //     volume = (this._settings.volumeMax / 2).toFixed(0);
+            // }
+            // if (value) {
+            //     // mute true
+            //     this.setVolume(volume, true);
+            //     // update volume_set cap value so it matches "mute"
+            //     this.setCapabilityValue('volume_set', 0);
+            // } else {
+            //     this.setVolume(volume, false);
+            // }
+
+            return value ? this.getJointspaceClient().mute() : this.getJointspaceClient().unMute();
         });
         this.registerCapabilityListener('volume_set', value => {
             value = value.toFixed(0);
@@ -240,16 +241,22 @@ class PhilipsTV extends Homey.Device {
                     .catch(this.error);
             }),
             this.getJointspaceClient().getAudioData().then((response) => {
-                    if (response.current > 0 && response.current <= this._settings.volumeMax) {
-                        lastNonNullVolume = response.current;
-                    }
-                    this.setCapabilityValue('volume_set', response.current)
-                        .catch(this.error);
-                    this.setCapabilityValue('volume_mute', (response.muted === true))
-                        .catch(this.error);
-                })
-            ]).then(results => {
-                resolve();
+                if (response.current > 0 && response.current <= this._settings.volumeMax) {
+                    lastNonNullVolume = response.current;
+                }
+
+                let percentileVolume = (response.current === 0 ? 0 : response.current / (response.max / 100));
+
+                // TODO: determine which of these has to be used
+                this.setCapabilityValue('volume_set', percentileVolume)
+                    .catch(this.error);
+                this.setCapabilityValue('volume_set', response.current)
+                    .catch(this.error);
+                this.setCapabilityValue('volume_mute', (response.muted === true))
+                    .catch(this.error);
+            })
+        ]).then(results => {
+            resolve();
         }).catch(reject);
     }
 
@@ -359,7 +366,6 @@ class PhilipsTV extends Homey.Device {
         return true;
     }
 
-    
     async setSettingsVolumeSlider() {
         // Adjust slider to max volume available on TV. Also set step to 1 not to send decimals
         this.setCapabilityOptions('volume_set', {
@@ -373,7 +379,7 @@ class PhilipsTV extends Homey.Device {
         return await this.getJointspaceClient().sendKey(key).catch(this.error);
     }
 
-    async setVolume(volume, mute) {
+    async setVolume(volume, mute = false) {
         return await this.getJointspaceClient().setVolume(volume, mute).catch(this.error);
     }
 
