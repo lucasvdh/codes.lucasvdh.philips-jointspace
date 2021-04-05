@@ -20,7 +20,7 @@ function guid() {
 class PhilipsJointSpaceDriver extends Homey.Driver {
 
     init(device_data, callback) {
-        devices_data.forEach(function (device_data) {
+        devices_data.forEach((device_data) => {
             Homey.log('Philips TV - init device: ' + JSON.stringify(device_data));
             this.initDevice(device_data);
         });
@@ -29,7 +29,7 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
     }
 
     onInit() {
-        this.log('MyDriver has been inited');
+        this.log('Philips Jointspace driver has been inited');
 
         this.registerFlowCards();
 
@@ -123,6 +123,8 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
                                 socket.emit('error', JSON.stringify(error));
                             }
                         });
+                    } else if (pairingType === 'none') {
+                        socket.showView('verify');
                     } else {
                         socket.showView('start');
                         socket.emit('error', 'unknown_pairing_type', pairingType);
@@ -274,10 +276,22 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
     registerFlowCards() {
         this.applicationOpenedTrigger = new Homey.FlowCardTriggerDevice('application_opened')
             .register();
+        this.ambiHueChangedTrigger = new Homey.FlowCardTriggerDevice('ambihue_changed')
+            .register();
+        this.ambilightChangedTrigger = new Homey.FlowCardTriggerDevice('ambilight_changed')
+            .register();
     }
 
     triggerApplicationOpenedTrigger(device, args = {}) {
         return this.triggerFlowCard(device, this.applicationOpenedTrigger, args);
+    }
+
+    triggerAmbiHueChangedTrigger(device, args = {}) {
+        return this.triggerFlowCard(device, this.ambiHueChangedTrigger, args);
+    }
+
+    triggerAmbilightChangedTrigger(device, args = {}) {
+        return this.triggerFlowCard(device, this.ambilightChangedTrigger, args);
     }
 
     triggerFlowCard(device, flowCardObject, args = {}) {

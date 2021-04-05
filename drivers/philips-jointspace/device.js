@@ -64,7 +64,6 @@ class PhilipsTV extends Homey.Device {
         this._settings = this.getSettings();
         this._driver = this.getDriver();
         this._applications = null;
-        this.poweringOnOrOff = false;
 
         this.fixCapabilities();
 
@@ -176,21 +175,20 @@ class PhilipsTV extends Homey.Device {
     initMonitor(initialTimeout = 10000) {
         setTimeout(() => {
             try {
-                if (this.getCapabilityValue('onoff') === true) {
-                    initialTimeout = 500;
-                }
-
-                new Promise((resolve, reject) => {
-                    this.updateDevice(initialTimeout, resolve, reject);
-                }).then(() => {
-                    this.deviceLog('monitor updated device values');
-                }).catch(error => {
-                    console.error('Monitor failed with: ', error);
-                });
+                new Promise(((resolve, reject) => this.updateDevice(resolve, reject)))
+                    .then(() => {
+                        this.deviceLog('monitor updated device values');
+                    })
+                    .catch(error => {
+                        console.error('Monitor failed with: ', error);
+                    })
+                    .finally(() => {
+                        this.initMonitor();
+                    });
             } catch (error) {
-                console.error('Monitor failed with: ', error);
+                console.error('Monitor failed completely', error);
+                this.initMonitor();
             }
-            this.initMonitor();
         }, initialTimeout);
     }
 
@@ -248,6 +246,43 @@ class PhilipsTV extends Homey.Device {
         })
     }
 
+    sendGoogleAssistantSearch(query) {
+        let searchIntent = {
+            "extras": {"query": query},
+            "action": "Intent {  act=android.intent.action.ASSIST cmp=com.google.android.katniss/com.google.android.apps.tvsearch.app.launch.trampoline.SearchActivityTrampoline flg=0x10200000 }",
+            "component": {
+                "packageName": "com.google.android.katniss",
+                "className": "com.google.android.apps.tvsearch.app.launch.trampoline.SearchActivityTrampoline"
+            }
+        };
+
+        return this.getJointspaceClient().launchActivity(searchIntent);
+    }
+
+    setAmbiHue(state) {
+        return this.getJointspaceClient().setAmbiHue(state).then(() => {
+            return this._driver.triggerAmbiHueChangedTrigger(this, {
+                enabled: state
+            }).catch(this.error);
+        })
+    }
+
+    setAmbilight(state) {
+        let ambilight;
+
+        if (state === true) {
+            ambilight = {"styleName": "FOLLOW_VIDEO", "isExpert": false, "menuSetting": "RELAX"};
+        } else {
+            ambilight = {"styleName": "OFF", "isExpert": false, "menuSetting": "RELAX"};
+        }
+
+        return this.getJointspaceClient().setAmbilight(ambilight).then(() => {
+            return this._driver.triggerAmbilightChangedTrigger(this, {
+                enabled: state
+            }).catch(this.error);
+        })
+    }
+
     hasCredentials() {
         return this._data.credentials !== null
             && (typeof this._data.credentials.user !== "undefined")
@@ -259,6 +294,7 @@ class PhilipsTV extends Homey.Device {
             this.getJointspaceClient().getInfo().then((response) => {
                 this.setCapabilityValue('onoff', (response.powerstate.powerstate === 'On'))
                     .catch(this.error);
+
                 if (typeof response['activities/current'].component !== "undefined") {
                     let activeComponent = response['activities/current'].component;
 
@@ -309,91 +345,44 @@ class PhilipsTV extends Homey.Device {
                     this.setCapabilityValue('volume_set', response.current)
                         .catch(this.error);
                 }
+            }),
+            this.getJointspaceClient().getAmbiHue().then(response => {
+                let currentAmbiHueState = this.getCapabilityValue('ambihue_onoff'),
+                    ambiHueState = (response.power === 'On');
+
+                if (currentAmbiHueState !== ambiHueState) {
+                    this._driver.triggerAmbiHueChangedTrigger(this, {
+                        enabled: ambiHueState
+                    });
+                    this.setCapabilityValue('ambihue_onoff', ambiHueState);
+                }
+            }),
+            this.getJointspaceClient().getAmbilight().then(response => {
+                let currentAmbilightState = this.getCapabilityValue('ambilight_onoff'),
+                    ambilightState = (response.styleName !== 'OFF');
+
+                if (currentAmbilightState !== ambilightState) {
+                    this._driver.triggerAmbilightChangedTrigger(this, {
+                        enabled: ambilightState
+                    });
+                    this.setCapabilityValue('ambilight_onoff', ambilightState);
+                }
             })
-        ]).then(results => {
-            resolve();
-        }).catch(reject);
+        ]).then(resolve).catch(reject);
     }
 
-    powerOnDevice(resolve, reject, tries = 15) {
-        tries--;
+    _onCapabilityOnOffSet(value) {
+        this.deviceLog(`powering ${value ? 'on' : 'off'} device`);
 
-        if (tries < 0) {
-            reject('Failed to wake up device');
-            return;
-        }
-
-        this.deviceLog('powering on device, number of tries left: ' + tries);
-
-        this.getJointspaceClient().setPowerState('On').then((response) => {
-            this.deviceLog('successfully sent power on');
-            resolve(response);
-        }).catch((error) => {
-            this.deviceLog('couldn\'t reach device, sending WOL and trying again');
-
-            // Add callback to last WOL
-            wol.wake(this.getMACAddress(), (error) => {
-                if (error) {
-                    // handle error
-                    reject(error);
-                }
-
-                this.deviceLog('sent WOL to ' + this.getMACAddress() + ', retrying power on in 5 seconds');
-
-                setTimeout(() => {
-                    this.powerOnDevice(resolve, reject, tries);
-                }, 5000);
-            });
+        return this.getJointspaceClient().setPowerState(value).then(() => {
+            this.deviceLog(`successfully sent power ${value ? 'on' : 'off'}`);
+        }).catch(error => {
+            console.log(error);
         });
     }
 
-    // _getCapabilityValue(capabilityId) {
-    //     console.log('capabilityId', capabilityId);
-    //
-    //     switch (capabilityId) {
-    //         case 'onoff':
-    //             return false;
-    //     }
-    // }
-
-    _onCapabilityOnOffSet(value) {
-        if (this.poweringOnOrOff === false) {
-            this.poweringOnOrOff = true;
-            if (value === true) {
-                this.deviceLog('turning on device');
-
-                return (new Promise((resolve, reject) => {
-                    this.powerOnDevice(resolve, reject);
-                })).then((response) => {
-                    this.poweringOnOrOff = false;
-                    this.deviceLog('Powered on', response);
-                    return response;
-                }).catch(() => {
-                    this.poweringOnOrOff = false;
-                });
-            } else {
-                return this.getJointspaceClient().setPowerState('Standby').then(() => {
-                    this.poweringOnOrOff = false;
-                }).catch(() => {
-                    this.poweringOnOrOff = false;
-                });
-            }
-        } else {
-            console.log('Still powering on or off');
-            return Promise.reject('Still powering on or off');
-        }
-    }
-
     _onCapabilityAmbilightOnOffSet(value) {
-        let ambilight;
-
-        if (value === true) {
-            ambilight = {"styleName": "FOLLOW_VIDEO", "isExpert": false, "menuSetting": "RELAX"};
-        } else {
-            ambilight = {"styleName": "OFF", "isExpert": false, "menuSetting": "RELAX"};
-        }
-
-        return this.getJointspaceClient().setAmbilight(ambilight);
+        return this.setAmbilight(value);
     }
 
     _onCapabilityAmbihueOnOffSet(value) {

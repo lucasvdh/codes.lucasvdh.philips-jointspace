@@ -22,6 +22,18 @@ class PhilipsTV extends Homey.App {
             .getArgument('app')
             .registerAutocompleteListener(this.onFlowApplicationAutocomplete);
 
+        new Homey.FlowCardAction('select_source')
+            .register()
+            .registerRunListener(this.onFlowActionSelectSource);
+
+        new Homey.FlowCardAction('set_ambihue')
+            .register()
+            .registerRunListener(this.onFlowActionSetAmbiHue);
+
+        new Homey.FlowCardAction('set_ambilight')
+            .register()
+            .registerRunListener(this.onFlowActionSetAmbilight);
+
         new Homey.FlowCardAction('send_key')
             .register()
             .registerRunListener(this.onFlowActionSendKey)
@@ -36,6 +48,27 @@ class PhilipsTV extends Homey.App {
             app = args.app;
 
         return device.openApplication(app);
+    }
+
+    async onFlowActionSelectSource(args) {
+        let device = args.device,
+            source = args.source;
+
+        return device.sendGoogleAssistantSearch(source);
+    }
+
+    async onFlowActionSetAmbiHue(args) {
+        let device = args.device,
+            state = (args.state === 'on');
+
+        return device.setAmbiHue(state);
+    }
+
+    async onFlowActionSetAmbilight(args) {
+        let device = args.device,
+            state = (args.state === 'on');
+
+        return device.setAmbilight(state);
     }
 
     async onFlowApplicationAutocomplete(query, args) {
