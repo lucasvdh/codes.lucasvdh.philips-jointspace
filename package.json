@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "philips-jointspace",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "dependencies": {
     "crypto": "^1.0.1",
     "https": "^1.0.0",
