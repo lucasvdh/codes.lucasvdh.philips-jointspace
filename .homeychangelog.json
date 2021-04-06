@@ -1,4 +1,8 @@
 {
+  "0.5.1": {
+    "en": "Updated app store branding, new app icon, updated app store descriptions",
+    "nl": "App store branding bijgewerkt, nieuw app icoon, app store beschrijvingen bijgewerkt"
+  },
   "0.5.0": {
     "en": "New more reliable power on behaviour, new \"Set HDMI source\" flow action, new Ambilight/AmbiHue flow triggers and actions and fixed a pairing issue.",
     "nl": "Nieuwe betrouwbaardere manier van de TV inschakelen, nieuwe \"Selecteer HDMI-bron\" flow actie, nieuw Ambilight/AmbiHue flow triggers en acties en een pairing-probleem opgelost."
