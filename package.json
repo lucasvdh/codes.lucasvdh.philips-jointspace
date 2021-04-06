@@ -1,11 +1,12 @@
 {
   "private": true,
   "name": "philips-jointspace",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "dependencies": {
     "crypto": "^1.0.1",
     "https": "^1.0.0",
     "node-wol": "^0.1.1",
+    "psl": "^1.8.0",
     "request": "^2.88.0",
     "tough-cookie": "^4.0.0",
     "underscore": "^1.9.1"

@@ -1,6 +1,6 @@
 {
   "id": "codes.lucasvdh.philips-jointspace",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "compatibility": ">=1.5.0",
   "brandColor": "#2088df",
   "sdk": 2,
@@ -9,8 +9,8 @@
     "nl": "Philips TV"
   },
   "description": {
-    "en": "Control your Philips TV's via Jointspace, supporting models ~2014 to 2019",
-    "nl": "Bestuur je Philips TV's via Jointspace, met ondersteuning voor modellen van ~2014 tot 2019"
+    "en": "Control your Philips TV and monitor what its doing",
+    "nl": "Bedien uw Philips TV en houd in de gaten wat hij doet"
   },
   "category": [
     "video",
@@ -22,6 +22,7 @@
   },
   "permissions": [],
   "images": {
+    "xlarge": "/assets/images/xlarge.png",
     "large": "/assets/images/large.png",
     "small": "/assets/images/small.png"
   },
