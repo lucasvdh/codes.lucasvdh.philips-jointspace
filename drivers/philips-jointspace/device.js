@@ -86,6 +86,10 @@ class PhilipsTV extends Homey.Device {
         });
     }
 
+	onDeleted() {
+		clearTimeout(this.monitorTimeout);
+	}
+
     fixCapabilities() {
         let newCapabilities = [
             'current_application',
@@ -173,7 +177,7 @@ class PhilipsTV extends Homey.Device {
     }
 
     initMonitor(initialTimeout = 10000) {
-        setTimeout(() => {
+        this.monitorTimeout = setTimeout(() => {
             try {
                 new Promise(((resolve, reject) => this.updateDevice(resolve, reject)))
                     .then(() => {
