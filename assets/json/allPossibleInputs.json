@@ -1,0 +1,190 @@
+[
+    {
+        "inputName": "Standby",
+        "friendlyName": "Aan/Uit"
+    },
+    {
+        "inputName": "Back",
+        "friendlyName": "Terug"
+    },
+    {
+        "inputName": "Find",
+        "friendlyName": "Zoek"
+    },
+    {
+        "inputName": "RedColour",
+        "friendlyName": "Rood"
+    },
+    {
+        "inputName": "GreenColour",
+        "friendlyName": "Groen"
+    },
+    {
+        "inputName": "YellowColour",
+        "friendlyName": "Geel"
+    },
+    {
+        "inputName": "BlueColour",
+        "friendlyName": "Blauw"
+    },
+    {
+        "inputName": "Home",
+        "friendlyName": "Home"
+    },
+    {
+        "inputName": "VolumeUp",
+        "friendlyName": "Volume Up"
+    },
+    {
+        "inputName": "VolumeDown",
+        "friendlyName": "Volume Down"
+    },
+    {
+        "inputName": "Mute",
+        "friendlyName": "Mute on/off"
+    },
+    {
+        "inputName": "Options",
+        "friendlyName": "Options"
+    },
+    {
+        "inputName": "Dot",
+        "friendlyName": "Punt"
+    },
+    {
+        "inputName": "Digit0",
+        "friendlyName": "Digit 0"
+    },
+    {
+        "inputName": "Digit1",
+        "friendlyName": "Digit 1"
+    },
+    {
+        "inputName": "Digit2",
+        "friendlyName": "Digit 2"
+    },
+    {
+        "inputName": "Digit3",
+        "friendlyName": "Digit 3"
+    },
+    {
+        "inputName": "Digit4",
+        "friendlyName": "Digit 4"
+    },
+    {
+        "inputName": "Digit5",
+        "friendlyName": "Digit 5"
+    },
+    {
+        "inputName": "Digit6",
+        "friendlyName": "Digit 6"
+    },
+    {
+        "inputName": "Digit7",
+        "friendlyName": "Digit 7"
+    },
+    {
+        "inputName": "Digit8",
+        "friendlyName": "Digit 8"
+    },
+    {
+        "inputName": "Digit9",
+        "friendlyName": "Digit 9"
+    },
+    {
+        "inputName": "Info",
+        "friendlyName": "Info"
+    },
+    {
+        "inputName": "CursorUp",
+        "friendlyName": "Cursor Up"
+    },
+    {
+        "inputName": "CursorDown",
+        "friendlyName": "Cursor Down"
+    },
+    {
+        "inputName": "CursorLeft",
+        "friendlyName": "Cursor Left"
+    },
+    {
+        "inputName": "CursorRight",
+        "friendlyName": "Cursor Right"
+    },
+    {
+        "inputName": "Confirm",
+        "friendlyName": "Ok"
+    },
+    {
+        "inputName": "Next",
+        "friendlyName": "Next"
+    },
+    {
+        "inputName": "Previous",
+        "friendlyName": "Previous"
+    },
+    {
+        "inputName": "Adjust",
+        "friendlyName": "Adjust"
+    },
+    {
+        "inputName": "WatchTV",
+        "friendlyName": "Watch TV"
+    },
+    {
+        "inputName": "Viewmode",
+        "friendlyName": "Viewmode"
+    },
+    {
+        "inputName": "Teletext",
+        "friendlyName": "Teletext"
+    },
+    {
+        "inputName": "Subtitle",
+        "friendlyName": "Subtitle on/off"
+    },
+    {
+        "inputName": "ChannelStepUp",
+        "friendlyName": "Channel Up"
+    },
+    {
+        "inputName": "ChannelStepDown",
+        "friendlyName": "Channel Down"
+    },
+    {
+        "inputName": "Source",
+        "friendlyName": "Source"
+    },
+    {
+        "inputName": "AmbilightOnOff",
+        "friendlyName": "Ambilight on/off"
+    },
+    {
+        "inputName": "PlayPause",
+        "friendlyName": "Play / Pause"
+    },
+    {
+        "inputName": "Pause",
+        "friendlyName": "Pause"
+    },
+    {
+        "inputName": "FastForward",
+        "friendlyName": "Fast Forward"
+    },
+    {
+        "inputName": "Stop",
+        "friendlyName": "Stop"
+    },
+    {
+        "inputName": "Rewind",
+        "friendlyName": "Fast Backward"
+    },
+    {
+        "inputName": "Record",
+        "friendlyName": "Record"
+    },
+    {
+        "inputName": "Online",
+        "friendlyName": "Online"
+    }
+]
