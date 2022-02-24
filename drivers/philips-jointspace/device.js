@@ -2,7 +2,7 @@
 
 const Homey = require('homey');
 const JointspaceClient = require('../../lib/JointspaceClient.js');
-const wol = require('node-wol');
+const wol = require('wol');
 
 const CAPABILITIES_SET_DEBOUNCE = 100;
 const UPDATE_INTERVAL = 5000;
@@ -374,7 +374,15 @@ class PhilipsTV extends Homey.Device {
     _onCapabilityOnOffSet(value) {
         this.deviceLog(`powering ${value ? 'on' : 'off'} device`);
 
-        return this.getJointspaceClient().setPowerState(value).then(() => {
+		// Always try sending a magic packet
+		if(value && this.getMACAddress()) {
+			wol.wake(this.getMACAddress());
+
+			// Send twice in case the first one got lost in transit
+			setTimeout(wol.wake, 1000, this.getMACAddress());
+		}
+		
+		return this.getJointspaceClient().setPowerState(value).then(() => {
             this.deviceLog(`successfully sent power ${value ? 'on' : 'off'}`);
         }).catch(error => {
             console.log(error);
