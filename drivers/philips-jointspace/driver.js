@@ -172,11 +172,11 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
                         socket.showView('start');
                         socket.emit('error', 'pair_timeout');
                     } else {
-                        console.log('Unexpected pairing error', JSON.stringify(error));
+                        console.log('Unexpected pairing error 1', JSON.stringify(error));
                         callback(null, false);
                     }
                 } else {
-                    console.log('Unexpected pairing error', JSON.stringify(error));
+                    console.log('Unexpected pairing error 2', JSON.stringify(error));
                     callback(null, false);
                 }
             });
