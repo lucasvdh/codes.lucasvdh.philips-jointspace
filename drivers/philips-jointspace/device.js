@@ -67,7 +67,14 @@ class PhilipsTV extends Homey.Device {
 
         this.fixCapabilities();
 
-        this.setCapabilityValue('onoff', false);
+		// Try getting device status for three seconds, otherwise, consider it off
+		let initStateTimeout = setTimeout(this.setCapabilityValue.bind(this, 'onoff', false), 3000);
+		this.getJointspaceClient().getPowerState().then((ps) => {
+			clearTimeout(initStateTimeout);
+			this.setCapabilityValue('onoff', ps.powerstate === 'On');	
+		}).catch(error => {
+			this.setCapabilityValue('onoff', false);
+		});
 
         this.deviceLog('registering listeners');
         this.registerListeners();
