@@ -91,6 +91,15 @@
 		"companionlauncher": {
 			"device_id": "",
 			"msg_id": ""
+		},
+		"audio/volume": {
+			"muted": "",
+			"current": "",
+			"min": "",
+			"max": ""
+		},
+		"huelamp/power": {
+			"power": ""
 		}
 	}
 }
