@@ -74,13 +74,7 @@ class PhilipsTV extends Homey.Device {
 		this.parseStateChanges = this.parseStateChanges.bind(this);
 
 		// Try getting device status for three seconds, otherwise, consider it off
-		let initStateTimeout = setTimeout(this.setCapabilityValue.bind(this, 'onoff', false), 3000);
-		this.getJointspaceClient().getPowerState().then((ps) => {
-			clearTimeout(initStateTimeout);
-			this.setCapabilityValue('onoff', ps.powerstate === 'On');	
-		}).catch(error => {
-			this.setCapabilityValue('onoff', false);
-		});
+		this.initStateTimeout = setTimeout(this.setCapabilityValue.bind(this, 'onoff', false), 3000);
 
         this.log('registering listeners');
         this.registerListeners();
@@ -381,6 +375,7 @@ class PhilipsTV extends Homey.Device {
 	}
 
 	handlePowerStateChange(source, newState) {
+		clearTimeout(this.initStateTimeout);
 		newState = newState.powerstate === 'On';
 
 		if(this.getCapabilityValue('onoff') != newState) {
@@ -463,10 +458,11 @@ class PhilipsTV extends Homey.Device {
 
     getChanges() {
 		let jsc = this.getJointspaceClient();
-        return Promise.all([
+		return Promise.all([
             jsc.getAudioData().then(this.handleAudioChange.bind(this, 'poller')),
             jsc.getAmbiHue().then(this.handleAmbiHueChange.bind(this, 'poller')),
-            jsc.getAmbilight().then(this.handleAmbilightChange.bind(this, 'poller'))
+            jsc.getAmbilight().then(this.handleAmbilightChange.bind(this, 'poller')),
+			jsc.getPowerState().then(this.handlePowerStateChange.bind(this, 'poller'))
         ]);
     }
 
