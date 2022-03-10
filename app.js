@@ -95,8 +95,8 @@ class PhilipsTV extends Homey.App {
 
         let results = client.getPossibleKeys().map(key => {
             return {
-                "id": key.inputname,
-                "key": key.inputname,
+                "id": key.inputName,
+                "key": key.inputName,
                 "name": this.getI18nString(key.friendlyName)
             }
         }).filter(result => {

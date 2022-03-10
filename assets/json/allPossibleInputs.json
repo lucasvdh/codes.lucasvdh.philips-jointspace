@@ -308,6 +308,7 @@
 		}
     },
     {
+		"inputName": "FastBackward",
         "friendlyName": {
 			"en": "Fast Backward",
 			"nl": "Terugspoelen"
