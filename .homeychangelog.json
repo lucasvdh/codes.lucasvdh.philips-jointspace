@@ -1,4 +1,12 @@
 {
+  "1.1.0": {
+    "en": "Major performance improvements and multiple fixes",
+    "nl": "Grote prestatieverbeteringen en meerdere fixes"
+  },
+  "1.0.0": {
+    "en": "Major performance improvements and multiple fixes",
+    "nl": "Grote prestatieverbeteringen en meerdere fixes"
+  },
   "0.5.1": {
     "en": "Updated app store branding, new app icon, updated app store descriptions",
     "nl": "App store branding bijgewerkt, nieuw app icoon, app store beschrijvingen bijgewerkt"
@@ -66,8 +74,5 @@
   "0.1.0": {
     "en": "Initial version",
     "nl": "Eerste versie"
-  },
-  "1.0.0": {
-    "en": "Major performance improvements and multiple fixes"
   }
 }
