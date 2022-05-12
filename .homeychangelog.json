@@ -66,5 +66,8 @@
   "0.1.0": {
     "en": "Initial version",
     "nl": "Eerste versie"
+  },
+  "1.0.0": {
+    "en": "Major performance improvements and multiple fixes"
   }
 }
