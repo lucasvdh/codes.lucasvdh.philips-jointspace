@@ -2,7 +2,7 @@
 
 const Homey = require('homey');
 const JointspaceClient = require('../../lib/JointspaceClient.js');
-const wol = require('node-wol');
+const wol = require('wol');
 
 const CAPABILITIES_SET_DEBOUNCE = 100;
 const UPDATE_INTERVAL = 5000;
@@ -65,26 +65,39 @@ class PhilipsTV extends Homey.Device {
         this._driver = this.getDriver();
         this._applications = null;
 
+		this.removeAllListeners('__log');
+		this.on('__log', (...props) => {
+            this._driver.log.bind(this, `[TV: ${this.getIPAddress()}]`)(...props);
+		});
+
         this.fixCapabilities();
+		this.parseStateChanges = this.parseStateChanges.bind(this);
 
-        this.setCapabilityValue('onoff', false);
+		// Try getting device status for three seconds, otherwise, consider it off
+		this.initStateTimeout = setTimeout(this.setCapabilityValue.bind(this, 'onoff', false), 3000);
 
-        this.deviceLog('registering listeners');
+        this.log('registering listeners');
         this.registerListeners();
 
         this.setSettingsVolumeSlider();
 
-        this.deviceLog('flow card conditions temporarily disabled');
+        this.log('flow card conditions temporarily disabled');
         // this.deviceLog('registering flow card conditions');
         // this.registerFlowCardConditions();
 
         this.ready(() => {
-            this.deviceLog('initializing monitor');
-            this.initMonitor(0);
+            this.log('Initializing change poller');
+            this.pollChanges(0);
+            this.log('Initializing live change notification');
+			this.notifyChanges();
 
-            this.deviceLog('initialized');
+            this.log('Initialized');
         });
     }
+
+	onDeleted() {
+		clearTimeout(this.pollTimeout);
+	}
 
     fixCapabilities() {
         let newCapabilities = [
@@ -170,26 +183,6 @@ class PhilipsTV extends Homey.Device {
                 return Promise.resolve(this.getCapabilityValue('ambilight_onoff'));
 
             })
-    }
-
-    initMonitor(initialTimeout = 10000) {
-        setTimeout(() => {
-            try {
-                new Promise(((resolve, reject) => this.updateDevice(resolve, reject)))
-                    .then(() => {
-                        this.deviceLog('monitor updated device values');
-                    })
-                    .catch(error => {
-                        console.error('Monitor failed with: ', error);
-                    })
-                    .finally(() => {
-                        this.initMonitor();
-                    });
-            } catch (error) {
-                console.error('Monitor failed completely', error);
-                this.initMonitor();
-            }
-        }, initialTimeout);
     }
 
     getMACAddress() {
@@ -289,93 +282,203 @@ class PhilipsTV extends Homey.Device {
             && this._data.credentials.user !== null;
     }
 
-    updateDevice(resolve, reject) {
-        Promise.all([
-            this.getJointspaceClient().getInfo().then((response) => {
-                this.setCapabilityValue('onoff', (response.powerstate.powerstate === 'On'))
-                    .catch(this.error);
+	handleAudioChange(source, newState) {
+		const muted = (newState.muted === true),
+			currentVolume = this.getCapabilityValue('volume_set'),
+			powerState = this.getCapabilityValue('onoff');
 
-                if (typeof response['activities/current'].component !== "undefined") {
-                    let activeComponent = response['activities/current'].component;
+		if(this.getCapabilityValue('volume_mute') !== muted) {
+			this.log(`TV ${muted ? 'muted' : 'unmuted'} by ${source}`);
 
-                    this.getApplications().then(applications => {
-                        let currentApplication = applications.filter(
-                            application =>
-                                application.intent.component.packageName === activeComponent.packageName
-                                && application.intent.component.className === activeComponent.className
-                        ).pop();
+			this.setCapabilityValue('volume_mute', muted)
+				.catch(this.error);
+		}
 
-                        let currentDeviceApplication = this.getCapabilityValue('current_application');
+		// We only want to update the current volume on our device if the TV is not muted. When muted, the TV
+		// returns the current volume as zero. We don't set this zero value because we
+		// need to provide the current volume whilst unmuting the TV.
+		//
+		// When TV switches between TV speakers / Audio system, it also changes volume.
+		// This is fine, except when it happens when the TV is also turned off
+		if (!muted && powerState && currentVolume != newState.current) {
+			this.log(`Volume changed from ${currentVolume} to ${newState.current} by ${source}`);
 
-                        if (typeof currentApplication !== "undefined") {
-                            this.setCapabilityValue('current_application', currentApplication.name)
-                                .catch(this.error);
+			this.setCapabilityValue('volume_set', newState.current)
+				.catch(this.error);
+		}
+	}
 
-                            if (currentDeviceApplication !== currentApplication.name) {
-                                this._driver.triggerApplicationOpenedTrigger(this, {
-                                    app: currentApplication.name
-                                });
-                            }
-                        } else {
-                            this.setCapabilityValue('current_application', null)
-                                .catch(this.error);
+	handleAmbiHueChange(source, newState) {
+		let currentState = this.getCapabilityValue('ambihue_onoff'),
+			ambiHueState = (newState.power === 'On');
 
-                            if (currentDeviceApplication !== null) {
-                                this._driver.triggerApplicationOpenedTrigger(this, {
-                                    app: null
-                                });
-                            }
-                        }
+		if (currentState !== ambiHueState) {
+			this.log(`Ambihue state changed to ${ambiHueState} by ${source}`);
+
+			this._driver.triggerAmbiHueChangedTrigger(this, {
+				enabled: ambiHueState
+			});
+			this.setCapabilityValue('ambihue_onoff', ambiHueState);
+		}
+	}
+
+	handleAmbilightChange(source, newState) {
+		let currentAmbilightState = this.getCapabilityValue('ambilight_onoff'),
+			ambilightState = (newState.styleName !== 'OFF');
+
+		if (currentAmbilightState !== ambilightState) {
+			this.log(`Ambilight state changed to ${ambilightState} by ${source}`);
+
+			this._driver.triggerAmbilightChangedTrigger(this, {
+				enabled: ambilightState
+			});
+			this.setCapabilityValue('ambilight_onoff', ambilightState);
+		}
+	}
+
+	handleActivityChange(source, newState) {
+		let activeComponent = newState.component;
+
+		this.getApplications().then(applications => {
+			let currentApplication = applications.filter(
+				application =>
+					application.intent.component.packageName === activeComponent.packageName
+					&& application.intent.component.className === activeComponent.className
+			).pop();
+
+			let currentDeviceApplication = this.getCapabilityValue('current_application');
+
+			if (typeof currentApplication !== "undefined") {
+				this.log(`Current application changed from ${currentDeviceApplication} to ${currentApplication.name} by ${source}`);
+
+				this.setCapabilityValue('current_application', currentApplication.name)
+					.catch(this.error);
+
+				if (currentDeviceApplication !== currentApplication.name) {
+					this._driver.triggerApplicationOpenedTrigger(this, {
+						app: currentApplication.name
+					});
+				}
+			} else {
+				this.log(`Current application changed from ${currentDeviceApplication} to unknown by ${source}`);
+
+				this.setCapabilityValue('current_application', null)
+					.catch(this.error);
+
+				if (currentDeviceApplication !== null) {
+					this._driver.triggerApplicationOpenedTrigger(this, {
+						app: null
+					});
+				}
+			}
+		});
+	}
+
+	handlePowerStateChange(source, newState) {
+		clearTimeout(this.initStateTimeout);
+		newState = newState.powerstate === 'On';
+
+		if(this.getCapabilityValue('onoff') != newState) {
+			this.log(`Power state changed to ${newState} by ${source}`);
+
+			this.setCapabilityValue('onoff', newState)
+				.catch(this.error);
+		}
+	}
+
+	parseStateChanges(source, state) {
+		const pathMap = {
+			'powerstate': this.handlePowerStateChange,
+			'audio/volume': this.handleAudioChange,
+			'activities/current': this.handleActivityChange,
+			'huelamp/power': this.handleAmbiHueChange,
+			'ambilight/currentconfiguration': this.handleAmbilightChange
+		};
+
+		for (const [path, handler] of Object.entries(pathMap)) {
+			if(state[path]) {
+				if(source != 'notifyChanges') {
+					this.lastState[path] = state[path]
+				}
+
+				handler.call(this, source, state[path]);
+			}
+		}
+	}
+
+	// Real-time changes
+	notifyChanges() {
+		this.getJointspaceClient().notifyChange(this.lastState)
+			.then((state) => {
+				if(state instanceof Error) {
+					this.log('Error received in then of notifyChanges', state);
+				} else {
+					this.lastState = state;
+					this.parseStateChanges('notifyChanges', state);
+				}
+			})
+			.then(() => {
+				this.notifyChanges();
+			})
+			.catch((error) => {
+				switch(error.code) {
+					// A timeout is expected behaviour for this request
+					case 'ECONNRESET':
+						this.notifyChanges();
+						break;
+
+					default:
+						this.log('Error occured running notifyChanges', error);
+						setTimeout(this.notifyChanges.bind(this), 60*1000);
+				}
+			})
+
+	}
+
+	 pollChanges(pollTimeout = 10000) {
+        this.pollTimeout = setTimeout(() => {
+            try {
+                this.getChanges()
+                    .catch(error => {
+						if(this.getCapabilityValue('onoff')) {
+							this.log('Change poller failed with:', error, 'Changing power state to off');
+							this.setCapabilityValue('onoff', false)
+								.catch(this.error);
+						}
+                    })
+                    .finally(() => {
+                        this.pollChanges();
                     });
-                }
-            }).catch(error => {
-                this.setCapabilityValue('onoff', false)
-                    .catch(this.error);
-            }),
-            this.getJointspaceClient().getAudioData().then((response) => {
-                let muted = (response.muted === true);
+            } catch (error) {
+                this.error('Change poller failed completely', error);
+                this.pollChanges();
+            }
+        }, pollTimeout);
+    }
 
-                this.setCapabilityValue('volume_mute', muted)
-                    .catch(this.error);
-
-                // We only want to update the current volume on our device if the TV is not muted. When muted, the TV
-                // returns the current volume as zero. We don't set this zero value because we
-                // need to provide the current volume whilst unmuting the TV.
-                if (!muted) {
-                    this.setCapabilityValue('volume_set', response.current)
-                        .catch(this.error);
-                }
-            }),
-            this.getJointspaceClient().getAmbiHue().then(response => {
-                let currentAmbiHueState = this.getCapabilityValue('ambihue_onoff'),
-                    ambiHueState = (response.power === 'On');
-
-                if (currentAmbiHueState !== ambiHueState) {
-                    this._driver.triggerAmbiHueChangedTrigger(this, {
-                        enabled: ambiHueState
-                    });
-                    this.setCapabilityValue('ambihue_onoff', ambiHueState);
-                }
-            }),
-            this.getJointspaceClient().getAmbilight().then(response => {
-                let currentAmbilightState = this.getCapabilityValue('ambilight_onoff'),
-                    ambilightState = (response.styleName !== 'OFF');
-
-                if (currentAmbilightState !== ambilightState) {
-                    this._driver.triggerAmbilightChangedTrigger(this, {
-                        enabled: ambilightState
-                    });
-                    this.setCapabilityValue('ambilight_onoff', ambilightState);
-                }
-            })
-        ]).then(resolve).catch(reject);
+    getChanges() {
+		let jsc = this.getJointspaceClient();
+		return Promise.all([
+            jsc.getAudioData().then(this.handleAudioChange.bind(this, 'poller')),
+            jsc.getAmbiHue().then(this.handleAmbiHueChange.bind(this, 'poller')),
+            jsc.getAmbilight().then(this.handleAmbilightChange.bind(this, 'poller')),
+			jsc.getPowerState().then(this.handlePowerStateChange.bind(this, 'poller'))
+        ]);
     }
 
     _onCapabilityOnOffSet(value) {
-        this.deviceLog(`powering ${value ? 'on' : 'off'} device`);
+        this.log(`powering ${value ? 'on' : 'off'} device`);
 
-        return this.getJointspaceClient().setPowerState(value).then(() => {
-            this.deviceLog(`successfully sent power ${value ? 'on' : 'off'}`);
+		// Always try sending a magic packet
+		if(value && this.getMACAddress()) {
+			wol.wake(this.getMACAddress());
+
+			// Send twice in case the first one got lost in transit
+			setTimeout(wol.wake, 1000, this.getMACAddress());
+		}
+		
+		return this.getJointspaceClient().setPowerState(value).then(() => {
+            this.log(`successfully sent power ${value ? 'on' : 'off'}`);
         }).catch(error => {
             console.log(error);
         });
@@ -425,10 +528,6 @@ class PhilipsTV extends Homey.Device {
 
     async setVolume(volume, mute = false) {
         return await this.getJointspaceClient().setVolume(volume, mute).catch(this.error);
-    }
-
-    deviceLog(message) {
-        this.log('PhilipsTV Device [' + this._data.id + '] ' + message);
     }
 
     getJointspaceClient() {

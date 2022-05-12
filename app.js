@@ -38,7 +38,7 @@ class PhilipsTV extends Homey.App {
             .register()
             .registerRunListener(this.onFlowActionSendKey)
             .getArgument('option')
-            .registerAutocompleteListener(this.onFlowKeyAutocomplete);
+            .registerAutocompleteListener(this.onFlowKeyAutocomplete.bind(this));
 
         this.log('Initialized flow');
     }
@@ -95,9 +95,9 @@ class PhilipsTV extends Homey.App {
 
         let results = client.getPossibleKeys().map(key => {
             return {
-                "id": key.inputname,
-                "key": key.inputname,
-                "name": key.friendlyName
+                "id": key.inputName,
+                "key": key.inputName,
+                "name": this.getI18nString(key.friendlyName)
             }
         }).filter(result => {
             return result.name.toLowerCase().indexOf(query.toLowerCase()) > -1;
@@ -106,6 +106,15 @@ class PhilipsTV extends Homey.App {
         return Promise.resolve(results);
     }
 
+	getI18nString(i18n) {
+		const lang = Homey.ManagerI18n.getLanguage();
+		if (i18n[lang])
+			return i18n[lang];
+		else if (i18n['en'])
+			return i18n['en'];
+		else
+			return `Untranslated string: ${i18n}`;
+	}
 }
 
 module.exports = PhilipsTV;

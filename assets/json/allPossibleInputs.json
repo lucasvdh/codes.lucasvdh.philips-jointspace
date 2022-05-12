@@ -1,0 +1,331 @@
+[
+    {
+        "inputName": "Standby",
+        "friendlyName": {
+			"en": "On/Off",
+			"nl": "Aan/Uit"
+		}
+    },
+    {
+        "inputName": "Back",
+        "friendlyName": {
+			"en": "Back",
+			"nl": "Terug"
+		}
+    },
+    {
+        "inputName": "Find",
+        "friendlyName": {
+			"en": "Find",
+			"nl": "Zoek"
+		}
+    },
+    {
+        "inputName": "RedColour",
+        "friendlyName": {
+			"en": "Red",
+			"nl": "Rood"
+		}
+    },
+    {
+        "inputName": "GreenColour",
+        "friendlyName": {
+			"en": "Green",
+			"nl": "Groen"
+		}
+    },
+    {
+        "inputName": "YellowColour",
+        "friendlyName": {
+			"en": "Yellow",
+			"nl": "Geel"
+		}
+    },
+    {
+        "inputName": "BlueColour",
+        "friendlyName": {
+			"en": "Blue",
+			"nl": "Blauw"
+		}
+    },
+    {
+        "inputName": "Home",
+        "friendlyName": {
+			"en": "Home",
+			"nl": "Home"
+		}
+    },
+    {
+        "inputName": "VolumeUp",
+        "friendlyName": {
+			"en": "Volume Up",
+			"nl": "Volume Up"
+		}
+    },
+    {
+        "inputName": "VolumeDown",
+        "friendlyName": {
+			"en": "Volume Down",
+			"nl": "Volume Down"
+		}
+    },
+    {
+        "inputName": "Mute",
+        "friendlyName": {
+			"en": "Mure on/off",
+			"nl": "Mute on/off"
+		}
+    },
+    {
+        "inputName": "Options",
+        "friendlyName": {
+			"en": "Options",
+			"nl": "Options"
+		}
+    },
+    {
+        "inputName": "Dot",
+        "friendlyName": {
+			"en": "Dot",
+			"nl": "Punt"
+		}
+    },
+    {
+        "inputName": "Digit0",
+        "friendlyName": {
+			"en": "Digit 0",
+			"nl": "Cijfer 0"
+		}
+    },
+    {
+        "inputName": "Digit1",
+        "friendlyName": {
+			"en": "Digit 1",
+			"nl": "Cijfer 1"
+		}
+    },
+    {
+        "inputName": "Digit2",
+        "friendlyName": {
+			"en": "Digit 2",
+			"nl": "Cijfer 2"
+		}
+    },
+    {
+        "inputName": "Digit3",
+        "friendlyName": {
+			"en": "Digit 3",
+			"nl": "Cijfer 3"
+		}
+    },
+    {
+        "inputName": "Digit4",
+        "friendlyName": {
+			"en": "Digit 4",
+			"nl": "Cijfer 4"
+		}
+    },
+    {
+        "inputName": "Digit5",
+        "friendlyName": {
+			"en": "Digit 5",
+			"nl": "Cijfer 5"
+		}
+    },
+    {
+        "inputName": "Digit6",
+        "friendlyName": {
+			"en": "Digit 6",
+			"nl": "Cijfer 6"
+		}
+    },
+    {
+        "inputName": "Digit7",
+        "friendlyName": {
+			"en": "Digit 7",
+			"nl": "Cijfer 7"
+		}
+    },
+    {
+        "inputName": "Digit8",
+        "friendlyName": {
+			"en": "Digit 8",
+			"nl": "Cijfer 8"
+		}
+    },
+    {
+        "inputName": "Digit9",
+        "friendlyName": {
+			"en": "Digit 9",
+			"nl": "Cijfer 9"
+		}
+    },
+    {
+        "inputName": "Info",
+        "friendlyName": {
+			"en": "Info",
+			"nl": "Info"
+		}
+    },
+    {
+        "inputName": "CursorUp",
+        "friendlyName": {
+			"en": "Cursor Up",
+			"nl": "Cursor Omhoog"
+		}
+    },
+    {
+        "inputName": "CursorDown",
+        "friendlyName": {
+			"en": "Cursor Down",
+			"nl": "Cursor Omlaag"
+		}
+    },
+    {
+        "inputName": "CursorLeft",
+        "friendlyName": {
+			"en": "Cursor Left",
+			"nl": "Cursor Links"
+		}
+    },
+    {
+        "inputName": "CursorRight",
+        "friendlyName": {
+			"en": "Cursor Right",
+			"nl": "Cursor Rechts"
+		}
+    },
+    {
+        "inputName": "Confirm",
+        "friendlyName": {
+			"en": "Ok",
+			"nl": "Ok"
+		}
+    },
+    {
+        "inputName": "Next",
+        "friendlyName": {
+			"en": "Next",
+			"nl": "Volgende"
+		}
+    },
+    {
+        "inputName": "Previous",
+        "friendlyName": {
+			"en": "Previous",
+			"nl": "Vorige"
+		}
+    },
+    {
+        "inputName": "Adjust",
+        "friendlyName": {
+			"en": "Adjust",
+			"nl": "Adjust"
+		}
+    },
+    {
+        "inputName": "WatchTV",
+        "friendlyName": {
+			"en": "Watch TV",
+			"nl": "Kijk TV"
+		}
+    },
+    {
+        "inputName": "Viewmode",
+        "friendlyName": {
+			"en": "Viewmode",
+			"nl": "Viewmode"
+		}
+    },
+    {
+        "inputName": "Teletext",
+        "friendlyName": {
+			"en": "Teletext",
+			"nl": "Teletext"
+		}
+    },
+    {
+        "inputName": "Subtitle",
+        "friendlyName": {
+			"en": "Subtitle on/off",
+			"nl": "Ondertiteling aan/uit"
+		}
+    },
+    {
+        "inputName": "ChannelStepUp",
+        "friendlyName": {
+			"en": "Channel Up",
+			"nl": "Vorig kanaal"
+		}
+    },
+    {
+        "inputName": "ChannelStepDown",
+        "friendlyName": {
+			"en": "Channel Down",
+			"nl": "Volgend kanaal"
+		}
+    },
+    {
+        "inputName": "Source",
+        "friendlyName": {
+			"en": "Source",
+			"nl": "Source"
+		}
+    },
+    {
+        "inputName": "AmbilightOnOff",
+        "friendlyName": {
+			"en": "Ambilight on/off",
+			"nl": "Ambilight aan/uit"
+		}
+    },
+    {
+        "inputName": "PlayPause",
+        "friendlyName": {
+			"en": "Play / Pause",
+			"nl": "Play / Pause"
+		}
+    },
+    {
+        "inputName": "Pause",
+        "friendlyName": {
+			"en": "Pause",
+			"nl": "Pause"
+		}
+    },
+    {
+        "inputName": "FastForward",
+        "friendlyName": {
+			"en": "Fast Forward",
+			"nl": "Doorspoelen"
+		}
+    },
+    {
+        "inputName": "Stop",
+        "friendlyName": {
+			"en": "Stop",
+			"nl": "Stop"
+		}
+    },
+    {
+		"inputName": "FastBackward",
+        "friendlyName": {
+			"en": "Fast Backward",
+			"nl": "Terugspoelen"
+		}
+    },
+    {
+        "inputName": "Record",
+        "friendlyName": {
+			"en": "Record",
+			"nl": "Opnemen"
+		}
+    },
+    {
+        "inputName": "Online",
+        "friendlyName": {
+			"en": "Online",
+			"nl": "Online"
+		}
+    }
+]
