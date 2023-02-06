@@ -2,7 +2,15 @@
   "type": "boolean",
   "title": {
     "en": "Ambilight + Hue",
-    "nl": "Ambilight + Hue"
+    "nl": "Ambilight + Hue",
+    "de": "Ambilight + Hue",
+    "fr": "Ambilight + Hue",
+    "it": "Ambilight + Hue",
+    "sv": "Ambilight + Hue",
+    "no": "Ambilight + Hue",
+    "es": "Ambilight + Hue",
+    "da": "Ambilight + Hue",
+    "pl": "Ambilight + Hue"
   },
   "getable": true,
   "setable": true,

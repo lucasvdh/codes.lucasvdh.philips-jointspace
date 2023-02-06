@@ -2,7 +2,15 @@
   "type": "boolean",
   "title": {
     "en": "Ambilight",
-    "nl": "Ambilight"
+    "nl": "Ambilight",
+    "de": "Ambilight",
+    "fr": "Ambilight",
+    "it": "Ambilight",
+    "sv": "Ambilight",
+    "no": "Ambilight",
+    "es": "Ambilight",
+    "da": "Ambilight",
+    "pl": "Ambilight"
   },
   "getable": true,
   "setable": true,

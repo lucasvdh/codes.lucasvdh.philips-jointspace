@@ -16,26 +16,21 @@ class PhilipsTV extends Homey.App {
     }
 
     onInitFlow() {
-        new Homey.FlowCardAction('open_application')
-            .register()
+        this.homey.flow.getActionCard('open_application')
             .registerRunListener(this.onFlowActionOpenApplication)
             .getArgument('app')
             .registerAutocompleteListener(this.onFlowApplicationAutocomplete);
 
-        new Homey.FlowCardAction('select_source')
-            .register()
+        this.homey.flow.getActionCard('select_source')
             .registerRunListener(this.onFlowActionSelectSource);
 
-        new Homey.FlowCardAction('set_ambihue')
-            .register()
+        this.homey.flow.getActionCard('set_ambihue')
             .registerRunListener(this.onFlowActionSetAmbiHue);
 
-        new Homey.FlowCardAction('set_ambilight')
-            .register()
+        this.homey.flow.getActionCard('set_ambilight')
             .registerRunListener(this.onFlowActionSetAmbilight);
 
-        new Homey.FlowCardAction('send_key')
-            .register()
+        this.homey.flow.getActionCard('send_key')
             .registerRunListener(this.onFlowActionSendKey)
             .getArgument('option')
             .registerAutocompleteListener(this.onFlowKeyAutocomplete.bind(this));

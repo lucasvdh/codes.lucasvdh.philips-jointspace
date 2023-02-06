@@ -1,8 +1,16 @@
 {
   "type": "boolean",
   "title": {
-    "en": "adjust",
-    "nl": "Aanpassen"
+    "en": "Adjust",
+    "nl": "Aanpassen",
+    "de": "Anpassen",
+    "fr": "Ajuster",
+    "it": "Regolare",
+    "sv": "Justera",
+    "no": "Tilpasse",
+    "es": "Ajustar",
+    "da": "Justere",
+    "pl": "Dostosuj"
   },
   "getable": false,
   "setable": true,

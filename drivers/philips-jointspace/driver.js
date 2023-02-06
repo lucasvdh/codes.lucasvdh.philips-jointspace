@@ -66,17 +66,17 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
     //   },
     // }
 
-    session.on('list_devices', (data, callback) => {
-      console.log('list_devices', data, callback)
+    session.setHandler('list_devices', async (data) => {
+      console.log('list_devices', data)
 
       if (pairingDevice !== null) {
-        callback(null, [pairingDevice])
+        return [pairingDevice]
       } else {
         const discoveryResults = discoveryStrategy.getDiscoveryResults()
 
         let existingDevices = this.getDevices()
 
-        Promise.all(Object.values(discoveryResults).map(discoveryResult => {
+        return Promise.all(Object.values(discoveryResults).map(discoveryResult => {
           return this.getDeviceByDiscoveryResult(discoveryResult)
         })).then((devices) => {
           devices = devices.filter(item => {
@@ -88,16 +88,13 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
           if (devices.length === 0) {
             session.showView('search_device')
           } else {
-            console.log('session.on(list_devices) callback', callback(null, devices))
+            return devices;
           }
-        }).catch(error => {
-          console.log(error)
-          callback(error)
         })
       }
     })
 
-    session.on('select_device', (device, callback) => {
+    session.setHandler('select_device', async (device) => {
       console.log('select_device')
       console.log('is secure', device.settings.secure)
       Homey.showView('verify')
@@ -108,35 +105,33 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
       } else {
         session.showView('verify')
       }
-
-      callback()
     })
 
-    session.on('pincode', (code, callback) => {
-      this.jointspaceClient.confirmPair(code).then((credentials) => {
+    session.setHandler('pincode', async (code) => {
+      return this.jointspaceClient.confirmPair(code).then((credentials) => {
         pairingDevice.data.credentials = credentials
-        callback(null, true)
+        return true;
       }).catch((error) => {
         if (typeof error.error_id !== 'undefined') {
           if (error.error_id === 'INVALID_PIN') {
             console.log('The pin "' + code + '" is not valid')
-            callback(null, false)
+            return false;
           } else if (error.error_id === 'TIMEOUT') {
             console.log('Received a pairing session timeout')
             session.showView('start')
             session.emit('error', 'pair_timeout')
           } else {
             console.log('Unexpected pairing error 1', JSON.stringify(error))
-            callback(null, false)
+            return false;
           }
         } else {
           console.log('Unexpected pairing error 2', JSON.stringify(error))
-          callback(null, false)
+          return false;
         }
       })
     })
 
-    session.on('start_pair', (pairingDevice, callback) => {
+    session.setHandler('start_pair', async (pairingDevice) => {
       console.log('Philips TV - starting pair')
 
       // Update Jointspace _client with config
@@ -220,8 +215,8 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
       })
     })
 
-    session.on('verify_wol', (data, callback) => {
-      this.jointspaceClient.getNetworkDevices().then((networkDevices) => {
+    session.setHandler('verify_wol', async (data) => {
+      return this.jointspaceClient.getNetworkDevices().then((networkDevices) => {
         console.log('Checking WOL, got network devices:', networkDevices)
 
         if (Array.isArray(networkDevices)) {
@@ -230,42 +225,43 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
 
             if (typeof networkDevice['wake-on-lan'] !== 'undefined' && networkDevice['wake-on-lan'] === 'Enabled') {
               pairingDevice.data.mac = networkDevice['mac']
-              callback(null, true)
-              break
+              return true;
             }
           }
         } else {
           console.log('Could not get mac address from tv', JSON.stringify(networkDevices))
-          callback(null, false)
+
+          return false;
         }
       }).catch((error) => {
-        callback(null, false)
         this.error(error)
+        return false;
       })
     })
 
-    session.on('almost_done', (data, callback) => {
+    session.setHandler('almost_done', async (data) => {
       // TODO: maybe this should be based on MAC address
       pairingDevice.data.id = DigestRequest.md5(pairingDevice.settings.ipAddress)
       console.log('device', pairingDevice)
-      callback(null, pairingDevice)
+      return pairingDevice
     })
 
-    session.on('get_device', (data, callback) => {
-      callback(null, pairingDevice)
+    session.setHandler('get_device', async (data) => {
+      return pairingDevice;
     })
   }
 
-  added (device_data, callback) {
+  async added (device_data) {
     // run when a device has been added by the user (as of v0.8.33)
     Homey.log('Philips TV - device added: ' + JSON.stringify(device_data))
     // update devices data array
     initDevice(device_data)
     Homey.log('Philips TV - add done. devices =' + JSON.stringify(devices))
-    callback(null, true)
+
+    return true;
   }
 
-  renamed (device_data, new_name) {
+  async renamed (device_data, new_name) {
     // run when the user has renamed the device in Homey.
     // It is recommended to synchronize a device's name, so the user is not confused
     // when it uses another remote to control that device (e.g. the manufacturer's app).
@@ -274,7 +270,7 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
     devices[device_data.id].data.name = new_name
   }
 
-  deleted (device_data) {
+  async deleted (device_data) {
     // run when the user has deleted the device from Homey
     Homey.log('Philips TV - device deleted: ' + JSON.stringify(device_data))
     // remove from the devices array we keep
@@ -312,12 +308,9 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
   }
 
   registerFlowCards () {
-    this.applicationOpenedTrigger = new Homey.FlowCardTriggerDevice('application_opened')
-      .register()
-    this.ambiHueChangedTrigger = new Homey.FlowCardTriggerDevice('ambihue_changed')
-      .register()
-    this.ambilightChangedTrigger = new Homey.FlowCardTriggerDevice('ambilight_changed')
-      .register()
+    this.applicationOpenedTrigger = this.homey.flow.getDeviceTriggerCard('application_opened')
+    this.ambiHueChangedTrigger = this.homey.flow.getDeviceTriggerCard('ambihue_changed')
+    this.ambilightChangedTrigger = this.homey.flow.getDeviceTriggerCard('ambilight_changed')
   }
 
   triggerApplicationOpenedTrigger (device, args = {}) {

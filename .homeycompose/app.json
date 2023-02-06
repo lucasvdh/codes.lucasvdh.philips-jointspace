@@ -1,12 +1,20 @@
 {
   "id": "codes.lucasvdh.philips-jointspace",
-  "version": "1.1.0",
-  "compatibility": ">=1.5.0",
+  "version": "2.0.0",
+  "compatibility": ">=5.0.0",
   "brandColor": "#2088df",
-  "sdk": 2,
+  "sdk": 3,
   "name": {
     "en": "Philips TV",
-    "nl": "Philips TV"
+    "nl": "Philips TV",
+    "de": "Philips TV",
+    "fr": "Philips TV",
+    "it": "Philips TV",
+    "sv": "Philips TV",
+    "no": "Philips TV",
+    "es": "Philips TV",
+    "da": "Philips TV",
+    "pl": "Philips TV"
   },
   "description": {
     "en": "Control your Philips TV and monitor what its doing",

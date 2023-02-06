@@ -2,7 +2,15 @@
   "type": "string",
   "title": {
     "en": "Current app",
-    "nl": "Huidige app"
+    "nl": "Huidige app",
+    "de": "Aktuelle App",
+    "fr": "Application actuelle",
+    "it": "App corrente",
+    "sv": "Aktuell app",
+    "no": "Nåværende app",
+    "es": "Aplicación actual",
+    "da": "Nuværende app",
+    "pl": "Bieżąca aplikacja"
   },
   "getable": true,
   "setable": true,

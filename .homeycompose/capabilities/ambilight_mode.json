@@ -2,7 +2,15 @@
   "type": "enum",
   "title": {
     "en": "Ambilight mode",
-    "nl": "Ambilight modus"
+    "nl": "Ambilight modus",
+    "de": "Ambilight Modus",
+    "fr": "Mode Ambilight",
+    "it": "Modalità Ambilight",
+    "sv": "Ambilight läge",
+    "no": "Ambilight-modus",
+    "es": "Modo Ambilight",
+    "da": "Ambilight tilstand",
+    "pl": "Tryb Ambilight"
   },
   "getable": true,
   "setable": true,
@@ -14,49 +22,105 @@
       "id": "off",
       "title": {
         "en": "Off",
-        "nl": "Uit"
+        "nl": "Uit",
+        "de": "Aus",
+        "fr": "Arrêt",
+        "it": "Spento",
+        "sv": "Av",
+        "no": "Av",
+        "es": "Apagado",
+        "da": "Slukket",
+        "pl": "Wyłączony"
       }
     },
     {
       "id": "follow_video",
       "title": {
         "en": "Follow video",
-        "nl": "Volg beeld"
+        "nl": "Volg beeld",
+        "de": "Video verfolgen",
+        "fr": "Suivre la vidéo",
+        "it": "Seguire video",
+        "sv": "Följ video",
+        "no": "Følg video",
+        "es": "Seguir video",
+        "da": "Følg video",
+        "pl": "Obserwuj wideo"
       }
     },
     {
       "id": "follow_audio",
       "title": {
         "en": "Follow audio",
-        "nl": "Volg geluid"
+        "nl": "Volg geluid",
+        "de": "Audio verfolgen",
+        "fr": "Suivre l'audio",
+        "it": "Seguire audio",
+        "sv": "Följ ljud",
+        "no": "Følg lyd",
+        "es": "Seguir audio",
+        "da": "Følg lyd",
+        "pl": "Obserwuj audio"
       }
     },
     {
       "id": "follow_color",
       "title": {
         "en": "Follow color",
-        "nl": "Volg kleur"
+        "nl": "Volg kleur",
+        "de": "Farbe verfolgen",
+        "fr": "Suivre la couleur",
+        "it": "Seguire colore",
+        "sv": "Följ färg",
+        "no": "Følg farge",
+        "es": "Seguir color",
+        "da": "Følg farve",
+        "pl": "Obserwuj kolor"
       }
     },
     {
       "id": "lounge",
       "title": {
         "en": "Lounge",
-        "nl": "Lounge"
+        "nl": "Lounge",
+        "de": "Lounge",
+        "fr": "Salon",
+        "it": "Salotto",
+        "sv": "Lounge",
+        "no": "Lounge",
+        "es": "Salón",
+        "da": "Lounge",
+        "pl": "Salon"
       }
     },
     {
       "id": "expert",
       "title": {
         "en": "Expert",
-        "nl": "Expert"
+        "nl": "Expert",
+        "de": "Experte",
+        "fr": "Expert",
+        "it": "Esperto",
+        "sv": "Expert",
+        "no": "Ekspert",
+        "es": "Experto",
+        "da": "Ekspert",
+        "pl": "Ekspert"
       }
     },
     {
       "id": "grid",
       "title": {
         "en": "Grid",
-        "nl": "Grid"
+        "nl": "Grid",
+        "de": "Gitter",
+        "fr": "Grille",
+        "it": "Griglia",
+        "sv": "Rutnät",
+        "no": "Rutenett",
+        "es": "Rejilla",
+        "da": "Gitter",
+        "pl": "Siatka"
       }
     }
   ]
