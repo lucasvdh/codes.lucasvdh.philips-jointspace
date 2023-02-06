@@ -1,0 +1,154 @@
+<link href="../assets/pairing.css" rel="stylesheet">
+
+<div class="container">
+    <p data-i18n="pair.start.intro"></p>
+
+    <table class="pairSettings">
+        <tr>
+            <th data-i18n="pair.start.deviceName">Name</th>
+        </tr>
+        <tr>
+            <td style="padding-bottom: 1.5rem;"><input id="deviceName" type="text" value="Philips TV" placeholder=""/>
+            </td>
+        </tr>
+        <tr>
+            <th data-i18n="pair.start.ipAddress">IP address</th>
+        </tr>
+        <tr>
+            <td><input id="ipAddress" type="text" value="192.168.1.10" placeholder=""/></td>
+        </tr>
+        <tr>
+            <td class="info" data-i18n="pair.start.ipAddressDescription"></td>
+        </tr>
+        <tr>
+            <th data-i18n="pair.start.apiVersion">JointSpace API version</th>
+        </tr>
+        <tr>
+            <td class="padding-bottom">
+                <select id="apiVersion" class="form-control">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6" selected>6</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th data-i18n="pair.start.tvType">TV type</th>
+        </tr>
+        <tr>
+            <td class="padding-bottom">
+                <div class="radio-group">
+                    <input id="android" type="radio" name="port" value="1926" checked>
+                    <label for="android">
+                        Android TV
+                    </label>
+                    <input id="other" type="radio" name="port" value="1925">
+                    <label for="other">
+                        Other
+                    </label>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<a class="btn btn-success btn-block btn-lg" id="saveButton" data-i18n="pair.start.saveSettings" onclick="saveSettings()">Save</a>
+
+<script>
+  var saveButton = document.getElementById('saveButton');
+  var ipAddressElement = document.getElementById('ipAddress');
+  var apiVersionElement = document.getElementById('apiVersion');
+  var deviceNameElement = document.getElementById('deviceName');
+  var portRadioElements = document.getElementsByName('port');
+  var loading = true;
+
+  Homey.on('error', function (errortype, callback) {
+    if (errortype === 'error') {
+      Homey.alert(__('error.error'), 'error');
+      Homey.done();
+    } else if (errortype === 'not_found') {
+      Homey.alert(__('error.endpointNotFound'), 'error');
+    } else if (errortype === 'host_unreachable') {
+      Homey.alert(__('error.hostUnreachable'), 'error');
+    } else if (errortype === 'host_timeout') {
+      Homey.alert(__('error.connectionTimedOut'), 'error');
+    } else if (errortype === 'concurrent_pairing') {
+      Homey.alert(__('error.concurrentPairing'), 'error');
+    } else if (errortype === 'pair_timeout') {
+      Homey.alert(__('error.pairingTimeout'), 'error');
+    } else {
+      Homey.alert(JSON.stringify(errortype));
+    }
+  });
+
+  Homey.emit('get_device', null, (err, device) => {
+    ipAddressElement.value = device.settings.ipAddress;
+    apiVersionElement.value = device.settings.apiVersion;
+    deviceNameElement.value = device.name;
+    setPort(device.settings.port);
+
+    loading = false;
+  });
+
+  function getPort() {
+    for (var i in portRadioElements) {
+      var radio = portRadioElements[i];
+
+      if (radio.checked) {
+        return radio.value;
+      }
+    }
+
+    return 1926;
+  }
+
+  function setPort(port) {
+    for (var i in portRadioElements) {
+      var radio = portRadioElements[i];
+
+      if (radio.value == port) {
+        radio.checked = true;
+      } else {
+        radio.checked = false;
+      }
+    }
+  }
+
+  function saveSettings() {
+    if (loading) {
+      console.log('Loading ..')
+    }
+    saveButton.classList.add('loading-fade-out');
+    loading = true;
+
+    console.log('Saving settings...');
+
+    let ipAddress = ipAddressElement.value,
+      apiVersion = apiVersionElement.value,
+      deviceName = deviceNameElement.value,
+      port = getPort();
+
+    // If required values are filled in
+    if (ipAddress !== '') {
+      // Build data array
+      var data = {
+        ipAddress: ipAddress,
+        apiVersion: apiVersion,
+        deviceName: deviceName,
+        port: port,
+      };
+
+      console.log('Saving device data', data);
+
+      // Continue to back-end, pass along data
+      Homey.emit('start_pair', data);
+    } else {
+      saveButton.classList.remove('loading-fade-out');
+      loading = false;
+    }
+  }
+
+</script>

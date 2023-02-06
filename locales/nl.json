@@ -15,6 +15,9 @@
       "intro": "Vul de code in die op de TV wordt weergegeven",
       "submit": "Versturen"
     },
+    "select_pairing_mode": {
+      "title": "Koppelmodus selecteren..."
+    },
     "verify": {
       "verifying": "Controleren van de Wake-on-LAN configuratie...",
       "verified": "Wake-on-LAN is ingeschakeld en functioneert correct!",

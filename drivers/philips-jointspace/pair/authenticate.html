@@ -6,45 +6,45 @@
 
         <p>&nbsp;</p>
 
-        <input id="pincode" type="number" onkeypress="onKeyPress()" class="pincode" maxlength="4" max="4">
+        <input class="pincode" id="pincode" max="4" maxlength="4" type="number">
 
         <p>&nbsp;</p>
     </div>
 </div>
-<a id="saveButton" class="btn btn-success btn-block btn-lg" data-i18n="pair.authenticate.submit"
+<a class="btn btn-success btn-block btn-lg" data-i18n="pair.authenticate.submit" id="saveButton"
    onclick="submitPincode()">Submit</a>
 
 <script>
-    var pincodeElement = document.getElementById('pincode'),
-        saveButtonElement = document.getElementById('saveButton'),
-        loading = false;
+  var pincodeElement = document.getElementById('pincode'),
+    saveButtonElement = document.getElementById('saveButton'),
+    loading = false
 
-    function submitPincode() {
-        if (loading) {
-            return;
-        }
-        loading = true;
-        saveButtonElement.classList.add('loading-fade-out');
-
-        let pincode = pincodeElement.value;
-
-        Homey.emit('pincode', pincode, (err, success) => {
-            loading = false;
-
-            if (success) {
-                Homey.nextView();
-            } else {
-                Homey.alert(__('error.incorrectPincode'), 'error', () => {
-                    pincodeElement.value = '';
-                    pincodeElement.focus();
-                });
-                saveButtonElement.classList.remove('loading-fade-out');
-            }
-        });
+  function submitPincode () {
+    if (loading) {
+      return
     }
+    loading = true
+    saveButtonElement.classList.add('loading-fade-out')
 
-    setTimeout(() => {
-        pincodeElement.focus();
-    }, 200);
+    let pincode = pincodeElement.value
+
+    Homey.emit('pincode', pincode, (err, success) => {
+      loading = false
+
+      if (success) {
+        Homey.nextView()
+      } else {
+        Homey.alert(__('error.incorrectPincode'), 'error', () => {
+          pincodeElement.value = ''
+          pincodeElement.focus()
+        })
+        saveButtonElement.classList.remove('loading-fade-out')
+      }
+    })
+  }
+
+  setTimeout(() => {
+    pincodeElement.focus()
+  }, 200)
 
 </script>

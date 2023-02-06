@@ -40,6 +40,33 @@
   "source": "https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace",
   "homepage": "https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace",
   "support": "mailto:lucasvdhave@gmail.com",
+  "discovery": {
+    "philips-tv-discovery": {
+      "type": "ssdp",
+      "ssdp": {
+        "search": "urn:schemas-upnp-org:device:MediaRenderer:3"
+      },
+      "id": "{{headers.usn}}",
+      "conditions": [
+        [
+          {
+            "field": "headers.st",
+            "match": {
+              "type": "string",
+              "value": "urn:schemas-upnp-org:device:MediaRenderer:3"
+            }
+          },
+          {
+            "field": "headers.server",
+            "match": {
+              "type": "regex",
+              "value": "philips"
+            }
+          }
+        ]
+      ]
+    }
+  },
   "capabilities": {
     "ambilight_onoff": {
       "type": "boolean",
@@ -653,6 +680,7 @@
         "nl": "Philips Televisie"
       },
       "class": "tv",
+      "discovery": "philips-tv-discovery",
       "capabilities": [
         "onoff",
         "ambilight_onoff",
@@ -717,7 +745,32 @@
       },
       "pair": [
         {
-          "id": "start"
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "select_pairing_mode"
+          },
+          "options": {
+            "singular": true,
+            "title": {
+              "en": "Select the device you want to add",
+              "nl": "Selecteer het apparaat die je wil toevoegen"
+            }
+          }
+        },
+        {
+          "id": "select_pairing_mode"
+        },
+        {
+          "id": "loading",
+          "template": "loading"
+        },
+        {
+          "id": "search_device"
+        },
+        {
+          "id": "loading",
+          "template": "loading"
         },
         {
           "id": "validate",
@@ -725,6 +778,7 @@
         },
         {
           "id": "authenticate",
+          "template": "pincode",
           "options": {
             "title": {
               "en": "Enter the code displayed on the TV",

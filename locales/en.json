@@ -16,6 +16,9 @@
       "intro": "Enter the code displayed on the TV",
       "submit": "Submit"
     },
+    "select_pairing_mode": {
+      "title": "Selecting pairing mode..."
+    },
     "verify": {
       "verifying": "Checking Wake-on-LAN configuration...",
       "verified": "Wake-on-LAN enabled and working correctly!",
