@@ -1,0 +1,12 @@
+{
+  "type": "boolean",
+  "title": {
+    "en": "Cursor up",
+    "nl": "Wijzer omhoog"
+  },
+  "getable": false,
+  "setable": true,
+  "uiComponent": "button",
+  "uiQuickAction": true,
+  "icon": "drivers/philips-jointspace/assets/capabilities/cursor_up.svg"
+}

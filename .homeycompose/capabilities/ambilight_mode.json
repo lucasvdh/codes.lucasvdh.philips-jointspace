@@ -1,0 +1,63 @@
+{
+  "type": "enum",
+  "title": {
+    "en": "Ambilight mode",
+    "nl": "Ambilight modus"
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": "picker",
+  "uiQuickAction": true,
+  "icon": "drivers/philips-jointspace/assets/capabilities/ambilight.svg",
+  "values": [
+    {
+      "id": "off",
+      "title": {
+        "en": "Off",
+        "nl": "Uit"
+      }
+    },
+    {
+      "id": "follow_video",
+      "title": {
+        "en": "Follow video",
+        "nl": "Volg beeld"
+      }
+    },
+    {
+      "id": "follow_audio",
+      "title": {
+        "en": "Follow audio",
+        "nl": "Volg geluid"
+      }
+    },
+    {
+      "id": "follow_color",
+      "title": {
+        "en": "Follow color",
+        "nl": "Volg kleur"
+      }
+    },
+    {
+      "id": "lounge",
+      "title": {
+        "en": "Lounge",
+        "nl": "Lounge"
+      }
+    },
+    {
+      "id": "expert",
+      "title": {
+        "en": "Expert",
+        "nl": "Expert"
+      }
+    },
+    {
+      "id": "grid",
+      "title": {
+        "en": "Grid",
+        "nl": "Grid"
+      }
+    }
+  ]
+}

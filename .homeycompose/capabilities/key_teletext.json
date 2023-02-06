@@ -1,0 +1,12 @@
+{
+  "type": "boolean",
+  "title": {
+    "en": "Teletext",
+    "nl": "Teletekst"
+  },
+  "getable": false,
+  "setable": true,
+  "uiComponent": "button",
+  "uiQuickAction": true,
+  "icon": "drivers/philips-jointspace/assets/capabilities/teletext.svg"
+}

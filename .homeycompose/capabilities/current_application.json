@@ -1,0 +1,12 @@
+{
+  "type": "string",
+  "title": {
+    "en": "Current app",
+    "nl": "Huidige app"
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": null,
+  "uiQuickAction": false,
+  "icon": "drivers/philips-jointspace/assets/capabilities/application.svg"
+}

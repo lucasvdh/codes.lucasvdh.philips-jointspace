@@ -1,0 +1,12 @@
+{
+  "type": "boolean",
+  "title": {
+    "en": "adjust",
+    "nl": "Aanpassen"
+  },
+  "getable": false,
+  "setable": true,
+  "uiComponent": "button",
+  "uiQuickAction": true,
+  "icon": "drivers/philips-jointspace/assets/capabilities/adjust.svg"
+}

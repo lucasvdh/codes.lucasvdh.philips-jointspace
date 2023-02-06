@@ -1,0 +1,43 @@
+{
+  "id": "codes.lucasvdh.philips-jointspace",
+  "version": "1.1.0",
+  "compatibility": ">=1.5.0",
+  "brandColor": "#2088df",
+  "sdk": 2,
+  "name": {
+    "en": "Philips TV",
+    "nl": "Philips TV"
+  },
+  "description": {
+    "en": "Control your Philips TV and monitor what its doing",
+    "nl": "Bedien uw Philips TV en houd in de gaten wat hij doet"
+  },
+  "category": [
+    "video",
+    "appliances"
+  ],
+  "author": {
+    "name": "Lucas van der Have",
+    "email": "lucasvdhave@gmail.com"
+  },
+  "permissions": [],
+  "images": {
+    "xlarge": "/assets/images/xlarge.png",
+    "large": "/assets/images/large.png",
+    "small": "/assets/images/small.png"
+  },
+  "contributing": {
+    "donate": {
+      "paypal": {
+        "username": "lucasvdh"
+      }
+    }
+  },
+  "bugs": {
+    "url": "https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues"
+  },
+  "homeyCommunityTopicId": 14064,
+  "source": "https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace",
+  "homepage": "https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace",
+  "support": "mailto:lucasvdhave@gmail.com"
+}

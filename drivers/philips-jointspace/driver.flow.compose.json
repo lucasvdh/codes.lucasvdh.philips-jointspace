@@ -1,0 +1,205 @@
+{
+  "triggers": [
+    {
+      "id": "application_opened",
+      "title": {
+        "en": "An app was opened",
+        "nl": "Er is een app geopend"
+      },
+      "tokens": [
+        {
+          "name": "app",
+          "type": "string",
+          "title": {
+            "en": "App"
+          },
+          "example": "Netflix"
+        }
+      ],
+      "args": []
+    },
+    {
+      "id": "ambihue_changed",
+      "title": {
+        "en": "AmbiHue changed",
+        "nl": "AmbiHue gewijzigd"
+      },
+      "tokens": [
+        {
+          "name": "enabled",
+          "type": "boolean",
+          "title": {
+            "en": "Enabled",
+            "nl": "Ingeschakeld"
+          },
+          "example": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "id": "ambilight_changed",
+      "title": {
+        "en": "Ambilight changed",
+        "nl": "Ambilight gewijzigd"
+      },
+      "tokens": [
+        {
+          "name": "enabled",
+          "type": "boolean",
+          "title": {
+            "en": "Enabled",
+            "nl": "Ingeschakeld"
+          },
+          "example": true
+        }
+      ],
+      "args": []
+    }
+  ],
+  "actions": [
+    {
+      "id": "open_application",
+      "title": {
+        "en": "Open an application",
+        "nl": "Open een app"
+      },
+      "titleFormatted": {
+        "en": "Open app [[app]]",
+        "nl": "Open app [[app]]"
+      },
+      "args": [
+        {
+          "name": "app",
+          "type": "autocomplete"
+        }
+      ]
+    },
+    {
+      "id": "set_ambihue",
+      "title": {
+        "en": "Set AmbiHue state",
+        "nl": "Stel AmbiHue in"
+      },
+      "titleFormatted": {
+        "en": "Turn AmbiHue [[state]]",
+        "nl": "Zet AmbiHue [[state]]"
+      },
+      "args": [
+        {
+          "name": "state",
+          "type": "dropdown",
+          "values": [
+            {
+              "id": "on",
+              "label": {
+                "en": "On",
+                "nl": "Aan"
+              }
+            },
+            {
+              "id": "off",
+              "label": {
+                "en": "Off",
+                "nl": "Uit"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set_ambilight",
+      "title": {
+        "en": "Set Ambilight state",
+        "nl": "Stel Ambilight in"
+      },
+      "titleFormatted": {
+        "en": "Turn Ambilight [[state]]",
+        "nl": "Zet Ambilight [[state]]"
+      },
+      "args": [
+        {
+          "name": "state",
+          "type": "dropdown",
+          "values": [
+            {
+              "id": "on",
+              "label": {
+                "en": "On",
+                "nl": "Aan"
+              }
+            },
+            {
+              "id": "off",
+              "label": {
+                "en": "Off",
+                "nl": "Uit"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "select_source",
+      "title": {
+        "en": "Select a source",
+        "nl": "Selecteer een input"
+      },
+      "titleFormatted": {
+        "en": "Select source [[source]]",
+        "nl": "Selecteer input [[source]]"
+      },
+      "args": [
+        {
+          "name": "source",
+          "type": "dropdown",
+          "values": [
+            {
+              "id": "HDMI 1",
+              "title": {
+                "en": "HDMI 1"
+              }
+            },
+            {
+              "id": "HDMI 2",
+              "title": {
+                "en": "HDMI 2"
+              }
+            },
+            {
+              "id": "HDMI 3",
+              "title": {
+                "en": "HDMI 3"
+              }
+            },
+            {
+              "id": "HDMI 4",
+              "title": {
+                "en": "HDMI 4"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "send_key",
+      "title": {
+        "en": "Send a key",
+        "nl": "Stuur een knop"
+      },
+      "titleFormatted": {
+        "en": "Send key [[option]]",
+        "nl": "Stuur knop [[option]]"
+      },
+      "args": [
+        {
+          "name": "option",
+          "type": "autocomplete"
+        }
+      ]
+    }
+  ]
+}

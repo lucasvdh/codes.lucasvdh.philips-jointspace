@@ -1,0 +1,173 @@
+{
+  "name": {
+    "en": "Philips Television",
+    "nl": "Philips Televisie"
+  },
+  "class": "tv",
+  "discovery": "philips-tv-discovery",
+  "capabilities": [
+    "onoff",
+    "ambilight_onoff",
+    "ambihue_onoff",
+    "key_play",
+    "key_pause",
+    "key_stop",
+    "key_back",
+    "key_confirm",
+    "key_home",
+    "key_previous",
+    "key_next",
+    "key_source",
+    "key_rewind",
+    "key_fast_forward",
+    "volume_up",
+    "volume_down",
+    "volume_mute",
+    "key_cursor_left",
+    "key_cursor_up",
+    "key_cursor_right",
+    "key_cursor_down",
+    "channel_up",
+    "channel_down",
+    "volume_set",
+    "speaker_next",
+    "speaker_prev",
+    "speaker_playing",
+    "key_play_pause",
+    "key_online",
+    "key_record",
+    "key_toggle_ambilight",
+    "key_toggle_subtitles",
+    "key_teletext",
+    "key_viewmode",
+    "key_watch_tv",
+    "key_adjust",
+    "key_info",
+    "key_digit_1",
+    "key_digit_2",
+    "key_digit_3",
+    "key_digit_4",
+    "key_digit_5",
+    "key_digit_6",
+    "key_digit_7",
+    "key_digit_8",
+    "key_digit_9",
+    "key_digit_0",
+    "key_dot",
+    "key_options",
+    "key_info",
+    "key_find",
+    "key_red",
+    "key_green",
+    "key_yellow",
+    "key_blue"
+  ],
+  "energy": {},
+  "images": {
+    "large": "/drivers/philips-jointspace/assets/images/large.png",
+    "small": "/drivers/philips-jointspace/assets/images/small.png"
+  },
+  "pair": [
+    {
+      "id": "list_devices",
+      "template": "list_devices",
+      "navigation": {
+        "next": "select_pairing_mode"
+      },
+      "options": {
+        "singular": true,
+        "title": {
+          "en": "Select the device you want to add",
+          "nl": "Selecteer het apparaat die je wil toevoegen"
+        }
+      }
+    },
+    {
+      "id": "select_pairing_mode"
+    },
+    {
+      "id": "loading",
+      "template": "loading"
+    },
+    {
+      "id": "search_device"
+    },
+    {
+      "id": "loading",
+      "template": "loading"
+    },
+    {
+      "id": "validate",
+      "template": "loading"
+    },
+    {
+      "id": "authenticate",
+      "template": "pincode",
+      "options": {
+        "title": {
+          "en": "Enter the code displayed on the TV",
+          "nl": "Vul de code in die op de TV wordt weergegeven"
+        }
+      }
+    },
+    {
+      "id": "verify"
+    },
+    {
+      "id": "done"
+    }
+  ],
+  "settings": [
+    {
+      "type": "group",
+      "label": {
+        "en": "General settings",
+        "nl": "Algemene instellingen"
+      },
+      "children": [
+        {
+          "id": "ipAddress",
+          "type": "text",
+          "label": {
+            "en": "IP address",
+            "nl": "IP adres"
+          },
+          "value": "0.0.0.0"
+        },
+        {
+          "id": "apiVersion",
+          "type": "text",
+          "label": {
+            "en": "API version",
+            "nl": "API versie"
+          },
+          "value": "6"
+        }
+      ]
+    },
+    {
+      "type": "group",
+      "label": {
+        "en": "Device settings"
+      },
+      "children": [
+        {
+          "id": "volumeMax",
+          "type": "number",
+          "label": {
+            "en": "Volume Max"
+          },
+          "value": 60
+        },
+        {
+          "id": "volumeMin",
+          "type": "number",
+          "label": {
+            "en": "Volume Min"
+          },
+          "value": 0
+        }
+      ]
+    }
+  ]
+}
