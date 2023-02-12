@@ -2,9 +2,6 @@
 
 const Homey = require('homey')
 const JointspaceClient = require('../../lib/JointspaceClient')
-const { XMLMinifier } = require('../../lib/XMLMinifier')
-const minifier = XMLMinifier()
-const http = require('http.min')
 const { PairingError } = require('../../lib/Errors')
 
 // a list of devices, with their 'id' as key
