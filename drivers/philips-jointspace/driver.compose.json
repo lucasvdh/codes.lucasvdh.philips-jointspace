@@ -16,6 +16,7 @@
   "capabilities": [
     "onoff",
     "ambilight_onoff",
+    "ambilight_mode",
     "ambihue_onoff",
     "key_play",
     "key_pause",
@@ -76,10 +77,47 @@
   },
   "pair": [
     {
+      "id": "discover",
+      "template": "loading",
+      "options": {
+        "text": {
+          "en": "Searching for devices...",
+          "nl": "Zoeken naar apparaten...",
+          "de": "Suche nach Geräten...",
+          "fr": "Recherche de périphériques en cours...",
+          "it": "Ricerca di dispositivi in corso...",
+          "sv": "Söker efter enheter...",
+          "no": "Søker etter enheter...",
+          "es": "Buscando dispositivos...",
+          "da": "Søger efter enheder...",
+          "pl": "Wyszukiwanie urządzeń..."
+        }
+      },
+      "navigation": {
+        "next": "list_devices"
+      }
+    },
+    {
+      "id": "add_by_ip",
+      "navigation": {
+        "next": "check_ip",
+        "prev": "discover"
+      }
+    },
+    {
+      "id": "check_ip",
+      "template": "loading",
+      "navigation": {
+        "next": "list_devices",
+        "prev": "add_by_ip"
+      }
+    },
+    {
       "id": "list_devices",
       "template": "list_devices",
       "navigation": {
-        "next": "select_pairing_mode"
+        "next": "validate",
+        "prev": "add_by_ip"
       },
       "options": {
         "singular": true,
@@ -98,28 +136,38 @@
       }
     },
     {
-      "id": "select_pairing_mode"
-    },
-    {
-      "id": "loading",
-      "template": "loading"
-    },
-    {
-      "id": "search_device"
-    },
-    {
-      "id": "loading",
-      "template": "loading"
-    },
-    {
       "id": "validate",
-      "template": "loading"
+      "template": "loading",
+      "navigation": {
+        "next": "start_pair",
+        "prev": "discover"
+      }
+    },
+    {
+      "id": "start_pair",
+      "template": "loading",
+      "navigation": {
+        "next": "authenticate",
+        "prev": "discover"
+      }
     },
     {
       "id": "authenticate",
       "template": "pincode",
       "options": {
         "title": {
+          "en": "Pincode",
+          "nl": "Pincode",
+          "de": "Pin-Code",
+          "fr": "Code Pin",
+          "it": "Codice Pin",
+          "sv": "Pin-kod",
+          "no": "Pinkode",
+          "es": "Código PIN",
+          "da": "Pin-kode",
+          "pl": "Kod PIN"
+        },
+        "hint": {
           "en": "Enter the code displayed on the TV",
           "nl": "Vul de code in die op de TV wordt weergegeven",
           "de": "Geben Sie den auf dem Fernseher angezeigten Code ein",
@@ -130,14 +178,16 @@
           "es": "Ingrese el código que se muestra en la televisión",
           "da": "Indtast koden, der vises på tv'et",
           "pl": "Wprowadź kod wyświetlany na telewizorze"
-        }
+        },
+        "type": "number",
+        "length": 4
+      },
+      "navigation": {
+        "prev": "discover"
       }
     },
     {
-      "id": "verify"
-    },
-    {
-      "id": "done"
+      "id": "add_my_device"
     }
   ],
   "settings": [

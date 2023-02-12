@@ -1,115 +1,120 @@
-'use strict';
+'use strict'
 
-if (process.env.DEBUG === '1') {
-    //require("inspector").open(9229, "0.0.0.0", false);
-    require('inspector').open(9229, "0.0.0.0");
-}
-
-const Homey = require('homey');
+const Homey = require('homey')
 
 class PhilipsTV extends Homey.App {
 
-    onInit() {
-        this.log('Philips TV app is running...');
+  onInit () {
+    this.log('Philips TV app is running...')
 
-        this.onInitFlow();
-    }
+    this.onInitFlow()
+  }
 
-    onInitFlow() {
-        this.homey.flow.getActionCard('open_application')
-            .registerRunListener(this.onFlowActionOpenApplication)
-            .getArgument('app')
-            .registerAutocompleteListener(this.onFlowApplicationAutocomplete);
+  onInitFlow () {
+    this.homey.flow.getActionCard('open_application')
+      .registerRunListener(this.onFlowActionOpenApplication)
+      .getArgument('app')
+      .registerAutocompleteListener(this.onFlowApplicationAutocomplete)
 
-        this.homey.flow.getActionCard('select_source')
-            .registerRunListener(this.onFlowActionSelectSource);
+    this.homey.flow.getActionCard('select_source')
+      .registerRunListener(this.onFlowActionSelectSource)
 
-        this.homey.flow.getActionCard('set_ambihue')
-            .registerRunListener(this.onFlowActionSetAmbiHue);
+    this.homey.flow.getActionCard('set_ambihue')
+      .registerRunListener(this.onFlowActionSetAmbiHue)
 
-        this.homey.flow.getActionCard('set_ambilight')
-            .registerRunListener(this.onFlowActionSetAmbilight);
+    this.homey.flow.getActionCard('set_ambilight')
+      .registerRunListener(this.onFlowActionSetAmbilight)
 
-        this.homey.flow.getActionCard('send_key')
-            .registerRunListener(this.onFlowActionSendKey)
-            .getArgument('option')
-            .registerAutocompleteListener(this.onFlowKeyAutocomplete.bind(this));
+    this.homey.flow.getActionCard('set_ambilight_mode')
+      .registerRunListener(this.onFlowActionSetAmbilightMode)
 
-        this.log('Initialized flow');
-    }
+    this.homey.flow.getActionCard('send_key')
+      .registerRunListener(this.onFlowActionSendKey)
+      .getArgument('option')
+      .registerAutocompleteListener(this.onFlowKeyAutocomplete.bind(this))
 
-    async onFlowActionOpenApplication(args) {
-        let device = args.device,
-            app = args.app;
+    this.log('Initialized flow')
+  }
 
-        return device.openApplication(app);
-    }
+  async onFlowActionOpenApplication (args) {
+    let device = args.device,
+      app = args.app
 
-    async onFlowActionSelectSource(args) {
-        let device = args.device,
-            source = args.source;
+    return device.openApplication(app)
+  }
 
-        return device.sendGoogleAssistantSearch(source);
-    }
+  async onFlowActionSelectSource (args) {
+    let device = args.device,
+      source = args.source
 
-    async onFlowActionSetAmbiHue(args) {
-        let device = args.device,
-            state = (args.state === 'on');
+    return device.sendGoogleAssistantSearch(source)
+  }
 
-        return device.setAmbiHue(state);
-    }
+  async onFlowActionSetAmbiHue (args) {
+    let device = args.device,
+      state = (args.state === 'on')
 
-    async onFlowActionSetAmbilight(args) {
-        let device = args.device,
-            state = (args.state === 'on');
+    return device.setAmbiHue(state)
+  }
 
-        return device.setAmbilight(state);
-    }
+  async onFlowActionSetAmbilight (args) {
+    let device = args.device,
+      state = (args.state === 'on');
 
-    async onFlowApplicationAutocomplete(query, args) {
-        let device = args.device;
+    return device.setAmbilight(state)
+  }
 
-        return device.getApplications().then(applications => {
-            return applications.filter(result => {
-                return result.name.toLowerCase().indexOf(query.toLowerCase()) > -1;
-            });
-        });
-    }
+  async onFlowActionSetAmbilightMode (args) {
+    let device = args.device,
+      mode = args.mode;
 
-    async onFlowActionSendKey(args) {
-        let device = args.device,
-            option = args.option,
-            client = device.getJointspaceClient();
+    return device.setAmbilightMode(mode)
+  }
 
-        return client.sendKey(option.key);
-    }
+  async onFlowApplicationAutocomplete (query, args) {
+    let device = args.device
 
-    async onFlowKeyAutocomplete(query, args) {
-        let device = args.device,
-            client = device.getJointspaceClient();
+    return device.getApplications().then(applications => {
+      return applications.filter(result => {
+        return result.name.toLowerCase().indexOf(query.toLowerCase()) > -1
+      })
+    })
+  }
 
-        let results = client.getPossibleKeys().map(key => {
-            return {
-                "id": key.inputName,
-                "key": key.inputName,
-                "name": this.getI18nString(key.friendlyName)
-            }
-        }).filter(result => {
-            return result.name.toLowerCase().indexOf(query.toLowerCase()) > -1;
-        });
+  async onFlowActionSendKey (args) {
+    let device = args.device,
+      option = args.option,
+      client = device.getJointspaceClient()
 
-        return Promise.resolve(results);
-    }
+    return client.sendKey(option.key)
+  }
 
-	getI18nString(i18n) {
-		const lang = Homey.ManagerI18n.getLanguage();
-		if (i18n[lang])
-			return i18n[lang];
-		else if (i18n['en'])
-			return i18n['en'];
-		else
-			return `Untranslated string: ${i18n}`;
-	}
+  async onFlowKeyAutocomplete (query, args) {
+    let device = args.device,
+      client = device.getJointspaceClient()
+
+    let results = client.getPossibleKeys().map(key => {
+      return {
+        'id': key.inputName,
+        'key': key.inputName,
+        'name': this.getI18nString(key.friendlyName)
+      }
+    }).filter(result => {
+      return result.name.toLowerCase().indexOf(query.toLowerCase()) > -1
+    })
+
+    return Promise.resolve(results)
+  }
+
+  getI18nString (i18n) {
+    const lang = 'en' //Homey.ManagerI18n.getLanguage()
+    if (i18n[lang])
+      return i18n[lang]
+    else if (i18n['en'])
+      return i18n['en']
+    else
+      return `Untranslated string: ${i18n}`
+  }
 }
 
-module.exports = PhilipsTV;
+module.exports = PhilipsTV

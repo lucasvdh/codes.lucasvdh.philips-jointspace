@@ -1,0 +1,27 @@
+<fieldset class="homey-form-fieldset">
+    <div class="homey-form-group">
+        <label class="homey-form-label" for="ip"><span data-i18n="pair.add_by_ip.ip"></span></label>
+        <input class="homey-form-input" id="ip" type="text" value="" oninput="ipChanged(this.value)"/>
+    </div>
+</fieldset>
+
+<script type="application/javascript">
+
+  Homey.setTitle(Homey.__('pair.add_by_ip.title'))
+
+  Homey.on('alert', function (message) {
+    Homey.alert(message)
+  })
+
+  Homey.emit('getTvIp').then(function (ip) {
+    document.getElementById('ip').value = ip
+  })
+
+  function ipChanged (value) {
+    Homey.emit('setTvIp', value)
+      .then(function (result) {
+
+      })
+  }
+
+</script>

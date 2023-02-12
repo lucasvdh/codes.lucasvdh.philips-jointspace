@@ -1,23 +1,10 @@
 {
   "pair": {
-    "start": {
-      "intro": "It's important that your TV is turned on before you continue.",
-      "title": "Finding device...",
-      "ipAddress": "IP address",
-      "ipAddressDescription": "Ensure that the IP address of your TV does not change by assigning it a static address in your router based on the MAC address.",
-      "apiVersion": "Jointspace API version",
-      "apiVersionDescription": "Jointspace API version",
-      "deviceName": "Device name",
-      "saveSettings": "Save settings",
-      "constructionYear": "Model construction year",
-      "constructionYearDescription": "This is important because it will determine which version of the API is used to communicate with your TV. TV's before 2016 don't require a pairing process. If your device is being added but you're not able to send commands to it, it might be that you need to select the newer version."
-    },
-    "authenticate": {
-      "intro": "Enter the code displayed on the TV",
-      "submit": "Submit"
-    },
-    "select_pairing_mode": {
-      "title": "Selecting pairing mode..."
+    "add_by_ip": {
+      "title": "Add manually",
+      "ip": "IP address",
+      "search": "Start device discovery",
+      "not_found": "Device not found"
     },
     "verify": {
       "verifying": "Checking Wake-on-LAN configuration...",
@@ -25,6 +12,9 @@
       "errorTitle": "Could not verify WOL",
       "errorDescription": "The on/off behaviour of the TV might not work as expected if Wake-on-LAN is not enabled. <br/> When your TV is put on standby you'll be able to send commands to it for about 10 minutes before it turns off completely. Without Wake-on-LAN there'll be no way to turn your TV back on.",
       "confirm": "Begrepen"
+    },
+    "add_device": {
+      "title": "Adding device"
     }
   },
   "error": {
@@ -34,6 +24,9 @@
     "endpointNotFound": "Was able to reach the TV but not the API. The API version is probably incorrect.",
     "hostUnreachable": "Could not reach the TV on this IP address. Is the IP correct and the TV turned on? Otherwise try a different API version.",
     "connectionTimedOut": "The connection to the TV timed out. Is the IP correct and the TV turned on? Otherwise try a different API version.",
-    "concurrentPairing": "Concurrent pairing process already in progress, wait 60 seconds and try again."
+    "concurrentPairing": "Concurrent pairing process already in progress, wait 60 seconds and try again.",
+    "provide_the_ip_address": "Provide the IP address",
+    "device_not_found": "Device not found",
+    "something_went_wrong": "Something went wrong"
   }
 }
