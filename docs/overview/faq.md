@@ -15,6 +15,9 @@ If you can't find the answer you're looking for, feel free to submit a support t
 * [Will this app work with my TV?](faq.md#will-this-app-work-with-my-tv)
 * [How can I verify if my TV is supported by this app?](faq.md#how-can-i-verify-if-my-tv-is-supported-by-this-app)
 * [Why am I getting an incorrect pincode error?](faq.md#why-am-i-getting-an-incorrect-pincode-error)
+* [Why is my TV not turning on?](faq.md#why-is-my-tv-not-turning-on)
+
+
 
 ### Is this an official app?
 
@@ -92,3 +95,30 @@ In either case, we apologize for any inconvenience and encourage you to reach ou
 If you [are able to verify that your TV supports the Jointspace API](faq.md#how-can-i-verify-myself-if-my-tv-is-supported-by-this-app), please submit a bug report on Github.
 
 <table data-view="cards"><thead><tr><th></th><th data-type="content-ref"></th><th data-hidden data-card-target data-type="content-ref"></th><th data-hidden data-card-cover data-type="files"></th></tr></thead><tbody><tr><td>Submit a bug report on Github</td><td><a href="https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues">https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues</a></td><td><a href="https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues">https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues</a></td><td><a href="../.gitbook/assets/github.png">github.png</a></td></tr></tbody></table>
+
+
+
+### Why is my TV not turning on?
+
+The Homey Philips TV app tries to wake your TV by sending ping to the Chromecast endpoint.
+
+However, when this "power on" command is sent, your TV might still be in a deep sleep mode where it can't be reached over network. There is no permanent solution for this issue.
+
+#### Wakelock
+
+The only workaround that was found for this problem is installing the [Wakelock Revamp](https://play.google.com/store/apps/details?id=eu.thedarken.wldonate) app. This app prevents your TV from going into the deep sleep mode.
+
+This solution, however, only works for Android TVs. There is currently no solution for non-Android TVs.
+
+If you're not familiar with connecting to your TV via adb, you can install the Wakelock app with a USB drive.
+
+1. [Download The Wakelock app from Github](https://github.com/d4rken-org/wakelock-revamp/releases/)
+2. Store it on a thumb drive
+3. Plug the thuimb drive into your TV
+4. Using a file manager app on your TV, open the `.apk` file
+
+{% hint style="danger" %}
+Installing Wakelock on your TV will make sure that it can always be reached.
+
+But it will also cause an increase in how much power your TV consumes even when in stand-by mode.
+{% endhint %}
