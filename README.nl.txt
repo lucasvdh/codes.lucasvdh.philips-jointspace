@@ -1,8 +1,7 @@
-Deze app voegt ondersteuning toe voor Philips TV-modellen van ~2014 tot in ieder geval 2019 met behulp van het Jointspace-protocol. Oudere modellen moeten dit mogelijk handmatig inschakelen.
+De Philips TV-app stelt u in staat om uw Philips TV aan te sluiten op uw slimme thuis, waardoor u de mogelijkheid krijgt om uw TV te integreren met uw Homey flows.
 
-Gebruik deze app om een handige flow te maken, zoals "Dim de lichten wanneer Netflix wordt geopend".
+Met deze app kunt u flows uitvoeren op basis van veranderingen op uw TV, zoals het aanzetten ervan of het dempen van het geluid. U kunt ook conditionele kaarten gebruiken om de staat van uw TV te controleren, zoals of ambilight ingeschakeld is. Tot slot kun u er ook acties mee uitvoeren om de staat van uw TV te veranderen, zoals het uitzetten ervan, het instellen van de ambilight-modus of het openen van een app.
 
+Deze app is geen officiële app en is op geen enkele manier geaffilieerd met Philips of TP Vision. Het is mogelijk gemaakt door de inspanningen van een groep mensen die de Jointspace API hebben doorgrond. Let erop dat deze app erop gericht is om een hoogwaardige en functionele oplossing te bieden, maar dat deze wellicht niet zo betrouwbaar is als een door Philips ondersteunde app. Het gebruik ervan is op eigen risico.
 
-Er zijn nog enkele onopgeloste problemen tijdens het koppelingsproces met een pincode. Deze zijn helaas erg lastig op te lossen. Ervaart u dit probleem wil u mij helpen, neem dan contact met mij op.
-
-https://community.athom.com/t/philips-tv-testing/14064
+Voor vragen verwijzen wij u naar https://homey-philips-tv.gitbook.io/homey-philips-tv/.
