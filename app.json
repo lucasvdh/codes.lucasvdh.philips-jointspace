@@ -3,8 +3,11 @@
   "id": "codes.lucasvdh.philips-jointspace",
   "version": "2.0.0",
   "compatibility": ">=5.0.0",
-  "brandColor": "#2088df",
+  "platforms": [
+    "local"
+  ],
   "sdk": 3,
+  "brandColor": "#2A63CC",
   "name": {
     "en": "Philips TV",
     "nl": "Philips TV",
@@ -18,26 +21,50 @@
     "pl": "Philips TV"
   },
   "description": {
-    "en": "Control your Philips TV and monitor what its doing",
-    "nl": "Bedien uw Philips TV en houd in de gaten wat hij doet"
+    "en": "Control and monitor your Philips TV",
+    "nl": "Beheer en monitoor uw Philips TV",
+    "de": "Steuern und Überwachen Sie Ihren Philips TV",
+    "fr": "Contrôlez et surveillez votre téléviseur Philips",
+    "it": "Controlla e monitora il tuo televisore Philips",
+    "sv": "Kontrollera och övervaka din Philips TV",
+    "no": "Kontroller og overvåk din Philips TV",
+    "es": "Controla y monitorea su televisor Philips",
+    "da": "Kontroller og overvåg din Philips TV",
+    "pl": "Kontroluj i monitoruj swój telewizor Philips"
   },
   "category": [
-    "video",
-    "appliances"
+    "video"
   ],
+  "tags": {
+    "en": [
+      "philips",
+      "tv",
+      "jointspace"
+    ]
+  },
   "author": {
     "name": "Lucas van der Have",
     "email": "lucasvdhave@gmail.com"
   },
   "permissions": [],
   "images": {
-    "xlarge": "/assets/images/xlarge.png",
+    "small": "/assets/images/small.png",
     "large": "/assets/images/large.png",
-    "small": "/assets/images/small.png"
+    "xlarge": "/assets/images/xlarge.png"
+  },
+  "contributors": {
+    "developers": [
+      {
+        "name": "Joolee"
+      }
+    ]
   },
   "contributing": {
     "donate": {
       "paypal": {
+        "username": "lucasvdh"
+      },
+      "githubSponsors": {
         "username": "lucasvdh"
       }
     }
@@ -47,7 +74,7 @@
   },
   "homeyCommunityTopicId": 14064,
   "source": "https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace",
-  "homepage": "https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace",
+  "homepage": "https://homey-philips-tv.gitbook.io/homey-philips-tv/",
   "support": "mailto:lucasvdhave@gmail.com",
   "flow": {
     "conditions": [
@@ -926,11 +953,16 @@
         "key_yellow",
         "key_blue"
       ],
-      "energy": {},
       "images": {
         "large": "/drivers/philips-jointspace/assets/images/large.png",
         "small": "/drivers/philips-jointspace/assets/images/small.png"
       },
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "lan"
+      ],
       "pair": [
         {
           "id": "discover",
@@ -1078,23 +1110,6 @@
                 "pl": "Adres IP"
               },
               "value": "0.0.0.0"
-            },
-            {
-              "id": "apiVersion",
-              "type": "text",
-              "label": {
-                "en": "API version",
-                "nl": "API versie",
-                "de": "API-Version",
-                "fr": "Version de l'API",
-                "it": "Versione API",
-                "sv": "API-version",
-                "no": "API-versjon",
-                "es": "Versión de la API",
-                "da": "API-version",
-                "pl": "Wersja API"
-              },
-              "value": "6"
             }
           ]
         },
