@@ -1,38 +1,56 @@
 # FAQ
 
-## Is this an official app?
+Welcome to the FAQ section for the Homey Philips TV app!&#x20;
 
-The Homey Philips App is in no way affiliated to Philips or TP Vision.
+Here, you'll find answers to the most commonly asked questions about the app and how it works. Whether you're a new user or have been using the app for a while, this page is a great resource to get the information you need.&#x20;
 
-It has been made thanks to the effort of a lot of people reverse engineering the Jointspace API.
+If you can't find the answer you're looking for, feel free to submit a support ticket for further assistance.
 
-## How does the app work?
+<table data-view="cards"><thead><tr><th></th><th data-type="content-ref"></th><th data-hidden data-card-cover data-type="files"></th></tr></thead><tbody><tr><td>Submit a support ticket on Github</td><td><a href="https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues/new?assignees=lucasvdh&#x26;labels=question&#x26;template=question.md&#x26;title=%5BQuestion%5D+">https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues/new?assignees=lucasvdh&#x26;labels=question&#x26;template=question.md&#x26;title=%5BQuestion%5D+</a></td><td><a href="../.gitbook/assets/github.png">github.png</a></td></tr></tbody></table>
 
-The Philips TV Homey app uses the Jointspace API to control your TV.
+## Overview
 
-## Will this app work with my TV?
+* [Is this an official app?](faq.md#is-this-an-official-app)
+* [How does the app work?](faq.md#how-does-the-app-work)
+* [Will this app work with my TV?](faq.md#will-this-app-work-with-my-tv)
+* [How can I verify if my TV is supported by this app?](faq.md#how-can-i-verify-if-my-tv-is-supported-by-this-app)
+* [Why am I getting an incorrect pincode error?](faq.md#why-am-i-getting-an-incorrect-pincode-error)
 
-Most Philips TVs will be supported by this app. It has been confirmed to work on models from \~2014 up until 2022.
+### Is this an official app?
 
-## How can I verify myself if my TV is supported by this app?
+No, the Philips TV app for Homey is not an official app and is in no way affiliated with Philips or TP Vision.&#x20;
 
-If you want to verify for yourself if this app will work with your TV, you can check if the Jointspace API is enabled for your device.
+It has been created through the dedicated efforts of a group of people who reverse engineered the Jointspace API. While we strive to offer a high-quality and functional app, we want to emphasize that it is not endorsed or supported by Philips or TP Vision.
 
-Go to the following url in your browser:
 
-```uri
-http://192.168.1.10:1925/system
-```
+
+### How does the app work?
+
+The Homey Philips TV app operates through the use of the Jointspace API. The Jointspace API is a set of programming interfaces that allow developers to communicate with and control certain features of Philips Smart TVs.&#x20;
+
+The Homey Philips TV app takes advantage of this API to provide users with a seamless integration between their Philips TV and the Homey platform. The Jointspace API is essential to the functioning of the Homey Philips TV app.
+
+
+
+### Will this app work with my TV?
+
+Most Philips TVs will be supported by this app. It has been confirmed to work on most models manufactured between \~2014 and 2022.
+
+
+
+### How can I verify if my TV is supported by this app?
+
+To verify if your TV is supported by the Homey Philips TV app, you can check if the Jointspace API is enabled for your device. To do this, follow these steps:
+
+1. Open a web browser on a device that is on the same network as your TV.
+2. Go to the following url: `http://192.168.1.10:1925/system`
+3. Verify if you get a JSON response
 
 {% hint style="info" %}
 Change the IP `192.168.1.10` to the IP address your TV.
 {% endhint %}
 
-{% hint style="info" %}
-Please note that for this to work the device which you are using to test this should be on the same network as your TV.
-{% endhint %}
-
-If this gives you a JSON response like the one below, you're in luck and the app will most likely work for you!
+If the page returns a JSON response like the one below, it means that the Jointspace API is enabled for your device and the app will likely work for you.
 
 <details>
 
@@ -61,14 +79,16 @@ If this gives you a JSON response like the one below, you're in luck and the app
 
 </details>
 
-## Incorrect pincode?
 
-If you are you experiencing issues while trying to pair your TV with a pincode this will most likely be a bug or a missing edge-case. There is however a change that your TV is not supported.
 
-Due to the fact of how this app was made, by reverse engineering the Jointspace API, it's difficult to take every model TV into account. There may be some Philips TV models which this app does support.&#x20;
+### Why am I getting an incorrect pincode error?
 
-Because there is no official documentation and nobody in the community has been able to get into contact with developers at TP Vision (Producer of Philips TVs) it's not likely that there will ever be a fix.
+Pincode pairing issues can be a frustrating experience when using the Homey Philips TV app. The app was created through reverse engineering the Jointspace API, which can make it challenging to account for every model of Philips TV. While the app has been confirmed to work on many models manufactured between \~2014 and 2022, there may still be some models that it does not support.
 
-That said, if you [are able to verify that your TV supports the Jointspace API](faq.md#how-can-i-verify-myself-if-my-tv-is-supported-by-this-app), please submit a bug report on Github.
+Unfortunately, due to the lack of official documentation and the difficulty of getting in touch with TP Vision (the producer of Philips TVs), it is unlikely that these issues will ever be resolved. If you are experiencing problems while trying to pair your TV with a pincode, it is possible that you may have encountered a bug, but it is also possible that your TV is simply not supported by the app.
 
-<table data-view="cards"><thead><tr><th></th><th data-type="content-ref"></th><th data-hidden data-card-target data-type="content-ref"></th><th data-hidden data-card-cover data-type="files"></th></tr></thead><tbody><tr><td>Open new issue on Github</td><td><a href="https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues">https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues</a></td><td><a href="https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues">https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues</a></td><td><a href="../.gitbook/assets/github.png">github.png</a></td></tr></tbody></table>
+In either case, we apologize for any inconvenience and encourage you to reach out for further assistance if you are having difficulty.
+
+If you [are able to verify that your TV supports the Jointspace API](faq.md#how-can-i-verify-myself-if-my-tv-is-supported-by-this-app), please submit a bug report on Github.
+
+<table data-view="cards"><thead><tr><th></th><th data-type="content-ref"></th><th data-hidden data-card-target data-type="content-ref"></th><th data-hidden data-card-cover data-type="files"></th></tr></thead><tbody><tr><td>Submit a bug report on Github</td><td><a href="https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues">https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues</a></td><td><a href="https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues">https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues</a></td><td><a href="../.gitbook/assets/github.png">github.png</a></td></tr></tbody></table>
