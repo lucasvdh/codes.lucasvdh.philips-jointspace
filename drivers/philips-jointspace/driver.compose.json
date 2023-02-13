@@ -70,11 +70,16 @@
     "key_yellow",
     "key_blue"
   ],
-  "energy": {},
   "images": {
     "large": "/drivers/philips-jointspace/assets/images/large.png",
     "small": "/drivers/philips-jointspace/assets/images/small.png"
   },
+  "platforms": [
+    "local"
+  ],
+  "connectivity": [
+    "lan"
+  ],
   "pair": [
     {
       "id": "discover",
@@ -222,23 +227,6 @@
             "pl": "Adres IP"
           },
           "value": "0.0.0.0"
-        },
-        {
-          "id": "apiVersion",
-          "type": "text",
-          "label": {
-            "en": "API version",
-            "nl": "API versie",
-            "de": "API-Version",
-            "fr": "Version de l'API",
-            "it": "Versione API",
-            "sv": "API-version",
-            "no": "API-versjon",
-            "es": "Versión de la API",
-            "da": "API-version",
-            "pl": "Wersja API"
-          },
-          "value": "6"
         }
       ]
     },
