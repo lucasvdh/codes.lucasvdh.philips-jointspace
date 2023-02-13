@@ -1,6 +1,7 @@
 'use strict'
 
 const Homey = require('homey')
+const { setTimeout } = require('timers/promises')
 const JointspaceClient = require('../../lib/JointspaceClient.js')
 const wol = require('wol')
 const { AmbilightConfigurationEnum } = require('../../lib/Enums')
@@ -86,7 +87,7 @@ class PhilipsTV extends Homey.Device {
 
     this.ready().then(() => {
       this.log('Initializing change poller')
-      this.pollChanges(1000)
+      this.pollChanges()
       this.log('Initializing live change notification')
       this.notifyChanges()
 
@@ -266,9 +267,11 @@ class PhilipsTV extends Homey.Device {
     const configuration = AmbilightConfigurationEnum[mode]
 
     return this.getJointspaceClient().setAmbilightConfiguration(configuration).then(() => {
-      // return this.driver.triggerAmbilightChangedTrigger(this, {
-      //   enabled: state
-      // }).catch(this.error)
+      return this.driver.triggerAmbilightModeChangedTrigger(this, {
+        mode
+      }).catch(this.error)
+    }).catch(error => {
+      this.log('setAmbilightMode failed', error)
     })
   }
 
@@ -330,20 +333,13 @@ class PhilipsTV extends Homey.Device {
   }
 
   handleAmbilightChange (source, newState) {
-    this.log('handleAmbilightChange', source, newState)
-
     let currentAmbilightState = this.getCapabilityValue('ambilight_onoff'),
       currentAmbilightMode = this.getCapabilityValue('ambilight_mode')
-    this.log('currentAmbilightMode', currentAmbilightMode)
 
     let currentAmbilightConfiguration = AmbilightConfigurationEnum[currentAmbilightMode]
-    this.log('currentAmbilightConfiguration', currentAmbilightConfiguration)
 
     let ambilightState = (newState.styleName !== 'OFF'),
       newAmbilightMode = this.getAmbilightModeByConfiguration(newState)
-
-    this.log('newAmbilightMode', newAmbilightMode)
-    this.log('newAmbilightConfiguration', newState)
 
     if (currentAmbilightState !== ambilightState) {
       this.log(`Ambilight state changed to ${ambilightState} by ${source}`)
@@ -354,12 +350,10 @@ class PhilipsTV extends Homey.Device {
       this.setCapabilityValue('ambilight_onoff', ambilightState)
     }
 
-    console.log(currentAmbilightConfiguration)
-
     if (JSON.stringify(currentAmbilightConfiguration) !== JSON.stringify(newState) && newAmbilightMode !== null && typeof newAmbilightMode !== 'undefined') {
       this.log(`Ambilight mode changed to ${newAmbilightMode} by ${source}`)
 
-      this.driver.triggerAmbilightModeChangedTrigger(this, newAmbilightMode)
+      this.driver.triggerAmbilightModeChangedTrigger(this, { mode: newAmbilightMode })
       this.setCapabilityValue('ambilight_mode', newAmbilightMode)
     }
   }
@@ -499,10 +493,30 @@ class PhilipsTV extends Homey.Device {
   getChanges () {
     let jsc = this.getJointspaceClient()
     return Promise.all([
-      jsc.getAudioData().then(this.handleAudioChange.bind(this, 'poller')),
-      jsc.getAmbiHue().then(this.handleAmbiHueChange.bind(this, 'poller')),
-      jsc.getAmbilight().then(this.handleAmbilightChange.bind(this, 'poller')),
-      jsc.getPowerState().then(this.handlePowerStateChange.bind(this, 'poller'))
+      jsc.getAudioData().then(async response => {
+        // prevent hitting rate limiter
+        await setTimeout(1000, 'resolved');
+
+        return response
+      }).then(this.handleAudioChange.bind(this, 'poller')),
+      jsc.getAmbiHue().then(async response => {
+        // prevent hitting rate limiter
+        await setTimeout(1000, 'resolved');
+
+        return response
+      }).then(this.handleAmbiHueChange.bind(this, 'poller')),
+      jsc.getAmbilight().then(async response => {
+        // prevent hitting rate limiter
+        await setTimeout(1000, 'resolved');
+
+        return response
+      }).then(this.handleAmbilightChange.bind(this, 'poller')),
+      jsc.getPowerState().then(async response => {
+        // prevent hitting rate limiter
+        await setTimeout(1000, 'resolved');
+
+        return response
+      }).then(this.handlePowerStateChange.bind(this, 'poller'))
     ])
   }
 
@@ -520,7 +534,7 @@ class PhilipsTV extends Homey.Device {
     return this.getJointspaceClient().setPowerState(value).then(() => {
       this.log(`successfully sent power ${value ? 'on' : 'off'}`)
     }).catch(error => {
-      console.log(error)
+      this.log('setPowerState failed', error)
     })
   }
 

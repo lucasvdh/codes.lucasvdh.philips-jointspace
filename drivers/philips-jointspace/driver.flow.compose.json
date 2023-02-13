@@ -104,6 +104,41 @@
         }
       ],
       "args": []
+    },
+    {
+      "id": "ambilight_mode_changed",
+      "title": {
+        "en": "Ambilight mode changed",
+        "nl": "Ambilight modus gewijzigd",
+        "de": "Ambilight Modus geändert",
+        "fr": "Mode Ambilight modifié",
+        "it": "Modalità Ambilight modificata",
+        "sv": "Ambilight-läge ändrat",
+        "no": "Ambilight-modus endret",
+        "es": "Modo Ambilight cambiado",
+        "da": "Ambilight-tilstand ændret",
+        "pl": "Tryb Ambilight zmieniony"
+      },
+      "tokens": [
+        {
+          "name": "mode",
+          "type": "string",
+          "title": {
+            "en": "Ambilight mode",
+            "nl": "Ambilight modus",
+            "de": "Ambilight-Modus",
+            "fr": "Mode Ambilight",
+            "it": "Modalità Ambilight",
+            "sv": "Ambilight-läge",
+            "no": "Ambilight-modus",
+            "es": "Modo Ambilight",
+            "da": "Ambilight-tilstand",
+            "pl": "Tryb Ambilight"
+          },
+          "example": "video_standard"
+        }
+      ],
+      "args": []
     }
   ],
   "actions": [

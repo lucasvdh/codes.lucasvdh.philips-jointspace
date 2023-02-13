@@ -340,7 +340,7 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
     this.applicationOpenedTrigger = this.homey.flow.getDeviceTriggerCard('application_opened')
     this.ambiHueChangedTrigger = this.homey.flow.getDeviceTriggerCard('ambihue_changed')
     this.ambilightChangedTrigger = this.homey.flow.getDeviceTriggerCard('ambilight_changed')
-    // this.ambilightModeChangedTrigger = this.homey.flow.getDeviceTriggerCard('ambilight_mode_changed')
+    this.ambilightModeChangedTrigger = this.homey.flow.getDeviceTriggerCard('ambilight_mode_changed')
   }
 
   triggerApplicationOpenedTrigger (device, args = {}) {
@@ -356,7 +356,7 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
   }
 
   triggerAmbilightModeChangedTrigger (device, args = {}) {
-    // return this.triggerFlowCard(device, this.ambilightModeChangedTrigger, args)
+    return this.triggerFlowCard(device, this.ambilightModeChangedTrigger, args)
   }
 
   triggerFlowCard (device, flowCardObject, args = {}) {
