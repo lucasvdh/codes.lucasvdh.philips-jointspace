@@ -2,7 +2,7 @@
 
 ## Is this an official app?
 
-This Homey Philips App is in no way affiliated to Philips or TP Vision.
+The Homey Philips App is in no way affiliated to Philips or TP Vision.
 
 It has been made thanks to the effort of a lot of people reverse engineering the Jointspace API.
 

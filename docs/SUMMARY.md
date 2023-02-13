@@ -1,6 +1,6 @@
 # Table of contents
 
-* [Welcome to the Philips TV docs for Homey](README.md)
+* [Welcome to Philips TV for Homey](README.md)
 
 ## Overview
 
