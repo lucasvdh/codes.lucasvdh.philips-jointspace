@@ -1,0 +1,38 @@
+{
+  "id": "send_key",
+  "title": {
+    "en": "Send a key",
+    "nl": "Stuur een knop",
+    "de": "Sende eine Taste",
+    "fr": "Envoyer une touche",
+    "it": "Invia un tasto",
+    "sv": "Skicka en tangent",
+    "no": "Send en tast",
+    "es": "Enviar una tecla",
+    "da": "Send en tast",
+    "pl": "Wyślij klawisz"
+  },
+  "titleFormatted": {
+    "en": "Send key [[option]]",
+    "nl": "Stuur knop [[option]]",
+    "de": "Sende Taste [[option]]",
+    "fr": "Envoyer la touche [[option]]",
+    "it": "Invia tasto [[option]]",
+    "sv": "Skicka tangent [[option]]",
+    "no": "Send tast [[option]]",
+    "es": "Enviar tecla [[option]]",
+    "da": "Send tast [[option]]",
+    "pl": "Wyślij klawisz [[option]]"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=philips-jointspace"
+    },
+    {
+      "name": "option",
+      "type": "autocomplete"
+    }
+  ]
+}

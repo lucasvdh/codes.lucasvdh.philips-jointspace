@@ -19,16 +19,16 @@ function guid () {
 
 class PhilipsJointSpaceDriver extends Homey.Driver {
 
-  init (device_data, callback) {
+  async init (device_data, callback) {
     devices_data.forEach((device_data) => {
-      Homey.log('Philips TV - init device: ' + JSON.stringify(device_data))
+      this.log('Philips TV - init device: ' + JSON.stringify(device_data))
       this.initDevice(device_data)
     })
 
     callback()
   }
 
-  onInit () {
+  async onInit () {
     this.log('Philips Jointspace driver has been inited')
 
     this.registerFlowCards()
@@ -38,7 +38,7 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
   }
 
   // a helper method to add a device to the devices list
-  initDevice (device_data) {
+  async initDevice (device_data) {
     devices[device_data.id] = {}
     devices[device_data.id].state = { onoff: true }
     devices[device_data.id].data = device_data
@@ -282,10 +282,10 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
 
   async added (device_data) {
     // run when a device has been added by the user (as of v0.8.33)
-    Homey.log('Philips TV - device added: ' + JSON.stringify(device_data))
+    this.log('Philips TV - device added: ' + JSON.stringify(device_data))
     // update devices data array
-    initDevice(device_data)
-    Homey.log('Philips TV - add done. devices =' + JSON.stringify(devices))
+    this.initDevice(device_data)
+    this.log('Philips TV - add done. devices =' + JSON.stringify(devices))
 
     return true
   }
@@ -294,14 +294,14 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
     // run when the user has renamed the device in Homey.
     // It is recommended to synchronize a device's name, so the user is not confused
     // when it uses another remote to control that device (e.g. the manufacturer's app).
-    Homey.log('Philips TV - device renamed: ' + JSON.stringify(device_data) + ' new name: ' + new_name)
+    this.log('Philips TV - device renamed: ' + JSON.stringify(device_data) + ' new name: ' + new_name)
     // update the devices array we keep
     devices[device_data.id].data.name = new_name
   }
 
   async deleted (device_data) {
     // run when the user has deleted the device from Homey
-    Homey.log('Philips TV - device deleted: ' + JSON.stringify(device_data))
+    this.log('Philips TV - device deleted: ' + JSON.stringify(device_data))
     // remove from the devices array we keep
     delete devices[device_data.id]
   }
@@ -315,17 +315,17 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
     // callback( "Your error message", null );
     // else callback( null, true );
 
-    Homey.log('Philips TV - Settings were changed: ' + JSON.stringify(device_data) + ' / ' + JSON.stringify(newSettingsObj) + ' / old = ' + JSON.stringify(oldSettingsObj) + ' / changedKeysArr = ' + JSON.stringify(changedKeysArr))
+    this.log('Philips TV - Settings were changed: ' + JSON.stringify(device_data) + ' / ' + JSON.stringify(newSettingsObj) + ' / old = ' + JSON.stringify(oldSettingsObj) + ' / changedKeysArr = ' + JSON.stringify(changedKeysArr))
 
     try {
       changedKeysArr.forEach(function (key) {
         switch (key) {
           case 'settingIPAddress':
-            Homey.log('Philips TV - IP address changed to ' + newSettingsObj.settingIPAddress)
+            this.log('Philips TV - IP address changed to ' + newSettingsObj.settingIPAddress)
             // FIXME: check if IP is valid, otherwise return callback with an error
             break
           case 'settingDeviceNr':
-            Homey.log('Philips TV - Device Nr changed to ' + newSettingsObj.settingDeviceNr)
+            this.log('Philips TV - Device Nr changed to ' + newSettingsObj.settingDeviceNr)
             break
         }
       })
@@ -337,6 +337,8 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
   }
 
   registerFlowCards () {
+    this.log('Register flow cards')
+
     this.applicationOpenedTrigger = this.homey.flow.getDeviceTriggerCard('application_opened')
     this.ambiHueChangedTrigger = this.homey.flow.getDeviceTriggerCard('ambihue_changed')
     this.ambilightChangedTrigger = this.homey.flow.getDeviceTriggerCard('ambilight_changed')
@@ -344,45 +346,28 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
   }
 
   triggerApplicationOpenedTrigger (device, args = {}) {
-    return this.triggerFlowCard(device, this.applicationOpenedTrigger, args)
+    return this.applicationOpenedTrigger.trigger(device, args)
   }
 
   triggerAmbiHueChangedTrigger (device, args = {}) {
-    return this.triggerFlowCard(device, this.ambiHueChangedTrigger, args)
+    return this.ambiHueChangedTrigger.trigger(device, args)
   }
 
   triggerAmbilightChangedTrigger (device, args = {}) {
-    return this.triggerFlowCard(device, this.ambilightChangedTrigger, args)
+    return this.ambilightChangedTrigger.trigger(device, args)
   }
 
   triggerAmbilightModeChangedTrigger (device, args = {}) {
-    return this.triggerFlowCard(device, this.ambilightModeChangedTrigger, args)
-  }
-
-  triggerFlowCard (device, flowCardObject, args = {}) {
-    return new Promise((resolve, reject) => {
-      flowCardObject.trigger(device, args).then(resolve).catch(error => {
-        console.log(error)
-        reject(error)
-      })
-    })
+    return this.ambilightModeChangedTrigger.trigger(device, args)
   }
 
   getDeviceByDiscoveryResult (discoveryResult) {
-    console.log(
-      'ssdp',
-      'Found discovery result',
-      {
-        discoveryResult: discoveryResult
-      }
-    )
-
     if (typeof discoveryResult.headers === 'undefined'
       || discoveryResult.headers === null
       || typeof discoveryResult.headers.location === 'undefined'
       || discoveryResult.headers.location === null
     ) {
-      console.log('Philips TV discovery result does not contain ssdp details location.')
+      this.log('Philips TV discovery result does not contain ssdp details location.')
     }
 
     return this.getDeviceByIp(discoveryResult.address, {
@@ -460,174 +445,13 @@ module.exports = PhilipsJointSpaceDriver
 module.exports.capabilities = {
   onoff: {
     get: function (device_data, callback) {
-      Homey.log(device_data)
-      Homey.log('Philips TV - getting device on/off status of ' + device_data.id)
+      this.log(device_data)
+      this.log('Philips TV - getting device on/off status of ' + device_data.id)
 
     },
     set: function (device_data, onoff, callback) {
-      Homey.log('Philips TV - Setting device_status of ' + device_data.id + ' to ' + onoff)
+      this.log('Philips TV - Setting device_status of ' + device_data.id + ' to ' + onoff)
 
     }
-  }
-}
-
-// end capabilities
-
-// start flow action handlers
-
-// Homey.manager('flow').on('action.set_channel', function (callback, args) {
-//     // console.log("flow set channel", args);
-//     // Set channel
-//     var tempIP = args.tv.id;
-//     var tempDeviceNr = args.tv.devicenr;
-//     var url = 'http://' + tempIP + ':1925/' + tempDeviceNr + '/channels/current';
-//     var channel = {id: args.channel.id};
-//     post(url, channel);
-//     callback(null, true); // we've fired successfully
-// });
-//
-// Homey.manager('flow').on('action.set_channel.channel.autocomplete', function (callback, args) {
-//     if (args.args.tv == '') return callback("Select a TV");
-//     for (var device_data in devices) {
-//         if (devices[device_data].data.name == args.args.tv.name) {
-//             var tempIP = devices[device_data].data.id;
-//             var tempDeviceNr = devices[device_data].data.devicenr;
-//         }
-//     }
-//     var url = 'http://' + tempIP + ':1925/' + tempDeviceNr + '/channels';
-//     var channels = [];
-//     var data = [];
-//     // Collect TV channels from, IP " + tempIP)
-//     request.get({url: url}, function (error, response, body) {
-//         if (!error && response.statusCode == 200) {
-//             data = JSON.parse(body)
-//             for (var obj in data) {
-//                 // Fill aray with possible channels
-//                 channels.push({id: obj, name: data[obj].name});
-//             }
-//             callback(null, channels);
-//         } else {
-//             console.log(" Command to Philips TV, gives an error in response:", error, response)
-//             callback("TV is Offline");
-//         }
-//     });
-// });
-//
-// Homey.manager('flow').on('action.input_key', function (callback, args) {
-//     //console.log("flow input key", args);
-//     var tempIP = args.tv.id;
-//     var tempDeviceNr = args.tv.devicenr;
-//     var url = 'http://' + tempIP + ':1925/' + tempDeviceNr + '/input/key';
-//     var key = {"key": args.key.id};
-//     post(url, key);
-//     callback(null, true); // we've fired successfully
-// });
-//
-// Homey.manager('flow').on('action.input_key.key.autocomplete', function (callback, args) {
-//     if (args.args.tv == '') return callback("Select a TV");
-//     var inputs = [];
-//     var data = allPossibleInputs;
-//     for (var obj in data) {
-//         // Fill aray with possible inputs
-//         inputs.push({id: data[obj].inputname, name: data[obj].friendlyName});
-//     }
-//     callback(null, inputs);
-// });
-//
-// Homey.manager('flow').on('action.set_volume', function (callback, args) {
-//     // console.log("flow set volume", args);
-//     // Set Volume
-//     var tempIP = args.tv.id;
-//     var tempDeviceNr = args.tv.devicenr;
-//     var url = 'http://' + tempIP + ':1925/' + tempDeviceNr + '/audio/volume';
-//     var volume = {
-//         "muted": false,
-//         "current": args.volume
-//     };
-//     post(url, volume);
-//     callback(null, true); // we've fired successfully
-// });
-//
-// Homey.manager('flow').on('action.set_source', function (callback, args) {
-//     // console.log("flow set source", args);
-//     // Set Source
-//     var tempIP = args.tv.id;
-//     var tempDeviceNr = args.tv.devicenr;
-//     var url = 'http://' + tempIP + ':1925/' + tempDeviceNr + '/sources/current';
-//     var source = {id: args.source.id};
-//     post(url, source);
-//     callback(null, true); // we've fired successfully
-// });
-//
-//
-// Homey.manager('flow').on('action.set_source.source.autocomplete', function (callback, args) {
-//     // console.log("flow select sources", args);
-//     if (args.args.tv == '') return callback("Select a TV");
-//     for (var device_data in devices) {
-//         if (devices[device_data].data.name == args.args.tv.name) {
-//             var tempIP = devices[device_data].data.id;
-//             var tempDeviceNr = devices[device_data].data.devicenr;
-//         }
-//     }
-//     var url = 'http://' + tempIP + ':1925/' + tempDeviceNr + '/sources';
-//     var sources = [];
-//     var data = [];
-//     // Collect sources from, IP " + tempIP)
-//     request.get({url: url}, function (error, response, body) {
-//         if (!error && response.statusCode == 200) {
-//             data = JSON.parse(body)
-//             for (var obj in data) {
-//                 // Fill aray with possible sources
-//                 sources.push({id: obj, name: data[obj].name});
-//             }
-//             // console.log(sources);
-//             callback(null, sources)
-//         } else {
-//             console.log(" Command to Philips TV, gives an error in response:", error, response)
-//             callback("TV is Offline");
-//         }
-//     });
-// });
-//
-// Homey.manager('flow').on('action.set_mute_true', function (callback, args) {
-//     // console.log("flow set mute", args);
-//     // Mute
-//     var tempIP = args.tv.id;
-//     var tempDeviceNr = args.tv.devicenr;
-//     var url = 'http://' + tempIP + ':1925/' + tempDeviceNr + '/audio/volume';
-//     var mute = {"muted": true};
-//     post(url, mute);
-//     callback(null, true); // we've fired successfully
-// });
-//
-// Homey.manager('flow').on('action.set_mute_false', function (callback, args) {
-//     // console.log("flow unset mute", args);
-//     // UnMute
-//     var tempIP = args.tv.id;
-//     var tempDeviceNr = args.tv.devicenr;
-//     var url = 'http://' + tempIP + ':1925/' + tempDeviceNr + '/audio/volume'
-//     var mute = {"muted": false};
-//     post(url, mute);
-//     callback(null, true); // we've fired successfully
-// });
-//
-// Homey.manager('flow').on('action.standby', function (callback, args) {
-//     // console.log("flow set standby", args);
-//     // Standby
-//     var tempIP = args.tv.id;
-//     var tempDeviceNr = args.tv.devicenr;
-//     var url = 'http://' + tempIP + ':1925/' + tempDeviceNr + '/input/key'
-//     var key = {"key": "Standby"};
-//     post(url, key);
-//     callback(null, true); // we've fired successfully
-// });
-
-// a helper method to get a device from the devices list by it's device_data object
-function getDeviceByData (device_data) {
-  var device = devices[device_data.id]
-  if (typeof device === 'undefined') {
-    return new Error('invalid_device')
-  } else {
-    return device
   }
 }

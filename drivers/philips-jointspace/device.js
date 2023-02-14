@@ -178,16 +178,6 @@ class PhilipsTV extends Homey.Device {
 
   }
 
-  registerFlowCardConditions () {
-    let ambilightOnCondition = this.homey.flow.getConditionCard('is_ambilight_on')
-
-    ambilightOnCondition
-      .registerRunListener((args, state) => {
-        return Promise.resolve(this.getCapabilityValue('ambilight_onoff'))
-
-      })
-  }
-
   getMACAddress () {
     return this._data.mac
   }
@@ -215,8 +205,8 @@ class PhilipsTV extends Homey.Device {
   getApplications () {
     return new Promise((resolve, reject) => {
       if (this._applications === null) {
-        this.getJointspaceClient().getApplications().then(response => {
-          return response.applications.map(application => {
+        this.getJointspaceClient().getApplications().then(applications => {
+          return applications.map(application => {
             return {
               'id': application.id,
               'name': application.label,

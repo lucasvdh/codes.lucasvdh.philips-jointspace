@@ -1,0 +1,41 @@
+{
+  "id": "ambihue_changed",
+  "title": {
+    "en": "AmbiHue changed",
+    "nl": "AmbiHue gewijzigd",
+    "de": "AmbiHue geändert",
+    "fr": "AmbiHue a changé",
+    "it": "AmbiHue è cambiato",
+    "sv": "AmbiHue har ändrats",
+    "no": "AmbiHue endret",
+    "es": "AmbiHue cambió",
+    "da": "AmbiHue ændret",
+    "pl": "AmbiHue zmieniono"
+  },
+  "tokens": [
+    {
+      "name": "enabled",
+      "type": "boolean",
+      "title": {
+        "en": "Enabled",
+        "nl": "Ingeschakeld",
+        "de": "Aktiviert",
+        "fr": "Activé",
+        "it": "Abilitato",
+        "sv": "Aktiverad",
+        "no": "Aktivert",
+        "es": "Habilitado",
+        "da": "Aktiveret",
+        "pl": "Włączone"
+      },
+      "example": true
+    }
+  ],
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=philips-jointspace"
+    }
+  ]
+}

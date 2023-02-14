@@ -1,0 +1,41 @@
+{
+  "id": "ambilight_changed",
+  "title": {
+    "en": "Ambilight changed",
+    "nl": "Ambilight gewijzigd",
+    "de": "Ambilight geändert",
+    "fr": "Ambilight a changé",
+    "it": "Ambilight è cambiato",
+    "sv": "Ambilight har ändrats",
+    "no": "Ambilight endret",
+    "es": "Ambilight cambió",
+    "da": "Ambilight ændret",
+    "pl": "Ambilight zmieniono"
+  },
+  "tokens": [
+    {
+      "name": "enabled",
+      "type": "boolean",
+      "title": {
+        "en": "Enabled",
+        "nl": "Ingeschakeld",
+        "de": "Aktiviert",
+        "fr": "Activé",
+        "it": "Abilitato",
+        "sv": "Aktiverad",
+        "no": "Aktivert",
+        "es": "Habilitado",
+        "da": "Aktiveret",
+        "pl": "Włączone"
+      },
+      "example": true
+    }
+  ],
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=philips-jointspace"
+    }
+  ]
+}

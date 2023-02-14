@@ -1,0 +1,39 @@
+{
+  "highlight": true,
+  "id": "open_application",
+  "title": {
+    "en": "Open an application",
+    "nl": "Open een app",
+    "de": "Öffne eine Anwendung",
+    "fr": "Ouvrir une application",
+    "it": "Aprire un'applicazione",
+    "sv": "Öppna en applikation",
+    "no": "Åpne en applikasjon",
+    "es": "Abrir una aplicación",
+    "da": "Åben en applikation",
+    "pl": "Otwórz aplikację"
+  },
+  "titleFormatted": {
+    "en": "Open app [[app]]",
+    "nl": "Open app [[app]]",
+    "de": "Öffne App [[app]]",
+    "fr": "Ouvrir l'application [[app]]",
+    "it": "Apri app [[app]]",
+    "sv": "Öppna app [[app]]",
+    "no": "Åpne app [[app]]",
+    "es": "Abrir aplicación [[app]]",
+    "da": "Åben app [[app]]",
+    "pl": "Otwórz aplikację [[app]]"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=philips-jointspace"
+    },
+    {
+      "name": "app",
+      "type": "autocomplete"
+    }
+  ]
+}

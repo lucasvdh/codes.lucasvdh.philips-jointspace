@@ -13,11 +13,14 @@ class PhilipsTV extends Homey.App {
   onInitFlow () {
     this.homey.flow.getActionCard('open_application')
       .registerRunListener(this.onFlowActionOpenApplication)
-      .getArgument('app')
-      .registerAutocompleteListener(this.onFlowApplicationAutocomplete)
+      .registerArgumentAutocompleteListener('app', this.onFlowApplicationAutocomplete)
 
     this.homey.flow.getActionCard('select_source')
       .registerRunListener(this.onFlowActionSelectSource)
+
+    this.homey.flow.getActionCard('send_key')
+      .registerRunListener(this.onFlowActionSendKey)
+      .registerArgumentAutocompleteListener('option', this.onFlowKeyAutocomplete.bind(this))
 
     this.homey.flow.getActionCard('set_ambihue')
       .registerRunListener(this.onFlowActionSetAmbiHue)
@@ -28,18 +31,10 @@ class PhilipsTV extends Homey.App {
     this.homey.flow.getActionCard('set_ambilight_mode')
       .registerRunListener(this.onFlowActionSetAmbilightMode)
 
-    this.homey.flow.getActionCard('send_key')
-      .registerRunListener(this.onFlowActionSendKey)
-      .getArgument('option')
-      .registerAutocompleteListener(this.onFlowKeyAutocomplete.bind(this))
-
     this.log('Initialized flow')
   }
 
-  async onFlowActionOpenApplication (args) {
-    let device = args.device,
-      app = args.app
-
+  async onFlowActionOpenApplication ({ device, app }) {
     return device.openApplication(app)
   }
 
@@ -59,21 +54,19 @@ class PhilipsTV extends Homey.App {
 
   async onFlowActionSetAmbilight (args) {
     let device = args.device,
-      state = (args.state === 'on');
+      state = (args.state === 'on')
 
     return device.setAmbilight(state)
   }
 
   async onFlowActionSetAmbilightMode (args) {
     let device = args.device,
-      mode = args.mode;
+      mode = args.mode
 
     return device.setAmbilightMode(mode)
   }
 
-  async onFlowApplicationAutocomplete (query, args) {
-    let device = args.device
-
+  async onFlowApplicationAutocomplete (query, { device }) {
     return device.getApplications().then(applications => {
       return applications.filter(result => {
         return result.name.toLowerCase().indexOf(query.toLowerCase()) > -1

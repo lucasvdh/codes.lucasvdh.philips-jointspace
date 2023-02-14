@@ -77,88 +77,7 @@
   "homepage": "https://homey-philips-tv.gitbook.io/homey-philips-tv/",
   "support": "https://homey-philips-tv.gitbook.io/homey-philips-tv/overview/faq",
   "flow": {
-    "conditions": [
-      {
-        "title": {
-          "en": "It !{{is|isn't}} going to rain in..."
-        },
-        "titleFormatted": {
-          "en": "It !{{is|isn't}} going to rain in [[when]]"
-        },
-        "hint": {
-          "en": "Checks if it will/will not rain more than 0.1 mm/h within the given amount of time."
-        },
-        "args": [
-          {
-            "name": "when",
-            "type": "dropdown",
-            "values": [
-              {
-                "id": "5",
-                "label": {
-                  "en": "5 minutes"
-                }
-              },
-              {
-                "id": "10",
-                "label": {
-                  "en": "10 minutes"
-                }
-              },
-              {
-                "id": "15",
-                "label": {
-                  "en": "15 minutes"
-                }
-              }
-            ]
-          }
-        ],
-        "id": "is_ambilight_on"
-      }
-    ],
     "triggers": [
-      {
-        "id": "application_opened",
-        "title": {
-          "en": "An app was opened",
-          "nl": "Er is een app geopend",
-          "de": "Eine App wurde geöffnet",
-          "fr": "Une application a été ouverte",
-          "it": "È stata aperta un'app",
-          "sv": "En app har öppnats",
-          "no": "En app ble åpnet",
-          "es": "Se abrió una aplicación",
-          "da": "En app blev åbnet",
-          "pl": "Otwarto aplikację"
-        },
-        "tokens": [
-          {
-            "name": "app",
-            "type": "string",
-            "title": {
-              "nl": "App",
-              "en": "App",
-              "de": "App",
-              "fr": "Application",
-              "it": "App",
-              "sv": "App",
-              "no": "App",
-              "es": "Aplicación",
-              "da": "App",
-              "pl": "Aplikacja"
-            },
-            "example": "Netflix"
-          }
-        ],
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=philips-jointspace"
-          }
-        ]
-      },
       {
         "id": "ambihue_changed",
         "title": {
@@ -194,8 +113,8 @@
         ],
         "args": [
           {
-            "type": "device",
             "name": "device",
+            "type": "device",
             "filter": "driver_id=philips-jointspace"
           }
         ]
@@ -235,8 +154,8 @@
         ],
         "args": [
           {
-            "type": "device",
             "name": "device",
+            "type": "device",
             "filter": "driver_id=philips-jointspace"
           }
         ]
@@ -276,8 +195,49 @@
         ],
         "args": [
           {
-            "type": "device",
             "name": "device",
+            "type": "device",
+            "filter": "driver_id=philips-jointspace"
+          }
+        ]
+      },
+      {
+        "id": "application_opened",
+        "title": {
+          "en": "An app was opened",
+          "nl": "Er is een app geopend",
+          "de": "Eine App wurde geöffnet",
+          "fr": "Une application a été ouverte",
+          "it": "È stata aperta un'app",
+          "sv": "En app har öppnats",
+          "no": "En app ble åpnet",
+          "es": "Se abrió una aplicación",
+          "da": "En app blev åbnet",
+          "pl": "Otwarto aplikację"
+        },
+        "tokens": [
+          {
+            "name": "app",
+            "type": "string",
+            "title": {
+              "nl": "App",
+              "en": "App",
+              "de": "App",
+              "fr": "Application",
+              "it": "App",
+              "sv": "App",
+              "no": "App",
+              "es": "Aplicación",
+              "da": "App",
+              "pl": "Aplikacja"
+            },
+            "example": "Netflix"
+          }
+        ],
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
             "filter": "driver_id=philips-jointspace"
           }
         ]
@@ -285,6 +245,7 @@
     ],
     "actions": [
       {
+        "highlight": true,
         "id": "open_application",
         "title": {
           "en": "Open an application",
@@ -312,12 +273,114 @@
         },
         "args": [
           {
-            "type": "device",
             "name": "device",
+            "type": "device",
             "filter": "driver_id=philips-jointspace"
           },
           {
             "name": "app",
+            "type": "autocomplete"
+          }
+        ]
+      },
+      {
+        "id": "select_source",
+        "title": {
+          "en": "Select a source",
+          "nl": "Selecteer een input",
+          "de": "Wähle eine Quelle",
+          "fr": "Sélectionnez une source",
+          "it": "Seleziona una sorgente",
+          "sv": "Välj en källa",
+          "no": "Velg en kilde",
+          "es": "Seleccione una fuente",
+          "da": "Vælg en kilde",
+          "pl": "Wybierz źródło"
+        },
+        "titleFormatted": {
+          "en": "Select source [[source]]",
+          "nl": "Selecteer input [[source]]",
+          "de": "Wähle Quelle [[source]]",
+          "fr": "Sélectionnez la source [[source]]",
+          "it": "Seleziona sorgente [[source]]",
+          "sv": "Välj källa [[source]]",
+          "no": "Velg kilde [[source]]",
+          "es": "Seleccione fuente [[source]]",
+          "da": "Vælg kilde [[source]]",
+          "pl": "Wybierz źródło [[source]]"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=philips-jointspace"
+          },
+          {
+            "name": "source",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "HDMI 1",
+                "title": {
+                  "en": "HDMI 1"
+                }
+              },
+              {
+                "id": "HDMI 2",
+                "title": {
+                  "en": "HDMI 2"
+                }
+              },
+              {
+                "id": "HDMI 3",
+                "title": {
+                  "en": "HDMI 3"
+                }
+              },
+              {
+                "id": "HDMI 4",
+                "title": {
+                  "en": "HDMI 4"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "send_key",
+        "title": {
+          "en": "Send a key",
+          "nl": "Stuur een knop",
+          "de": "Sende eine Taste",
+          "fr": "Envoyer une touche",
+          "it": "Invia un tasto",
+          "sv": "Skicka en tangent",
+          "no": "Send en tast",
+          "es": "Enviar una tecla",
+          "da": "Send en tast",
+          "pl": "Wyślij klawisz"
+        },
+        "titleFormatted": {
+          "en": "Send key [[option]]",
+          "nl": "Stuur knop [[option]]",
+          "de": "Sende Taste [[option]]",
+          "fr": "Envoyer la touche [[option]]",
+          "it": "Invia tasto [[option]]",
+          "sv": "Skicka tangent [[option]]",
+          "no": "Send tast [[option]]",
+          "es": "Enviar tecla [[option]]",
+          "da": "Send tast [[option]]",
+          "pl": "Wyślij klawisz [[option]]"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=philips-jointspace"
+          },
+          {
+            "name": "option",
             "type": "autocomplete"
           }
         ]
@@ -350,8 +413,8 @@
         },
         "args": [
           {
-            "type": "device",
             "name": "device",
+            "type": "device",
             "filter": "driver_id=philips-jointspace"
           },
           {
@@ -420,8 +483,8 @@
         },
         "args": [
           {
-            "type": "device",
             "name": "device",
+            "type": "device",
             "filter": "driver_id=philips-jointspace"
           },
           {
@@ -490,8 +553,8 @@
         },
         "args": [
           {
-            "type": "device",
             "name": "device",
+            "type": "device",
             "filter": "driver_id=philips-jointspace"
           },
           {
@@ -816,108 +879,6 @@
             ]
           }
         ]
-      },
-      {
-        "id": "select_source",
-        "title": {
-          "en": "Select a source",
-          "nl": "Selecteer een input",
-          "de": "Wähle eine Quelle",
-          "fr": "Sélectionnez une source",
-          "it": "Seleziona una sorgente",
-          "sv": "Välj en källa",
-          "no": "Velg en kilde",
-          "es": "Seleccione una fuente",
-          "da": "Vælg en kilde",
-          "pl": "Wybierz źródło"
-        },
-        "titleFormatted": {
-          "en": "Select source [[source]]",
-          "nl": "Selecteer input [[source]]",
-          "de": "Wähle Quelle [[source]]",
-          "fr": "Sélectionnez la source [[source]]",
-          "it": "Seleziona sorgente [[source]]",
-          "sv": "Välj källa [[source]]",
-          "no": "Velg kilde [[source]]",
-          "es": "Seleccione fuente [[source]]",
-          "da": "Vælg kilde [[source]]",
-          "pl": "Wybierz źródło [[source]]"
-        },
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=philips-jointspace"
-          },
-          {
-            "name": "source",
-            "type": "dropdown",
-            "values": [
-              {
-                "id": "HDMI 1",
-                "title": {
-                  "en": "HDMI 1"
-                }
-              },
-              {
-                "id": "HDMI 2",
-                "title": {
-                  "en": "HDMI 2"
-                }
-              },
-              {
-                "id": "HDMI 3",
-                "title": {
-                  "en": "HDMI 3"
-                }
-              },
-              {
-                "id": "HDMI 4",
-                "title": {
-                  "en": "HDMI 4"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "send_key",
-        "title": {
-          "en": "Send a key",
-          "nl": "Stuur een knop",
-          "de": "Sende eine Taste",
-          "fr": "Envoyer une touche",
-          "it": "Invia un tasto",
-          "sv": "Skicka en tangent",
-          "no": "Send en tast",
-          "es": "Enviar una tecla",
-          "da": "Send en tast",
-          "pl": "Wyślij klawisz"
-        },
-        "titleFormatted": {
-          "en": "Send key [[option]]",
-          "nl": "Stuur knop [[option]]",
-          "de": "Sende Taste [[option]]",
-          "fr": "Envoyer la touche [[option]]",
-          "it": "Invia tasto [[option]]",
-          "sv": "Skicka tangent [[option]]",
-          "no": "Send tast [[option]]",
-          "es": "Enviar tecla [[option]]",
-          "da": "Send tast [[option]]",
-          "pl": "Wyślij klawisz [[option]]"
-        },
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=philips-jointspace"
-          },
-          {
-            "name": "option",
-            "type": "autocomplete"
-          }
-        ]
       }
     ]
   },
@@ -1004,121 +965,7 @@
       "connectivity": [
         "lan"
       ],
-      "pair": [
-        {
-          "id": "discover",
-          "template": "loading",
-          "options": {
-            "text": {
-              "en": "Searching for devices...",
-              "nl": "Zoeken naar apparaten...",
-              "de": "Suche nach Geräten...",
-              "fr": "Recherche de périphériques en cours...",
-              "it": "Ricerca di dispositivi in corso...",
-              "sv": "Söker efter enheter...",
-              "no": "Søker etter enheter...",
-              "es": "Buscando dispositivos...",
-              "da": "Søger efter enheder...",
-              "pl": "Wyszukiwanie urządzeń..."
-            }
-          },
-          "navigation": {
-            "next": "list_devices"
-          }
-        },
-        {
-          "id": "add_by_ip",
-          "navigation": {
-            "next": "check_ip",
-            "prev": "discover"
-          }
-        },
-        {
-          "id": "check_ip",
-          "template": "loading",
-          "navigation": {
-            "next": "list_devices",
-            "prev": "add_by_ip"
-          }
-        },
-        {
-          "id": "list_devices",
-          "template": "list_devices",
-          "navigation": {
-            "next": "validate",
-            "prev": "add_by_ip"
-          },
-          "options": {
-            "singular": true,
-            "title": {
-              "en": "Select the device you want to add",
-              "nl": "Selecteer het apparaat die je wil toevoegen",
-              "de": "Wähle das Gerät aus, das du hinzufügen möchtest",
-              "fr": "Sélectionnez l'appareil que vous voulez ajouter",
-              "it": "Seleziona il dispositivo che si desidera aggiungere",
-              "sv": "Välj enheten du vill lägga till",
-              "no": "Velg enheten du vil legge til",
-              "es": "Seleccione el dispositivo que desea agregar",
-              "da": "Vælg enheden, du vil tilføje",
-              "pl": "Wybierz urządzenie, które chcesz dodać"
-            }
-          }
-        },
-        {
-          "id": "validate",
-          "template": "loading",
-          "navigation": {
-            "next": "start_pair",
-            "prev": "discover"
-          }
-        },
-        {
-          "id": "start_pair",
-          "template": "loading",
-          "navigation": {
-            "next": "authenticate",
-            "prev": "discover"
-          }
-        },
-        {
-          "id": "authenticate",
-          "template": "pincode",
-          "options": {
-            "title": {
-              "en": "Pincode",
-              "nl": "Pincode",
-              "de": "Pin-Code",
-              "fr": "Code Pin",
-              "it": "Codice Pin",
-              "sv": "Pin-kod",
-              "no": "Pinkode",
-              "es": "Código PIN",
-              "da": "Pin-kode",
-              "pl": "Kod PIN"
-            },
-            "hint": {
-              "en": "Enter the code displayed on the TV",
-              "nl": "Vul de code in die op de TV wordt weergegeven",
-              "de": "Geben Sie den auf dem Fernseher angezeigten Code ein",
-              "fr": "Entrez le code affiché sur la télévision",
-              "it": "Inserisci il codice visualizzato sul televisore",
-              "sv": "Ange koden som visas på TV:n",
-              "no": "Skriv inn koden som vises på TV-en",
-              "es": "Ingrese el código que se muestra en la televisión",
-              "da": "Indtast koden, der vises på tv'et",
-              "pl": "Wprowadź kod wyświetlany na telewizorze"
-            },
-            "type": "number",
-            "length": 4
-          },
-          "navigation": {
-            "prev": "discover"
-          }
-        },
-        {
-          "id": "add_my_device"
-        }
-      ],
+      "id": "philips-jointspace",
       "settings": [
         {
           "type": "group",
@@ -1194,8 +1041,7 @@
             }
           ]
         }
-      ],
-      "id": "philips-jointspace"
+      ]
     }
   ],
   "capabilities": {
