@@ -10,5 +10,17 @@
     "es": "Actualización a Homey SDKv3, traducciones y mejoras en el proceso de emparejamiento",
     "da": "Opgradering til Homey SDKv3, oversættelser og forbedringer af parringsprocessen",
     "pl": "Aktualizacja do Homey SDKv3, tłumaczenia i ulepszenia procesu łączenia"
+  },
+  "2.4.1": {
+    "en": "Fix flow card triggers and actions",
+    "nl": "Fix flow triggers en acties",
+    "de": "Beheben Sie Flow-Kartenauslöser und -aktionen",
+    "fr": "Corrigez les déclencheurs et les actions des cartes de flux",
+    "it": "Correggi i trigger e le azioni della scheda di flusso",
+    "sv": "Fixa flödeskorttriggers och åtgärder",
+    "no": "Fiks strøm kort utløsere og handlinger",
+    "es": "Arreglar los desencadenantes y acciones de las tarjetas de flujo",
+    "da": "Fix flow kort udløsere og handlinger",
+    "pl": "Napraw wyzwalacze i akcje karty przepływu"
   }
 }
