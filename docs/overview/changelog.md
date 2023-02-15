@@ -12,7 +12,7 @@ We strive to continuously enhance and optimize the app to provide the best possi
 
 <details>
 
-<summary>v2.4.0 - 2023-02-20</summary>
+<summary>v2.4.0 - 2023-02-14</summary>
 
 ### Features
 
@@ -29,3 +29,20 @@ We strive to continuously enhance and optimize the app to provide the best possi
 * Fix (some) pincode submit errors
 
 </details>
+
+<details>
+
+<summary>v2.4.1 - 2023-02-15</summary>
+
+### Features
+
+* Refactor pairing and settings to homey compose
+
+### Fixes
+
+* Fix flow card actions
+* Fix flow card triggers
+* Fix flow card actions autocomplete
+
+</details>
+
