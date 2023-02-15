@@ -1,6 +1,6 @@
 {
   "id": "codes.lucasvdh.philips-jointspace",
-  "version": "2.4.1",
+  "version": "2.4.2",
   "compatibility": ">=5.0.0",
   "platforms": [
     "local"

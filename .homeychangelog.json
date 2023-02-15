@@ -22,5 +22,17 @@
     "es": "Arreglar los desencadenantes y acciones de las tarjetas de flujo",
     "da": "Fix flow kort udløsere og handlinger",
     "pl": "Napraw wyzwalacze i akcje karty przepływu"
+  },
+  "2.4.2": {
+    "en": "Fix getting device applications",
+    "nl": "Fix apparaat applicaties ophalen",
+    "de": "Beheben des Abrufs von Geräteanwendungen",
+    "fr": "Correction de la récupération des applications de l'appareil",
+    "it": "Correggere il recupero delle applicazioni del dispositivo",
+    "sv": "Fixa hämtning av enhetsapplikationer",
+    "no": "Fikse henting av enhetsprogrammer",
+    "es": "Arreglar la obtención de aplicaciones del dispositivo",
+    "da": "Fix at få enhedsapplikationer",
+    "pl": "Naprawa pobierania aplikacji urządzenia"
   }
 }

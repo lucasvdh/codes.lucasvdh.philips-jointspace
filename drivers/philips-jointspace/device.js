@@ -204,16 +204,18 @@ class PhilipsTV extends Homey.Device {
 
   getApplications () {
     return new Promise((resolve, reject) => {
-      if (this._applications === null) {
-        this.getJointspaceClient().getApplications().then(applications => {
-          return applications.map(application => {
-            return {
-              'id': application.id,
-              'name': application.label,
-              'intent': application.intent
-            }
-          })
-        }).catch(reject).then(applications => {
+      if (this._applications === null || typeof this._applications === 'undefined') {
+        this.getJointspaceClient()
+          .getApplications()
+          .then(applications => {
+            return applications.map(application => {
+              return {
+                'id': application.id,
+                'name': application.label,
+                'intent': application.intent
+              }
+            })
+          }).catch(reject).then(applications => {
           this._applications = applications
 
           resolve(applications)
@@ -485,25 +487,25 @@ class PhilipsTV extends Homey.Device {
     return Promise.all([
       jsc.getAudioData().then(async response => {
         // prevent hitting rate limiter
-        await setTimeout(1000, 'resolved');
+        await setTimeout(1000, 'resolved')
 
         return response
       }).then(this.handleAudioChange.bind(this, 'poller')),
       jsc.getAmbiHue().then(async response => {
         // prevent hitting rate limiter
-        await setTimeout(1000, 'resolved');
+        await setTimeout(1000, 'resolved')
 
         return response
       }).then(this.handleAmbiHueChange.bind(this, 'poller')),
       jsc.getAmbilight().then(async response => {
         // prevent hitting rate limiter
-        await setTimeout(1000, 'resolved');
+        await setTimeout(1000, 'resolved')
 
         return response
       }).then(this.handleAmbilightChange.bind(this, 'poller')),
       jsc.getPowerState().then(async response => {
         // prevent hitting rate limiter
-        await setTimeout(1000, 'resolved');
+        await setTimeout(1000, 'resolved')
 
         return response
       }).then(this.handlePowerStateChange.bind(this, 'poller'))
