@@ -12,7 +12,7 @@ We strive to continuously enhance and optimize the app to provide the best possi
 
 <details>
 
-<summary>v2.4.0 - 2023-02-14</summary>
+<summary>v2.4.0 - 2023-02-13</summary>
 
 ### Features
 
@@ -32,7 +32,7 @@ We strive to continuously enhance and optimize the app to provide the best possi
 
 <details>
 
-<summary>v2.4.1 - 2023-02-15</summary>
+<summary>v2.4.1 - 2023-02-14</summary>
 
 ### Features
 
@@ -43,6 +43,17 @@ We strive to continuously enhance and optimize the app to provide the best possi
 * Fix flow card actions
 * Fix flow card triggers
 * Fix flow card actions autocomplete
+
+</details>
+
+
+<details>
+
+<summary>v2.4.2 - 2023-02-15</summary>
+
+### Fixes
+
+* Fix getting the installed apps from the device for some already installed devices 
 
 </details>
 
