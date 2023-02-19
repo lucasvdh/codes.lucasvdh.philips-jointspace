@@ -46,5 +46,17 @@
     "es": "Se agregaron más traducciones (de, fr, it, sv, no, es, da, pl) al proceso de emparejamiento, se mejoró la retroalimentación en el proceso de emparejamiento y una nueva acción \"Abrir el asistente de Google\".",
     "da": "Tilføjet flere oversættelser (de, fr, it, sv, no, es, da, pl) til paringsprocessen, forbedret feedback i paringsprocessen og en ny \"Åbn Google Assistent\"-handling.",
     "pl": "Dodano więcej tłumaczeń (de, fr, it, sv, no, es, da, pl) do procesu parowania, poprawiono informacje zwrotne w procesie parowania i dodano nową akcję \"Otwórz Google Assistant\"."
+  },
+  "2.5.1": {
+    "en": "Fix pairing error feedback",
+    "nl": "Fix koppelproces feedback",
+    "de": "Behebung des Pairing-Fehler-Feedbacks",
+    "fr": "Correction de la rétroaction d'erreur de couplage",
+    "it": "Correzione del feedback sull'errore di accoppiamento",
+    "sv": "Fixa återkoppling vid parningsfel",
+    "no": "Fiks tilbakemelding ved paringsfeil",
+    "es": "Solucionar el problema de retroalimentación de errores de emparejamiento",
+    "da": "Ret paring fejl tilbagemelding",
+    "pl": "Naprawianie informacji zwrotnej o błędach łączenia"
   }
 }
