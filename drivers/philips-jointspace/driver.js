@@ -3,6 +3,7 @@
 const Homey = require('homey')
 const JointspaceClient = require('../../lib/JointspaceClient')
 const { PairingError } = require('../../lib/Errors')
+const { PairingStatusEnum } = require('../../lib/Enums')
 
 // a list of devices, with their 'id' as key
 // it is generally advisable to keep a list of
@@ -37,62 +38,62 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
     this.jointspaceClient.registerLogListener(this.log)
   }
 
-  // a helper method to add a device to the devices list
-  async initDevice (device_data) {
-    devices[device_data.id] = {}
-    devices[device_data.id].state = { onoff: true }
-    devices[device_data.id].data = device_data
-  }
-
   onPair (session) {
     let devices = []
+    let existingDevices = this.getDevices()
     let pairingIp = null
     const discoveryStrategy = this.getDiscoveryStrategy()
 
     let pairingDevice = null
 
     session.setHandler('showView', async (view) => {
-      this.log('showView:' + view)
+      this.log('Show view', view)
 
       if (view === 'discover') {
         const discoveryResults = discoveryStrategy.getDiscoveryResults()
+        let hasDiscoveredDevices = false
         devices = []
 
         await Promise.all(Object.values(discoveryResults).map(discoveryResult => {
           return this.getDeviceByDiscoveryResult(discoveryResult)
         })).then((discoveredDevices) => {
           devices = discoveredDevices.filter(item => {
-            try {
-              this.getDevice({ id: item.id })
-
+            if (item === null) {
               return false
             }
-              // if not found (exception), the add as discoverred device
-            catch (error) {}
 
-            return true
+            hasDiscoveredDevices = true
+
+            return existingDevices.filter(existingDevice => {
+              return item.data.id === existingDevice.getData().id
+            }).length === 0
           })
         })
-
         if (devices.length > 0) {
           await session.showView('list_devices')
         } else {
           await session.showView('add_by_ip')
+          if (hasDiscoveredDevices) {
+            await session.emit('add_by_ip_hint', this.homey.__('pair.add_by_ip.no_new_devices_hint'))
+          }
         }
       }
 
       if (view === 'check_ip') {
         devices = []
-        if (pairingIp === '') {
+        if (pairingIp === null || pairingIp === '') {
           await session.showView('add_by_ip')
           await session.emit('alert', this.homey.__('error.provide_the_ip_address'))
+
+          return
         }
 
         try {
           let device = await this.getDeviceByIp(pairingIp)
+            .catch()
           // check if device is already added
           try {
-            this.getDevice({ id: device.id })
+            this.getDevice({ id: device.data.id })
           }
             // if not found (exception), the add as discoverred device
           catch (error) {
@@ -107,119 +108,89 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
           }
 
         } catch (error) {
-          await session.showView('add_by_ip')
-          await session.emit('alert', this.homey.__('error.something_went_wrong'))
+          await this.handleSystemInfoError(error, session)
         }
       }
 
       if (view === 'validate') {
-        this.log('showView:validate')
         devices = []
 
-        this.log('pairingDevice', pairingDevice)
+        this.log('Validating pairing device', JSON.stringify(pairingDevice))
 
         if (pairingDevice === null) {
           await session.showView('discover')
+
+          return
         }
 
-        this.log('pairingDevice.settings.secure', pairingDevice.settings.secure)
-
         if (pairingDevice.settings.secure === true) {
+          this.log('Pairing device requires authentication')
+
           await session.showView('start_pair')
         } else {
+          this.log('Pairing device does not require authentication')
+
           await session.showView('add_device')
         }
       }
 
       if (view === 'start_pair') {
-        console.log('Philips TV - starting pair')
-        this.log('start_pair')
-        this.log('pairingDevice', pairingDevice)
+        console.log('Starting pair')
 
         // Update Jointspace client with config
         this.jointspaceClient.setConfig(pairingDevice.settings.ipAddress, pairingDevice.settings.apiVersion, null, null, pairingDevice.settings.secure, pairingDevice.settings.port)
 
         this.jointspaceClient.getSystem()
           .then(async (response) => {
-            let systemFeatures
-
-            // Get system feature to check if http or https should be used
-            if (
-              typeof response.featuring !== 'undefined'
-              || typeof response.featuring.systemfeatures !== 'undefined'
-            ) {
-              systemFeatures = response.featuring.systemfeatures
-            }
-
-            let pairingType = systemFeatures.pairing_type
+            let pairingType = this.getPairingTypeBySystemInfo(response)
 
             if (pairingType === 'digest_auth_pairing') {
               // We've got an android tv which required pairing
               this.jointspaceClient.startPair().then(async (response) => {
-                this.log('startPair.then', response)
-                if (response.error_id === 'SUCCESS') {
-                  this.log('session.showView(\'authenticate\')')
-                  await session.showView('authenticate')
-                }
-                // else {
-                //   await session.showView('discover')
-                //   session.emit('error', 'concurrent_pairing')
-                // }
-              }).catch(async (error) => {
-                this.log('start pair error', error)
-                //   await session.showView('discover')
-                //
-                //   console.log(error)
-                //
-                //   if (typeof error.statusCode !== 'undefined') {
-                //     if (error.statusCode === 404) {
-                //       session.emit('error', 'not_found')
-                //     } else {
-                //       session.emit('error', JSON.stringify(error))
-                //     }
-                //   } else if (typeof error.code !== 'undefined') {
-                //     if (error.code === 'ECONNRESET') {
-                //       session.emit('error', 'host_unreachable')
-                //     } else {
-                //       session.emit('error', JSON.stringify(error))
-                //     }
-                //   } else {
-                //     session.emit('error', JSON.stringify(error))
-                //   }
-              })
-            }
-            // else if (pairingType === 'none') {
-            //   await session.showView('add_device')
-            // } else {
-            //   await session.showView('discover')
-            //   session.emit('error', 'unknown_pairing_type', pairingType)
-            // }
-          })
-          .catch((error) => {
-            this.log('pairing error', error)
-            session.showView('discover')
+                this.log('Start pairing', JSON.stringify(response))
 
-            if (typeof error !== 'undefined' && error !== null) {
-              if (typeof error.statusCode !== 'undefined') {
-                console.log(error.statusCode)
-                if (error.statusCode === 404) {
-                  session.emit('error', 'not_found')
+                if (response.error_id === PairingStatusEnum.Success) {
+                  await session.showView('authenticate')
+                } else if (response.error_id === PairingStatusEnum.ConcurrentPairing) {
+                  await session.showView('discover')
+                  await session.emit('alert', this.homey.__('error.concurrent_pairing'))
                 } else {
-                  session.emit('error', error)
+                  this.error('Unknown pairing response', response.error_id)
+                  await session.showView('discover')
+                  await session.emit('alert', this.homey.__('error.generic'))
                 }
-              } else if (typeof error.code !== 'undefined') {
-                if (error.code === 'EHOSTUNREACH' || error.code === 'ECONNRESET') {
-                  session.emit('error', 'host_unreachable')
-                } else if (error.code === 'ETIMEDOUT') {
-                  session.emit('error', 'host_timeout')
+              }).catch(async (error) => {
+                this.log('Something went wrong with starting the pairing session', error)
+
+                if (typeof error.statusCode !== 'undefined') {
+                  if (error.statusCode === 404) {
+                    await session.showView('add_by_ip')
+                    await session.emit('alert', this.homey.__('error.pairing_not_found'))
+                  } else {
+                    await session.showView('discover')
+                    await session.emit('alert', this.homey.__('error.generic'))
+                  }
+                } else if (typeof error.code !== 'undefined') {
+                  if (error.code === 'ECONNRESET') {
+                    await session.showView('discover')
+                    await session.emit('alert', this.homey.__('error.host_unreachable'))
+                  } else {
+                    await session.showView('discover')
+                    await session.emit('alert', this.homey.__('error.generic'))
+                  }
                 } else {
-                  session.emit('error', error)
+                  await session.showView('discover')
+                  await session.emit('alert', this.homey.__('error.generic'))
                 }
-              }
+              })
+            } else if (pairingType === 'none') {
+              await session.showView('add_device')
             } else {
-              session.emit('error', error)
+              await session.showView('discover')
+              await session.emit('alert', this.homey.__('error.unknown_pairing_type', { pairingType }))
             }
           })
+          .catch(this.handleSystemInfoError)
       }
     })
 
@@ -228,7 +199,6 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
     })
 
     session.setHandler('getTvIp', async () => {
-      this.log('getTvIp')
       return pairingIp
     })
 
@@ -240,12 +210,8 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
       return devices
     })
 
-    session.setHandler('log', async (message) => {
-      return this.log('session.log', message)
-    })
-
     session.setHandler('pincode', async (code) => {
-      this.log('session.setHandler(\'pincode\')', code)
+      this.log('Pincode submitted', code.join(''))
 
       return this.jointspaceClient.confirmPair(code.join(''))
         .then(function (credentials) {
@@ -254,24 +220,25 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
           session.showView('add_device')
 
           return true
-        }).catch((error) => {
+        }).catch(async (error) => {
+          this.log('Something went wrong submitting the pincode', JSON.stringify(error))
+
           if (typeof error.error_id !== 'undefined') {
-            if (error.error_id === 'INVALID_PIN') {
-              console.log('The pin "' + code + '" is not valid')
+            if (error.error_id === PairingStatusEnum.InvalidPin) {
               return false
-            } else if (error.error_id === 'TIMEOUT') {
-              console.log('Received a pairing session timeout')
-              session.showView('discover')
-              session.emit('error', 'pair_timeout')
+            } else if (error.error_id === PairingStatusEnum.Timeout) {
+              await session.showView('start_pair')
+              return false
             } else {
-              console.log('Unexpected pairing error 1', JSON.stringify(error))
-              return false
+              await session.showView('discover')
+              await session.emit('alert', this.homey.__('error.generic'))
             }
           } else {
-            session.emit('error', 'An unexpected error occurred while submitting the pincode')
-            console.log('Unexpected pairing error 2', JSON.stringify(error))
-            return false
+            await session.showView('discover')
+            await session.emit('alert', this.homey.__('error.generic'))
           }
+
+          return false
         })
     })
 
@@ -285,6 +252,7 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
     this.log('Philips TV - device added: ' + JSON.stringify(device_data))
     // update devices data array
     this.initDevice(device_data)
+
     this.log('Philips TV - add done. devices =' + JSON.stringify(devices))
 
     return true
@@ -304,6 +272,40 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
     this.log('Philips TV - device deleted: ' + JSON.stringify(device_data))
     // remove from the devices array we keep
     delete devices[device_data.id]
+  }
+
+  async handleSystemInfoError (error, session) {
+    this.log('Something went wrong getting the system info from the device or during' +
+      ' pairing', JSON.stringify(error), error)
+
+    if (typeof error !== 'undefined' && error !== null) {
+      if (typeof error.statusCode !== 'undefined') {
+        if (error.statusCode === 404) {
+          await session.showView('add_by_ip')
+          await session.emit('alert', this.homey.__('error.endpoint_not_found'))
+        } else {
+          await session.showView('discover')
+          await session.emit('alert', this.homey.__('error.generic'))
+        }
+      } else if (typeof error.code !== 'undefined') {
+        if (error.code === 'EHOSTUNREACH' || error.code === 'ECONNRESET') {
+          await session.showView('discover')
+          await session.emit('alert', this.homey.__('error.host_unreachable'))
+        } else if (error.code === 'ETIMEDOUT') {
+          await session.showView('discover')
+          await session.emit('alert', this.homey.__('error.connection_timed_out'))
+        } else {
+          await session.showView('discover')
+          await session.emit('alert', this.homey.__('error.generic'))
+        }
+      } else {
+        await session.showView('discover')
+        await session.emit('alert', this.homey.__('error.generic'))
+      }
+    } else {
+      await session.showView('discover')
+      await session.emit('alert', this.homey.__('error.generic'))
+    }
   }
 
   settings (device_data, newSettingsObj, oldSettingsObj, changedKeysArr, callback) {
@@ -371,9 +373,9 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
     }
 
     return this.getDeviceByIp(discoveryResult.address, {
-      id: discoveryResult.id,
       name: 'Philips TV',
       data: {
+        id: discoveryResult.id,
         mac: null,
         credentials: {},
       },
@@ -388,11 +390,12 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
 
   async getDeviceByIp (ip, device = null) {
     this.log('getDeviceByIp', ip)
+
     if (device === null) {
       device = {
-        id: ip,
         name: 'Philips TV',
         data: {
+          id: ip,
           mac: null,
           credentials: {},
         },
@@ -433,10 +436,24 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
 
         return device
       })
-      .catch(error => {
-        console.log(error)
-        throw new PairingError('Could not get device by SSDP address')
-      })
+  }
+
+  getPairingTypeBySystemInfo(systemInfo) {
+    let pairingType = 'none'
+
+    // Get system feature to check if http or https should be used
+    if (
+      typeof systemInfo.featuring !== 'undefined'
+      && typeof systemInfo.featuring.systemfeatures !== 'undefined'
+      && typeof systemInfo.featuring.systemfeatures.pairing_type !== 'undefined'
+    ) {
+      pairingType = systemInfo.featuring.systemfeatures.pairing_type
+    } else {
+      this.log('Could not find pairing type in system features, assuming no pairing required.',
+        JSON.stringify(systemInfo))
+    }
+
+    return pairingType;
   }
 }
 

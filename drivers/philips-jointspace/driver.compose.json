@@ -79,5 +79,118 @@
   ],
   "connectivity": [
     "lan"
+  ],
+  "pair": [
+    {
+      "id": "discover",
+      "options": {
+        "text": {
+          "en": "Searching for devices...",
+          "nl": "Zoeken naar apparaten...",
+          "de": "Suche nach Geräten...",
+          "fr": "Recherche de périphériques en cours...",
+          "it": "Ricerca di dispositivi in corso...",
+          "sv": "Söker efter enheter...",
+          "no": "Søker etter enheter...",
+          "es": "Buscando dispositivos...",
+          "da": "Søger efter enheder...",
+          "pl": "Wyszukiwanie urządzeń..."
+        }
+      },
+      "navigation": {
+        "next": "list_devices"
+      }
+    },
+    {
+      "id": "add_by_ip",
+      "navigation": {
+        "next": "check_ip",
+        "prev": "discover"
+      }
+    },
+    {
+      "id": "check_ip",
+      "template": "loading",
+      "navigation": {
+        "next": "list_devices",
+        "prev": "add_by_ip"
+      }
+    },
+    {
+      "id": "list_devices",
+      "template": "list_devices",
+      "navigation": {
+        "next": "validate",
+        "prev": "add_by_ip"
+      },
+      "options": {
+        "singular": true,
+        "title": {
+          "en": "Select the device you want to add",
+          "nl": "Selecteer het apparaat die je wil toevoegen",
+          "de": "Wähle das Gerät aus, das du hinzufügen möchtest",
+          "fr": "Sélectionnez l'appareil que vous voulez ajouter",
+          "it": "Seleziona il dispositivo che si desidera aggiungere",
+          "sv": "Välj enheten du vill lägga till",
+          "no": "Velg enheten du vil legge til",
+          "es": "Seleccione el dispositivo que desea agregar",
+          "da": "Vælg enheden, du vil tilføje",
+          "pl": "Wybierz urządzenie, które chcesz dodać"
+        }
+      }
+    },
+    {
+      "id": "validate",
+      "navigation": {
+        "next": "start_pair",
+        "prev": "discover"
+      }
+    },
+    {
+      "id": "start_pair",
+      "template": "loading",
+      "navigation": {
+        "next": "authenticate",
+        "prev": "discover"
+      }
+    },
+    {
+      "id": "authenticate",
+      "template": "pincode",
+      "options": {
+        "title": {
+          "en": "Pincode",
+          "nl": "Pincode",
+          "de": "Pin-Code",
+          "fr": "Code Pin",
+          "it": "Codice Pin",
+          "sv": "Pin-kod",
+          "no": "Pinkode",
+          "es": "Código PIN",
+          "da": "Pin-kode",
+          "pl": "Kod PIN"
+        },
+        "hint": {
+          "en": "Enter the code displayed on the TV",
+          "nl": "Vul de code in die op de TV wordt weergegeven",
+          "de": "Geben Sie den auf dem Fernseher angezeigten Code ein",
+          "fr": "Entrez le code affiché sur la télévision",
+          "it": "Inserisci il codice visualizzato sul televisore",
+          "sv": "Ange koden som visas på TV:n",
+          "no": "Skriv inn koden som vises på TV-en",
+          "es": "Ingrese el código que se muestra en la televisión",
+          "da": "Indtast koden, der vises på tv'et",
+          "pl": "Wprowadź kod wyświetlany na telewizorze"
+        },
+        "type": "number",
+        "length": 4
+      },
+      "navigation": {
+        "prev": "discover"
+      }
+    },
+    {
+      "id": "add_my_device"
+    }
   ]
 }

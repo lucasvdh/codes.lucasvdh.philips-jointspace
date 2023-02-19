@@ -15,6 +15,9 @@ class PhilipsTV extends Homey.App {
       .registerRunListener(this.onFlowActionOpenApplication)
       .registerArgumentAutocompleteListener('app', this.onFlowApplicationAutocomplete)
 
+    this.homey.flow.getActionCard('open_google_assistant')
+      .registerRunListener(this.onFlowActionOpenGoogleAssistant);
+
     this.homey.flow.getActionCard('select_source')
       .registerRunListener(this.onFlowActionSelectSource)
 
@@ -45,24 +48,19 @@ class PhilipsTV extends Homey.App {
     return device.sendGoogleAssistantSearch(source)
   }
 
-  async onFlowActionSetAmbiHue (args) {
-    let device = args.device,
-      state = (args.state === 'on')
-
-    return device.setAmbiHue(state)
+  async onFlowActionSetAmbiHue ({ device, state }) {
+    return device.setAmbiHue(state === 'on')
   }
 
-  async onFlowActionSetAmbilight (args) {
-    let device = args.device,
-      state = (args.state === 'on')
-
-    return device.setAmbilight(state)
+  async onFlowActionSetAmbilight ({ device, state }) {
+    return device.setAmbilight(state === 'on')
   }
 
-  async onFlowActionSetAmbilightMode (args) {
-    let device = args.device,
-      mode = args.mode
+  async onFlowActionOpenGoogleAssistant ({ device, input }) {
+    return device.openGoogleAssistant(input)
+  }
 
+  async onFlowActionSetAmbilightMode ({ device, mode }) {
     return device.setAmbilightMode(mode)
   }
 
