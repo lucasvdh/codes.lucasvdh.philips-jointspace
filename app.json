@@ -3,9 +3,6 @@
   "id": "codes.lucasvdh.philips-jointspace",
   "version": "2.4.2",
   "compatibility": ">=5.0.0",
-  "platforms": [
-    "local"
-  ],
   "sdk": 3,
   "brandColor": "#2A63CC",
   "name": {
@@ -35,13 +32,6 @@
   "category": [
     "video"
   ],
-  "tags": {
-    "en": [
-      "philips",
-      "tv",
-      "jointspace"
-    ]
-  },
   "author": {
     "name": "Lucas van der Have",
     "email": "lucasvdhave@gmail.com"
@@ -76,812 +66,6 @@
   "source": "https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace",
   "homepage": "https://homey-philips-tv.gitbook.io/homey-philips-tv/",
   "support": "https://homey-philips-tv.gitbook.io/homey-philips-tv/overview/faq",
-  "flow": {
-    "triggers": [
-      {
-        "id": "ambihue_changed",
-        "title": {
-          "en": "AmbiHue changed",
-          "nl": "AmbiHue gewijzigd",
-          "de": "AmbiHue geändert",
-          "fr": "AmbiHue a changé",
-          "it": "AmbiHue è cambiato",
-          "sv": "AmbiHue har ändrats",
-          "no": "AmbiHue endret",
-          "es": "AmbiHue cambió",
-          "da": "AmbiHue ændret",
-          "pl": "AmbiHue zmieniono"
-        },
-        "tokens": [
-          {
-            "name": "enabled",
-            "type": "boolean",
-            "title": {
-              "en": "Enabled",
-              "nl": "Ingeschakeld",
-              "de": "Aktiviert",
-              "fr": "Activé",
-              "it": "Abilitato",
-              "sv": "Aktiverad",
-              "no": "Aktivert",
-              "es": "Habilitado",
-              "da": "Aktiveret",
-              "pl": "Włączone"
-            },
-            "example": true
-          }
-        ],
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_id=philips-jointspace"
-          }
-        ]
-      },
-      {
-        "id": "ambilight_changed",
-        "title": {
-          "en": "Ambilight changed",
-          "nl": "Ambilight gewijzigd",
-          "de": "Ambilight geändert",
-          "fr": "Ambilight a changé",
-          "it": "Ambilight è cambiato",
-          "sv": "Ambilight har ändrats",
-          "no": "Ambilight endret",
-          "es": "Ambilight cambió",
-          "da": "Ambilight ændret",
-          "pl": "Ambilight zmieniono"
-        },
-        "tokens": [
-          {
-            "name": "enabled",
-            "type": "boolean",
-            "title": {
-              "en": "Enabled",
-              "nl": "Ingeschakeld",
-              "de": "Aktiviert",
-              "fr": "Activé",
-              "it": "Abilitato",
-              "sv": "Aktiverad",
-              "no": "Aktivert",
-              "es": "Habilitado",
-              "da": "Aktiveret",
-              "pl": "Włączone"
-            },
-            "example": true
-          }
-        ],
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_id=philips-jointspace"
-          }
-        ]
-      },
-      {
-        "id": "ambilight_mode_changed",
-        "title": {
-          "en": "Ambilight mode changed",
-          "nl": "Ambilight modus gewijzigd",
-          "de": "Ambilight Modus geändert",
-          "fr": "Mode Ambilight modifié",
-          "it": "Modalità Ambilight modificata",
-          "sv": "Ambilight-läge ändrat",
-          "no": "Ambilight-modus endret",
-          "es": "Modo Ambilight cambiado",
-          "da": "Ambilight-tilstand ændret",
-          "pl": "Tryb Ambilight zmieniony"
-        },
-        "tokens": [
-          {
-            "name": "mode",
-            "type": "string",
-            "title": {
-              "en": "Ambilight mode",
-              "nl": "Ambilight modus",
-              "de": "Ambilight-Modus",
-              "fr": "Mode Ambilight",
-              "it": "Modalità Ambilight",
-              "sv": "Ambilight-läge",
-              "no": "Ambilight-modus",
-              "es": "Modo Ambilight",
-              "da": "Ambilight-tilstand",
-              "pl": "Tryb Ambilight"
-            },
-            "example": "video_standard"
-          }
-        ],
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_id=philips-jointspace"
-          }
-        ]
-      },
-      {
-        "id": "application_opened",
-        "title": {
-          "en": "An app was opened",
-          "nl": "Er is een app geopend",
-          "de": "Eine App wurde geöffnet",
-          "fr": "Une application a été ouverte",
-          "it": "È stata aperta un'app",
-          "sv": "En app har öppnats",
-          "no": "En app ble åpnet",
-          "es": "Se abrió una aplicación",
-          "da": "En app blev åbnet",
-          "pl": "Otwarto aplikację"
-        },
-        "tokens": [
-          {
-            "name": "app",
-            "type": "string",
-            "title": {
-              "nl": "App",
-              "en": "App",
-              "de": "App",
-              "fr": "Application",
-              "it": "App",
-              "sv": "App",
-              "no": "App",
-              "es": "Aplicación",
-              "da": "App",
-              "pl": "Aplikacja"
-            },
-            "example": "Netflix"
-          }
-        ],
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_id=philips-jointspace"
-          }
-        ]
-      }
-    ],
-    "actions": [
-      {
-        "highlight": true,
-        "id": "open_application",
-        "title": {
-          "en": "Open an application",
-          "nl": "Open een app",
-          "de": "Öffne eine Anwendung",
-          "fr": "Ouvrir une application",
-          "it": "Aprire un'applicazione",
-          "sv": "Öppna en applikation",
-          "no": "Åpne en applikasjon",
-          "es": "Abrir una aplicación",
-          "da": "Åben en applikation",
-          "pl": "Otwórz aplikację"
-        },
-        "titleFormatted": {
-          "en": "Open app [[app]]",
-          "nl": "Open app [[app]]",
-          "de": "Öffne App [[app]]",
-          "fr": "Ouvrir l'application [[app]]",
-          "it": "Apri app [[app]]",
-          "sv": "Öppna app [[app]]",
-          "no": "Åpne app [[app]]",
-          "es": "Abrir aplicación [[app]]",
-          "da": "Åben app [[app]]",
-          "pl": "Otwórz aplikację [[app]]"
-        },
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_id=philips-jointspace"
-          },
-          {
-            "name": "app",
-            "type": "autocomplete"
-          }
-        ]
-      },
-      {
-        "id": "select_source",
-        "title": {
-          "en": "Select a source",
-          "nl": "Selecteer een input",
-          "de": "Wähle eine Quelle",
-          "fr": "Sélectionnez une source",
-          "it": "Seleziona una sorgente",
-          "sv": "Välj en källa",
-          "no": "Velg en kilde",
-          "es": "Seleccione una fuente",
-          "da": "Vælg en kilde",
-          "pl": "Wybierz źródło"
-        },
-        "titleFormatted": {
-          "en": "Select source [[source]]",
-          "nl": "Selecteer input [[source]]",
-          "de": "Wähle Quelle [[source]]",
-          "fr": "Sélectionnez la source [[source]]",
-          "it": "Seleziona sorgente [[source]]",
-          "sv": "Välj källa [[source]]",
-          "no": "Velg kilde [[source]]",
-          "es": "Seleccione fuente [[source]]",
-          "da": "Vælg kilde [[source]]",
-          "pl": "Wybierz źródło [[source]]"
-        },
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_id=philips-jointspace"
-          },
-          {
-            "name": "source",
-            "type": "dropdown",
-            "values": [
-              {
-                "id": "HDMI 1",
-                "title": {
-                  "en": "HDMI 1"
-                }
-              },
-              {
-                "id": "HDMI 2",
-                "title": {
-                  "en": "HDMI 2"
-                }
-              },
-              {
-                "id": "HDMI 3",
-                "title": {
-                  "en": "HDMI 3"
-                }
-              },
-              {
-                "id": "HDMI 4",
-                "title": {
-                  "en": "HDMI 4"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "send_key",
-        "title": {
-          "en": "Send a key",
-          "nl": "Stuur een knop",
-          "de": "Sende eine Taste",
-          "fr": "Envoyer une touche",
-          "it": "Invia un tasto",
-          "sv": "Skicka en tangent",
-          "no": "Send en tast",
-          "es": "Enviar una tecla",
-          "da": "Send en tast",
-          "pl": "Wyślij klawisz"
-        },
-        "titleFormatted": {
-          "en": "Send key [[option]]",
-          "nl": "Stuur knop [[option]]",
-          "de": "Sende Taste [[option]]",
-          "fr": "Envoyer la touche [[option]]",
-          "it": "Invia tasto [[option]]",
-          "sv": "Skicka tangent [[option]]",
-          "no": "Send tast [[option]]",
-          "es": "Enviar tecla [[option]]",
-          "da": "Send tast [[option]]",
-          "pl": "Wyślij klawisz [[option]]"
-        },
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_id=philips-jointspace"
-          },
-          {
-            "name": "option",
-            "type": "autocomplete"
-          }
-        ]
-      },
-      {
-        "id": "set_ambihue",
-        "title": {
-          "en": "Set AmbiHue state",
-          "nl": "Stel AmbiHue in",
-          "de": "AmbiHue-Status einstellen",
-          "fr": "Définir l'état d'AmbiHue",
-          "it": "Imposta lo stato di AmbiHue",
-          "sv": "Ställ in AmbiHue-tillståndet",
-          "no": "Sett AmbiHue-tilstand",
-          "es": "Establecer el estado de AmbiHue",
-          "da": "Indstil AmbiHue-tilstand",
-          "pl": "Ustaw stan AmbiHue"
-        },
-        "titleFormatted": {
-          "en": "Turn AmbiHue [[state]]",
-          "nl": "Zet AmbiHue [[state]]",
-          "de": "Schalte AmbiHue [[state]]",
-          "fr": "Allumer/éteindre AmbiHue [[state]]",
-          "it": "Accendi/spegni AmbiHue [[state]]",
-          "sv": "Sätt på/stäng av AmbiHue [[state]]",
-          "no": "Slå på/av AmbiHue [[state]]",
-          "es": "Encender/apagar AmbiHue [[state]]",
-          "da": "Tænd/sluk AmbiHue [[state]]",
-          "pl": "Włącz/wyłącz AmbiHue [[state]]"
-        },
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_id=philips-jointspace"
-          },
-          {
-            "name": "state",
-            "type": "dropdown",
-            "values": [
-              {
-                "id": "on",
-                "label": {
-                  "en": "On",
-                  "nl": "Aan",
-                  "de": "Ein",
-                  "fr": "Allumé",
-                  "it": "Acceso",
-                  "sv": "På",
-                  "no": "På",
-                  "es": "Encendido",
-                  "da": "Tændt",
-                  "pl": "Włączony"
-                }
-              },
-              {
-                "id": "off",
-                "label": {
-                  "en": "Off",
-                  "nl": "Uit",
-                  "de": "Aus",
-                  "fr": "Off",
-                  "it": "Spento",
-                  "sv": "Av",
-                  "no": "Av",
-                  "es": "Apagado",
-                  "da": "Slukket",
-                  "pl": "Wyłączony"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "set_ambilight",
-        "title": {
-          "en": "Turn Ambilight on/off",
-          "nl": "Zet Ambilight aan/uit",
-          "de": "Ambilight ein-/ausschalten",
-          "fr": "Allumer/éteindre Ambilight",
-          "it": "Accendi/spegni Ambilight",
-          "sv": "Slå på/av Ambilight",
-          "no": "Slå på/av Ambilight",
-          "es": "Encender/apagar Ambilight",
-          "da": "Tænd/sluk Ambilight",
-          "pl": "Włącz/wyłącz Ambilight"
-        },
-        "titleFormatted": {
-          "en": "Turn Ambilight [[state]]",
-          "nl": "Zet Ambilight [[state]]",
-          "de": "Schalte Ambilight [[state]]",
-          "fr": "Allumer/éteindre Ambilight [[state]]",
-          "it": "Accendi/spegni Ambilight [[state]]",
-          "sv": "Slå på/av Ambilight [[state]]",
-          "no": "Slå på/av Ambilight [[state]]",
-          "es": "Encender/apagar Ambilight [[state]]",
-          "da": "Tænd/sluk Ambilight [[state]]",
-          "pl": "Włącz/wyłącz Ambilight [[state]]"
-        },
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_id=philips-jointspace"
-          },
-          {
-            "name": "state",
-            "type": "dropdown",
-            "values": [
-              {
-                "id": "on",
-                "label": {
-                  "en": "On",
-                  "nl": "Aan",
-                  "de": "Ein",
-                  "fr": "Allumé",
-                  "it": "Acceso",
-                  "sv": "På",
-                  "no": "På",
-                  "es": "Encendido",
-                  "da": "Tændt",
-                  "pl": "Włączony"
-                }
-              },
-              {
-                "id": "off",
-                "label": {
-                  "en": "Off",
-                  "nl": "Uit",
-                  "de": "Aus",
-                  "fr": "Off",
-                  "it": "Spento",
-                  "sv": "Av",
-                  "no": "Av",
-                  "es": "Apagado",
-                  "da": "Slukket",
-                  "pl": "Wyłączony"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "set_ambilight_mode",
-        "title": {
-          "en": "Set Ambilight mode",
-          "nl": "Stel Ambilight mode in",
-          "de": "Ambilight-Modus einstellen",
-          "fr": "Configurer le mode Ambilight",
-          "it": "Imposta la modalità Ambilight",
-          "sv": "Ställ in Ambilight-läge",
-          "no": "Sett Ambilight-modus",
-          "es": "Establecer modo Ambilight",
-          "da": "Indstil Ambilight-tilstand",
-          "pl": "Ustaw tryb Ambilight"
-        },
-        "titleFormatted": {
-          "en": "Set Ambilight mode as [[mode]]",
-          "nl": "Stel Ambilight mode in op [[mode]]",
-          "de": "Ambilight-Modus auf [[mode]] einstellen",
-          "fr": "Configurer le mode Ambilight en [[mode]]",
-          "it": "Imposta la modalità Ambilight come [[mode]]",
-          "sv": "Ställ in Ambilight-läge som [[mode]]",
-          "no": "Sett Ambilight-modus til [[mode]]",
-          "es": "Establecer modo Ambilight como [[mode]]",
-          "da": "Indstil Ambilight-tilstand til [[mode]]",
-          "pl": "Ustaw tryb Ambilight na [[mode]]"
-        },
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_id=philips-jointspace"
-          },
-          {
-            "name": "mode",
-            "type": "dropdown",
-            "values": [
-              {
-                "id": "color_hot_lava",
-                "title": {
-                  "en": "Color hot lava",
-                  "nl": "Kleur hete lava",
-                  "de": "Farbe heiße Lava",
-                  "fr": "Couleur lave chaude",
-                  "it": "Colore lava calda",
-                  "sv": "Färg het lava",
-                  "no": "Farge varm lava",
-                  "es": "Color lava caliente",
-                  "da": "Farve varm lava",
-                  "pl": "Kolor gorącej lawy"
-                }
-              },
-              {
-                "id": "color_warm_white",
-                "title": {
-                  "en": "Color warm white",
-                  "nl": "Kleur warm wit",
-                  "de": "Farbe warmes Weiß",
-                  "fr": "Couleur blanc chaud",
-                  "it": "Colore bianco caldo",
-                  "sv": "Färg varm vit",
-                  "no": "Farge varm hvit",
-                  "es": "Color blanco cálido",
-                  "da": "Farve varm hvid",
-                  "pl": "Kolor ciepłego białego"
-                }
-              },
-              {
-                "id": "color_cool_white",
-                "title": {
-                  "en": "Color cool white",
-                  "nl": "Kleur koel wit",
-                  "de": "Farbe kühles Weiß",
-                  "fr": "Couleur blanc frais",
-                  "it": "Colore bianco fresco",
-                  "sv": "Färg kall vit",
-                  "no": "Farge kald hvit",
-                  "es": "Color blanco fresco",
-                  "da": "Farve kold hvid",
-                  "pl": "Kolor chłodnego białego"
-                }
-              },
-              {
-                "id": "color_fresh_nature",
-                "title": {
-                  "en": "Color fresh nature",
-                  "nl": "Kleur frisse natuur",
-                  "de": "Farbe frische Natur",
-                  "fr": "Couleur fraîche nature",
-                  "it": "Colore fresca natura",
-                  "sv": "Färg frisk natur",
-                  "no": "Farge frisk natur",
-                  "es": "Color fresco naturaleza",
-                  "da": "Farve frisk natur",
-                  "pl": "Kolor świeża natura"
-                }
-              },
-              {
-                "id": "color_deep_water",
-                "title": {
-                  "en": "Color deep water",
-                  "nl": "Kleur diep water",
-                  "de": "Tiefes Wasserfarbe",
-                  "fr": "Couleur d'eau profonde",
-                  "it": "Colore acqua profonda",
-                  "sv": "Djup vatten färg",
-                  "no": "Dyp vannfarge",
-                  "es": "Color agua profunda",
-                  "da": "Dyb vandfarve",
-                  "pl": "Głęboki kolor wody"
-                }
-              },
-              {
-                "id": "video_standard",
-                "title": {
-                  "en": "Video standard",
-                  "nl": "Video standaard",
-                  "de": "Video Standard",
-                  "fr": "Norme vidéo",
-                  "it": "Standard video",
-                  "sv": "Videostandard",
-                  "no": "Videostandard",
-                  "es": "Estándar de vídeo",
-                  "da": "Video standard",
-                  "pl": "Standard wideo"
-                }
-              },
-              {
-                "id": "video_natural",
-                "title": {
-                  "en": "Video natural",
-                  "nl": "Video natuurlijk",
-                  "de": "Video natürlich",
-                  "fr": "Vidéo naturelle",
-                  "it": "Video naturale",
-                  "sv": "Video naturlig",
-                  "no": "Video naturlig",
-                  "es": "Video natural",
-                  "da": "Video naturlig",
-                  "pl": "Wideo naturalne"
-                }
-              },
-              {
-                "id": "video_vivid",
-                "title": {
-                  "en": "Video vivid",
-                  "nl": "Video helder",
-                  "de": "Video lebhaft",
-                  "fr": "Vidéo vive",
-                  "it": "Video vivido",
-                  "sv": "Video livfull",
-                  "no": "Video livlig",
-                  "es": "Video vívido",
-                  "da": "Video livlig",
-                  "pl": "Video wyraziste"
-                }
-              },
-              {
-                "id": "video_game",
-                "title": {
-                  "en": "Video game",
-                  "nl": "Video spel",
-                  "de": "Videospiel",
-                  "fr": "Jeu vidéo",
-                  "it": "Videogioco",
-                  "sv": "Videospel",
-                  "no": "Videospill",
-                  "es": "Juego de video",
-                  "da": "Videospil",
-                  "pl": "Gra wideo"
-                }
-              },
-              {
-                "id": "video_comfort",
-                "title": {
-                  "en": "Video comfort",
-                  "nl": "Video comfort",
-                  "de": "Video Komfort",
-                  "fr": "Vidéo confort",
-                  "it": "Comfort video",
-                  "sv": "Videokomfort",
-                  "no": "Video komfort",
-                  "es": "Comodidad de video",
-                  "da": "Video komfort",
-                  "pl": "Wygoda wideo"
-                }
-              },
-              {
-                "id": "video_relax",
-                "title": {
-                  "en": "Video relax",
-                  "nl": "Video ontspannen",
-                  "de": "Video Entspannung",
-                  "fr": "Vidéo détente",
-                  "it": "Video rilassante",
-                  "sv": "Video avslappning",
-                  "no": "Video avslapping",
-                  "es": "Video relajante",
-                  "da": "Video afslapning",
-                  "pl": "Wideo relaks"
-                }
-              },
-              {
-                "id": "audio_adapt_brightness",
-                "title": {
-                  "en": "Audio adaptive brightness",
-                  "nl": "Audio aanpassende helderheid",
-                  "de": "Audio adaptive Helligkeit",
-                  "fr": "Luminosité audio adaptative",
-                  "it": "Audio luminosità adattiva",
-                  "sv": "Ljudanpassad ljusstyrka",
-                  "no": "Lyd tilpasset lysstyrke",
-                  "es": "Brillo de audio adaptativo",
-                  "da": "Audio tilpasset lysstyrke",
-                  "pl": "Dostosowana jasność audio"
-                }
-              },
-              {
-                "id": "audio_adapt_colors",
-                "title": {
-                  "en": "Audio adaptive colors",
-                  "nl": "Audio aanpassende kleuren",
-                  "de": "Audio anpassbare Farben",
-                  "fr": "Couleurs audio adaptatives",
-                  "it": "Colori audio adattivi",
-                  "sv": "Ljudanpassade färger",
-                  "no": "Lydtilpassede farger",
-                  "es": "Colores de audio adaptativos",
-                  "da": "Audio tilpassede farver",
-                  "pl": "Adaptacyjne kolory dźwięku"
-                }
-              },
-              {
-                "id": "audio_vu_meter",
-                "title": {
-                  "en": "Audio VU meter",
-                  "nl": "Audio VU meter",
-                  "de": "Audio-VU-Meter",
-                  "fr": "Mètre VU audio",
-                  "it": "Misuratore VU audio",
-                  "sv": "Audio VU-mätare",
-                  "no": "Audio VU-måler",
-                  "es": "Medidor de VU de audio",
-                  "da": "Audio VU-måler",
-                  "pl": "Woltomierz audio VU"
-                }
-              },
-              {
-                "id": "audio_spectrum",
-                "title": {
-                  "en": "Audio spectrum",
-                  "nl": "Audiospectrum",
-                  "de": "Audio-Spektrum",
-                  "fr": "Spectre audio",
-                  "it": "Spettro audio",
-                  "sv": "Ljudspektrum",
-                  "no": "Lydspekter",
-                  "es": "Espectro de audio",
-                  "da": "Lydspektrum",
-                  "pl": "Widmo audio"
-                }
-              },
-              {
-                "id": "audio_knight_rider_1",
-                "title": {
-                  "en": "Audio Knight Rider 1",
-                  "nl": "Audio Knight Rider 1",
-                  "de": "Audio Knight Rider 1",
-                  "fr": "Audio Knight Rider 1",
-                  "it": "Audio Knight Rider 1",
-                  "sv": "Ljud Knight Rider 1",
-                  "no": "Lyd Knight Rider 1",
-                  "es": "Audio Knight Rider 1",
-                  "da": "Lyd Knight Rider 1",
-                  "pl": "Audio Knight Rider 1"
-                }
-              },
-              {
-                "id": "audio_knight_rider_2",
-                "title": {
-                  "en": "Audio Knight Rider 2",
-                  "nl": "Audio Knight Rider 2",
-                  "de": "Audio Knight Rider 2",
-                  "fr": "Audio Knight Rider 2",
-                  "it": "Audio Knight Rider 2",
-                  "sv": "Ljud Knight Rider 2",
-                  "no": "Lyd Knight Rider 2",
-                  "es": "Audio Knight Rider 2",
-                  "da": "Lyd Knight Rider 2",
-                  "pl": "Audio Knight Rider 2"
-                }
-              },
-              {
-                "id": "audio_flash",
-                "title": {
-                  "en": "Audio flash",
-                  "nl": "Audio flits",
-                  "de": "Audio Blitz",
-                  "fr": "Audio flash",
-                  "it": "Audio flash",
-                  "sv": "Audio blixt",
-                  "no": "Audio blits",
-                  "es": "Audio flash",
-                  "da": "Audio blitz",
-                  "pl": "Audio błysk"
-                }
-              },
-              {
-                "id": "audio_strobo",
-                "title": {
-                  "en": "Audio strobo",
-                  "nl": "Audio strobo",
-                  "de": "Audio Strobe",
-                  "fr": "Stroboscope audio",
-                  "it": "Strobo audio",
-                  "sv": "Ljudstrobo",
-                  "no": "Lydstrobo",
-                  "es": "Estroboscopio de audio",
-                  "da": "Audio strobe",
-                  "pl": "Audio stroboskop"
-                }
-              },
-              {
-                "id": "audio_party",
-                "title": {
-                  "en": "Audio party",
-                  "nl": "Audio feest",
-                  "de": "Audio-Party",
-                  "fr": "Audio fête",
-                  "it": "Audio festa",
-                  "sv": "Ljudfest",
-                  "no": "Lydfest",
-                  "es": "Fiesta de audio",
-                  "da": "Lydfest",
-                  "pl": "Impreza audio"
-                }
-              },
-              {
-                "id": "audio_random",
-                "title": {
-                  "en": "Audio random",
-                  "nl": "Audio willekeurig",
-                  "de": "Audio Zufall",
-                  "fr": "Audio aléatoire",
-                  "it": "Audio casuale",
-                  "sv": "Audio slumpmässig",
-                  "no": "Audio tilfeldig",
-                  "es": "Audio aleatorio",
-                  "da": "Audio tilfældigt",
-                  "pl": "Audio losowy"
-                }
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  },
   "drivers": [
     {
       "name": {
@@ -1063,7 +247,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/hue.svg"
+      "icon": "assets/capabilities/hue.svg"
     },
     "ambilight_mode": {
       "type": "enum",
@@ -1083,7 +267,7 @@
       "setable": true,
       "uiComponent": "picker",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/ambilight.svg",
+      "icon": "assets/capabilities/ambilight.svg",
       "values": [
         {
           "id": "off",
@@ -1435,7 +619,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/ambilight.svg"
+      "icon": "assets/capabilities/ambilight.svg"
     },
     "current_application": {
       "type": "string",
@@ -1455,7 +639,7 @@
       "setable": true,
       "uiComponent": null,
       "uiQuickAction": false,
-      "icon": "drivers/philips-jointspace/assets/capabilities/application.svg"
+      "icon": "assets/capabilities/application.svg"
     },
     "key_adjust": {
       "type": "boolean",
@@ -1475,7 +659,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/adjust.svg"
+      "icon": "assets/capabilities/adjust.svg"
     },
     "key_back": {
       "type": "boolean",
@@ -1495,7 +679,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/back.svg"
+      "icon": "assets/capabilities/back.svg"
     },
     "key_blue": {
       "type": "boolean",
@@ -1507,7 +691,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/blue.svg"
+      "icon": "assets/capabilities/blue.svg"
     },
     "key_confirm": {
       "type": "boolean",
@@ -1519,7 +703,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/confirm.svg"
+      "icon": "assets/capabilities/confirm.svg"
     },
     "key_cursor_down": {
       "type": "boolean",
@@ -1531,7 +715,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/cursor_down.svg"
+      "icon": "assets/capabilities/cursor_down.svg"
     },
     "key_cursor_left": {
       "type": "boolean",
@@ -1543,7 +727,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/cursor_left.svg"
+      "icon": "assets/capabilities/cursor_left.svg"
     },
     "key_cursor_right": {
       "type": "boolean",
@@ -1555,7 +739,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/cursor_right.svg"
+      "icon": "assets/capabilities/cursor_right.svg"
     },
     "key_cursor_up": {
       "type": "boolean",
@@ -1567,7 +751,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/cursor_up.svg"
+      "icon": "assets/capabilities/cursor_up.svg"
     },
     "key_digit_0": {
       "type": "boolean",
@@ -1579,7 +763,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/digit_0.svg"
+      "icon": "assets/capabilities/digit_0.svg"
     },
     "key_digit_1": {
       "type": "boolean",
@@ -1591,7 +775,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/digit_1.svg"
+      "icon": "assets/capabilities/digit_1.svg"
     },
     "key_digit_2": {
       "type": "boolean",
@@ -1603,7 +787,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/digit_2.svg"
+      "icon": "assets/capabilities/digit_2.svg"
     },
     "key_digit_3": {
       "type": "boolean",
@@ -1615,7 +799,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/digit_3.svg"
+      "icon": "assets/capabilities/digit_3.svg"
     },
     "key_digit_4": {
       "type": "boolean",
@@ -1627,7 +811,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/digit_4.svg"
+      "icon": "assets/capabilities/digit_4.svg"
     },
     "key_digit_5": {
       "type": "boolean",
@@ -1639,7 +823,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/digit_5.svg"
+      "icon": "assets/capabilities/digit_5.svg"
     },
     "key_digit_6": {
       "type": "boolean",
@@ -1651,7 +835,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/digit_6.svg"
+      "icon": "assets/capabilities/digit_6.svg"
     },
     "key_digit_7": {
       "type": "boolean",
@@ -1663,7 +847,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/digit_7.svg"
+      "icon": "assets/capabilities/digit_7.svg"
     },
     "key_digit_8": {
       "type": "boolean",
@@ -1675,7 +859,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/digit_8.svg"
+      "icon": "assets/capabilities/digit_8.svg"
     },
     "key_digit_9": {
       "type": "boolean",
@@ -1687,7 +871,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/digit_9.svg"
+      "icon": "assets/capabilities/digit_9.svg"
     },
     "key_dot": {
       "type": "boolean",
@@ -1699,7 +883,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/dot.svg"
+      "icon": "assets/capabilities/dot.svg"
     },
     "key_fast_forward": {
       "type": "boolean",
@@ -1711,7 +895,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/fast_forward.svg"
+      "icon": "assets/capabilities/fast_forward.svg"
     },
     "key_find": {
       "type": "boolean",
@@ -1723,7 +907,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/find.svg"
+      "icon": "assets/capabilities/find.svg"
     },
     "key_green": {
       "type": "boolean",
@@ -1735,7 +919,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/green.svg"
+      "icon": "assets/capabilities/green.svg"
     },
     "key_home": {
       "type": "boolean",
@@ -1747,7 +931,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/home.svg"
+      "icon": "assets/capabilities/home.svg"
     },
     "key_info": {
       "type": "boolean",
@@ -1759,7 +943,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/info.svg"
+      "icon": "assets/capabilities/info.svg"
     },
     "key_next": {
       "type": "boolean",
@@ -1771,7 +955,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/next.svg"
+      "icon": "assets/capabilities/next.svg"
     },
     "key_online": {
       "type": "boolean",
@@ -1783,7 +967,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/online.svg"
+      "icon": "assets/capabilities/online.svg"
     },
     "key_options": {
       "type": "boolean",
@@ -1795,7 +979,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/settings.svg"
+      "icon": "assets/capabilities/settings.svg"
     },
     "key_pause": {
       "type": "boolean",
@@ -1807,7 +991,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/pause.svg"
+      "icon": "assets/capabilities/pause.svg"
     },
     "key_play": {
       "type": "boolean",
@@ -1819,7 +1003,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/play.svg"
+      "icon": "assets/capabilities/play.svg"
     },
     "key_play_pause": {
       "type": "boolean",
@@ -1831,7 +1015,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/play_pause.svg"
+      "icon": "assets/capabilities/play_pause.svg"
     },
     "key_previous": {
       "type": "boolean",
@@ -1843,7 +1027,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/previous.svg"
+      "icon": "assets/capabilities/previous.svg"
     },
     "key_record": {
       "type": "boolean",
@@ -1855,7 +1039,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/record.svg"
+      "icon": "assets/capabilities/record.svg"
     },
     "key_red": {
       "type": "boolean",
@@ -1867,7 +1051,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/red.svg"
+      "icon": "assets/capabilities/red.svg"
     },
     "key_rewind": {
       "type": "boolean",
@@ -1879,7 +1063,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/rewind.svg"
+      "icon": "assets/capabilities/rewind.svg"
     },
     "key_source": {
       "type": "boolean",
@@ -1891,7 +1075,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/source.svg"
+      "icon": "assets/capabilities/source.svg"
     },
     "key_stop": {
       "type": "boolean",
@@ -1903,7 +1087,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/stop.svg"
+      "icon": "assets/capabilities/stop.svg"
     },
     "key_teletext": {
       "type": "boolean",
@@ -1915,7 +1099,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/teletext.svg"
+      "icon": "assets/capabilities/teletext.svg"
     },
     "key_toggle_ambilight": {
       "type": "boolean",
@@ -1927,7 +1111,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/toggle_ambilight.svg"
+      "icon": "assets/capabilities/toggle_ambilight.svg"
     },
     "key_toggle_subtitles": {
       "type": "boolean",
@@ -1939,7 +1123,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/toggle_subtitles.svg"
+      "icon": "assets/capabilities/toggle_subtitles.svg"
     },
     "key_viewmode": {
       "type": "boolean",
@@ -1951,7 +1135,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/viewmode.svg"
+      "icon": "assets/capabilities/viewmode.svg"
     },
     "key_watch_tv": {
       "type": "boolean",
@@ -1963,7 +1147,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/watch_tv.svg"
+      "icon": "assets/capabilities/watch_tv.svg"
     },
     "key_yellow": {
       "type": "boolean",
@@ -1975,7 +1159,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "drivers/philips-jointspace/assets/capabilities/yellow.svg"
+      "icon": "assets/capabilities/yellow.svg"
     }
   },
   "discovery": {

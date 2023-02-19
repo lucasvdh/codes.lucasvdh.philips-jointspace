@@ -4,7 +4,7 @@ const Homey = require('homey')
 
 class PhilipsTV extends Homey.App {
 
-  onInit () {
+  async onInit () {
     this.log('Philips TV app is running...')
 
     this.onInitFlow()

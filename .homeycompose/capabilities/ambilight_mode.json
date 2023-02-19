@@ -16,7 +16,7 @@
   "setable": true,
   "uiComponent": "picker",
   "uiQuickAction": true,
-  "icon": "drivers/philips-jointspace/assets/capabilities/ambilight.svg",
+  "icon": "assets/capabilities/ambilight.svg",
   "values": [
     {
       "id": "off",

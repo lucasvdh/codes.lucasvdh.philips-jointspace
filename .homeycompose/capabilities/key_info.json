@@ -8,5 +8,5 @@
   "setable": true,
   "uiComponent": "button",
   "uiQuickAction": true,
-  "icon": "drivers/philips-jointspace/assets/capabilities/info.svg"
+  "icon": "assets/capabilities/info.svg"
 }

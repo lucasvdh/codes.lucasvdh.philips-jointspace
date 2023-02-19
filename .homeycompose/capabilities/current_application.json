@@ -16,5 +16,5 @@
   "setable": true,
   "uiComponent": null,
   "uiQuickAction": false,
-  "icon": "drivers/philips-jointspace/assets/capabilities/application.svg"
+  "icon": "assets/capabilities/application.svg"
 }
