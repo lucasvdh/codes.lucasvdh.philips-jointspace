@@ -190,7 +190,7 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
               await session.emit('alert', this.homey.__('error.unknown_pairing_type', { pairingType }))
             }
           })
-          .catch(this.handleSystemInfoError)
+          .catch(this.handleSystemInfoError.bind(this))
       }
     })
 
