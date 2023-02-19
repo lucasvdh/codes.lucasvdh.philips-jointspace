@@ -1,0 +1,39 @@
+{
+  "pair": {
+    "add_by_ip": {
+      "title": "Aggiungi manualmente",
+      "ip": "Indirizzo IP",
+      "no_new_devices_hint": "Tutte le TV trovate sono già state aggiunte. Prova ad aggiungere manualmente la tua TV.",
+      "need_help_pairing": "Hai bisogno di aiuto per l'abbinamento?",
+      "click_here_documentation": "Clicca qui per visualizzare la documentazione."
+    },
+    "authenticate": {
+      "intro": "Inserisci il codice visualizzato sulla TV",
+      "submit": "Invia"
+    },
+    "verify": {
+      "verifying": "Verifica della configurazione Wake-on-LAN in corso...",
+      "verified": "Wake-on-LAN è attivo e funziona correttamente!",
+      "errorTitle": "Impossibile verificare WOL",
+      "errorDescription": "Il comportamento accensione/spegnimento della TV potrebbe non funzionare correttamente se Wake-on-LAN non è attivato. <br/> Dopo che la tua TV viene messa in stand-by, potrai controllarla per circa altri 10 minuti prima che si spenga completamente. Senza Wake-on-LAN, non sarà possibile riaccendere la TV.",
+      "confirm": "Capito"
+    },
+    "add_device": {
+      "title": "Aggiungi dispositivo"
+    }
+  },
+  "error": {
+    "generic": "Si è verificato un errore imprevisto",
+    "pairing_timeout": "La sessione di abbinamento è scaduta, riprova.",
+    "endpoint_not_found": "La TV è raggiungibile ma sembra esserci un problema nella determinazione della versione Jointspace. Prova ad aggiungere manualmente la tua TV.",
+    "host_unreachable": "Impossibile raggiungere la TV all'indirizzo IP specificato. Verifica l'indirizzo IP e assicurati che la TV sia accesa.",
+    "connection_timed_out": "Si è verificato un timeout durante la connessione alla tua TV.\n\nProva ad aggiungere nuovamente la tua TV. Se il problema persiste, spegni completamente la TV o prova ad aggiungerla manualmente.",
+    "unknown_pairing_type": "Tipo di richiesta di abbinamento sconosciuto: __pairingType__.",
+    "could_not_start_pairing": "Si è verificato un errore durante l'avvio della richiesta di abbinamento.",
+    "pairing_not_found": "Impossibile avviare la richiesta di abbinamento poiché la TV indica che non esiste. Potrebbe essere che la tua TV non richieda l'autenticazione o che non sia supportata da questa app.\n\nProva ad aggiungere la tua TV manualmente senza autenticazione.",
+    "concurrent_pairing": "È già stata avviata una richiesta di abbinamento. Attendi 60 secondi e riprova.",
+    "provide_the_ip_address": "Inserisci l'indirizzo IP",
+    "device_not_found": "Dispositivo non trovato",
+    "something_went_wrong": "Si è verificato un errore"
+  }
+}

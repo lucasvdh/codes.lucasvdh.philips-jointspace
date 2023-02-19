@@ -1,0 +1,39 @@
+{
+  "pair": {
+    "add_by_ip": {
+      "title": "Manuell tillägg",
+      "ip": "IP-adress",
+      "no_new_devices_hint": "Alla upptäckta TV-apparater har redan lagts till. Försök lägga till din TV manuellt.",
+      "need_help_pairing": "Behöver du hjälp med att para ihop?",
+      "click_here_documentation": "Klicka här för att se dokumentationen."
+    },
+    "authenticate": {
+      "intro": "Ange koden som visas på TV:n",
+      "submit": "Skicka in"
+    },
+    "verify": {
+      "verifying": "Verifierar Wake-on-LAN-konfigurationen...",
+      "verified": "Wake-on-LAN är aktiverad och fungerar korrekt!",
+      "errorTitle": "Kunde inte verifiera WOL",
+      "errorDescription": "TV:n kan kanske inte bete sig som förväntat när du slår på / av utan Wake-on-LAN aktiverat. <br/> När din TV är i vänteläge kan du styra den i ungefär 10 minuter innan den stängs av helt. Utan Wake-on-LAN finns det inget sätt att slå på TV:n igen efter detta.",
+      "confirm": "Förstått"
+    },
+    "add_device": {
+      "title": "Lägg till enhet"
+    }
+  },
+  "error": {
+    "generic": "Ett oväntat fel har uppstått",
+    "pairing_timeout": "Parringsessionen har löpt ut, försök igen.",
+    "endpoint_not_found": "TV:n kan nås men det verkar ha uppstått ett problem med att bestämma Jointspace-versionen. Försök lägga till din TV manuellt.",
+    "host_unreachable": "Kunde inte nå TV:n på den här IP-adressen. Kontrollera IP-adressen och se till att TV:n är påslagen.",
+    "connection_timed_out": "En timeout inträffade under anslutning till din TV.\n\nFörsök lägga till din TV igen. Om det misslyckas igen starta om din TV eller försök lägga till den manuellt.",
+    "unknown_pairing_type": "Okänt parningsbegäran: __pairingType__.",
+    "could_not_start_pairing": "Något gick fel när parningsbegäran startades.",
+    "pairing_not_found": "Kunde inte starta parningsbegäran eftersom TV:n indikerar att detta inte existerar. Din TV kanske inte behöver autentisering eller så stöds den inte av den här appen.\n\nFörsök lägga till din TV manuellt utan autentisering.",
+    "concurrent_pairing": "En parningsbegäran har redan startats, vänta 60 sekunder och försök igen.",
+    "provide_the_ip_address": "Ange IP-adressen",
+    "device_not_found": "Enheten hittades inte",
+    "something_went_wrong": "Något gick fel"
+  }
+}

@@ -278,22 +278,6 @@ class PhilipsTV extends Homey.Device {
     })
   }
 
-  openGoogleAssistant (input) {
-    const googleAssistentIntent = {
-      'intent': {
-        'extras': { 'query': input },
-        'action': 'Intent {  act=android.intent.action.ASSIST cmp=com.google.android.katniss/com.google.android.apps.tvsearch.app.launch.trampoline.SearchActivityTrampoline flg=0x10200000 }',
-        'component': {
-          'packageName': 'com.google.android.katniss',
-          'className': 'com.google.android.apps.tvsearch.app.launch.trampoline.SearchActivityTrampoline'
-        }
-      }
-    }
-
-    return this.getJointspaceClient()
-      .launchActivity(googleAssistentIntent)
-  }
-
   hasCredentials () {
     return this._data.credentials !== null
       && (typeof this._data.credentials.user !== 'undefined')
@@ -409,7 +393,7 @@ class PhilipsTV extends Homey.Device {
 
         if (currentDeviceApplication !== null) {
           this.driver.triggerApplicationOpenedTrigger(this, {
-            app: null
+            app: ''
           })
         }
       }

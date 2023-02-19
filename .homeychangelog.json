@@ -34,5 +34,17 @@
     "es": "Arreglar la obtención de aplicaciones del dispositivo",
     "da": "Fix at få enhedsapplikationer",
     "pl": "Naprawa pobierania aplikacji urządzenia"
+  },
+  "2.5.0": {
+    "en": "Added more translations (de, fr, it, sv, no, es, da, pl) to the pairing process, improved feedback in the pairing process and a new \"Open Google Assistant\" action.",
+    "nl": "Meer vertalingen (de, fr, it, sv, no, es, da, pl) toegevoegd aan het koppelproces, verbeterde feedback in het koppelproces en een nieuwe \"Open Google Assistant\" actie.",
+    "de": "Mehr Übersetzungen (de, fr, it, sv, no, es, da, pl) wurden dem Pairing-Prozess hinzugefügt, verbessertes Feedback im Pairing-Prozess und eine neue \"Open Google Assistant\"-Aktion.",
+    "fr": "Ajout de plus de traductions (de, fr, it, sv, no, es, da, pl) au processus de jumelage, amélioration des commentaires dans le processus de jumelage et une nouvelle action \"Ouvrir l'Assistant Google\".",
+    "it": "Aggiunte ulteriori traduzioni (de, fr, it, sv, no, es, da, pl) al processo di accoppiamento, migliorato il feedback nel processo di accoppiamento e una nuova azione \"Apri Google Assistant\".",
+    "sv": "Lade till fler översättningar (de, fr, it, sv, no, es, da, pl) till parningsprocessen, förbättrat återkoppling i parningsprocessen och en ny \"Öppna Google Assistant\"-åtgärd.",
+    "no": "La til flere oversettelser (de, fr, it, sv, no, es, da, pl) til paringsprosessen, forbedret tilbakemelding i paringsprosessen og en ny \"Åpne Google Assistant\"-handling.",
+    "es": "Se agregaron más traducciones (de, fr, it, sv, no, es, da, pl) al proceso de emparejamiento, se mejoró la retroalimentación en el proceso de emparejamiento y una nueva acción \"Abrir el asistente de Google\".",
+    "da": "Tilføjet flere oversættelser (de, fr, it, sv, no, es, da, pl) til paringsprocessen, forbedret feedback i paringsprocessen og en ny \"Åbn Google Assistent\"-handling.",
+    "pl": "Dodano więcej tłumaczeń (de, fr, it, sv, no, es, da, pl) do procesu parowania, poprawiono informacje zwrotne w procesie parowania i dodano nową akcję \"Otwórz Google Assistant\"."
   }
 }

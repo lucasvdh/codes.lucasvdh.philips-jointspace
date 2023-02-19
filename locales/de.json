@@ -1,0 +1,39 @@
+{
+  "pair": {
+    "add_by_ip": {
+      "title": "Manuelle Hinzufügung",
+      "ip": "IP-Adresse",
+      "no_new_devices_hint": "Alle gefundenen TVs sind bereits hinzugefügt. Versuchen Sie, Ihren TV manuell hinzuzufügen.",
+      "need_help_pairing": "Hilfe beim Koppeln benötigt?",
+      "click_here_documentation": "Klicken Sie hier, um die Dokumentation anzuzeigen."
+    },
+    "authenticate": {
+      "intro": "Geben Sie den auf dem TV angezeigten Code ein",
+      "submit": "Senden"
+    },
+    "verify": {
+      "verifying": "Überprüfung der Wake-on-LAN-Konfiguration...",
+      "verified": "Wake-on-LAN ist aktiviert und funktioniert einwandfrei!",
+      "errorTitle": "Wake-on-LAN konnte nicht verifiziert werden",
+      "errorDescription": "Das Ein-/Ausschaltverhalten des TVs funktioniert möglicherweise nicht wie erwartet, wenn Wake-on-LAN nicht aktiviert ist. <br/> Wenn Ihr TV in den Standby-Modus versetzt wird, können Sie ihn etwa 10 Minuten lang steuern, bevor er vollständig ausgeschaltet wird. Ohne Wake-on-LAN gibt es danach keine Möglichkeit, Ihren TV wieder einzuschalten.",
+      "confirm": "Verstanden"
+    },
+    "add_device": {
+      "title": "Gerät hinzufügen"
+    }
+  },
+  "error": {
+    "generic": "Ein unerwarteter Fehler ist aufgetreten",
+    "pairing_timeout": "Die Koppelsitzung ist abgelaufen. Bitte versuchen Sie es erneut.",
+    "endpoint_not_found": "Der TV ist erreichbar, aber es ist ein Fehler bei der Bestimmung der Jointspace-Version aufgetreten. Versuchen Sie, Ihren TV manuell hinzuzufügen.",
+    "host_unreachable": "Der TV konnte unter dieser IP-Adresse nicht erreicht werden. Überprüfen Sie die IP-Adresse und stellen Sie sicher, dass der TV eingeschaltet ist.",
+    "connection_timed_out": "Es ist ein Timeout aufgetreten während der Verbindungsherstellung zu Ihrem TV.\n\nVersuchen Sie, Ihren TV erneut hinzuzufügen. Wenn es erneut fehlschlägt, starten Sie Ihren TV vollständig neu oder versuchen Sie, ihn manuell hinzuzufügen.",
+    "unknown_pairing_type": "Unbekannter Kopplungstyp: pairingType.",
+    "could_not_start_pairing": "Beim Starten des Kopplungsanforderung ist ein Fehler aufgetreten.",
+    "pairing_not_found": "Kopplungsanforderung konnte nicht gestartet werden, weil der TV angibt, dass sie nicht vorhanden ist. Möglicherweise benötigt Ihr TV keine Authentifizierung oder wird von dieser App nicht unterstützt.\n\nVersuchen Sie, Ihren TV manuell ohne Authentifizierung hinzuzufügen.",
+    "concurrent_pairing": "Es wurde bereits eine Kopplungsanforderung gestartet. Warten Sie 60 Sekunden und versuchen Sie es erneut.",
+    "provide_the_ip_address": "Geben Sie die IP-Adresse ein",
+    "device_not_found": "Gerät nicht gefunden",
+    "something_went_wrong": "Es ist ein Fehler aufgetreten"
+  }
+}

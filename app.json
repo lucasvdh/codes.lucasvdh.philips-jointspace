@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "codes.lucasvdh.philips-jointspace",
-  "version": "2.4.2",
+  "version": "2.5.0",
   "compatibility": ">=5.0.0",
   "sdk": 3,
   "brandColor": "#2A63CC",
@@ -285,7 +285,7 @@
           "sv": "Öppna Google Assistant",
           "no": "Åpne Google Assistant",
           "es": "Abrir Google Assistant",
-          "da": "Åbn Google Assistent",
+          "da": "Åbn Google Assistant",
           "pl": "Otwórz Asystenta Google"
         },
         "titleFormatted": {
@@ -297,7 +297,7 @@
           "sv": "Öppna Google Assistant med [[input]]",
           "no": "Åpne Google Assistant med [[input]]",
           "es": "Abrir Google Assistant con [[input]]",
-          "da": "Åbn Google Assistent med [[input]]",
+          "da": "Åbn Google Assistant med [[input]]",
           "pl": "Otwórz Asystenta Google z [[input]]"
         },
         "args": [

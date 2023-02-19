@@ -57,7 +57,7 @@ class PhilipsTV extends Homey.App {
   }
 
   async onFlowActionOpenGoogleAssistant ({ device, input }) {
-    return device.openGoogleAssistant(input)
+    return device.sendGoogleAssistantSearch(input)
   }
 
   async onFlowActionSetAmbilightMode ({ device, mode }) {

@@ -1,0 +1,38 @@
+{
+  "pair": {
+    "add_by_ip": {
+      "title": "Dodaj ręcznie",
+      "ip": "Adres IP",
+      "no_new_devices_hint": "Wszystkie znalezione telewizory zostały już dodane. Spróbuj dodać swój telewizor ręcznie.",
+      "need_help_pairing": "Potrzebujesz pomocy przy parowaniu?",
+      "click_here_documentation": "Kliknij tutaj, aby wyświetlić dokumentację."
+    },
+    "authenticate": {
+      "intro": "Wprowadź kod wyświetlony na telewizorze",
+      "submit": "Wyślij"
+    },
+    "verify": {
+      "verifying": "Sprawdzanie konfiguracji Wake-on-LAN...",
+      "verified": "Wake-on-LAN jest włączony i działa poprawnie!",
+      "errorTitle": "Nie udało się zweryfikować Wake-on-LAN",
+      "errorDescription": "Jeśli Wake-on-LAN nie jest włączony, zachowanie włączania / wyłączania telewizora może nie działać zgodnie z oczekiwaniami. <br/> Po przejściu telewizora w tryb czuwania, możesz nim sterować przez około 10 minut, zanim całkowicie zostanie wyłączony. Bez Wake-on-LAN nie ma możliwości ponownego włączenia telewizora.",
+      "confirm": "Rozumiem"
+    },
+    "add_device": {
+      "title": "Dodaj urządzenie"
+    }
+  },
+  "error": {
+    "generic": "Wystąpił nieoczekiwany błąd",
+    "pairing_timeout": "Sesja parowania wygasła, spróbuj ponownie.",
+    "endpoint_not_found": "Telewizor może zostać znaleziony, ale wydaje się, że coś poszło nie tak przy określaniu wersji Jointspace. Spróbuj dodać swój telewizor ręcznie.",
+    "host_unreachable": "Nie udało się uzyskać połączenia z telewizorem na tym adresie IP. Sprawdź adres IP i upewnij się, że telewizor jest włączony.",
+    "connection_timed_out": "Wystąpił timeout podczas łączenia z telewizorem.\n\nSpróbuj dodać swój telewizor ponownie. Jeśli to nie pomoże, uruchom telewizor ponownie lub spróbuj dodać go ręcznie.",
+    "unknown_pairing_type": "Nieznany rodzaj żądania parowania: __pairingType__.",
+    "could_not_start_pairing": "Coś poszło nie tak podczas uruchamiania żądania parowania.",
+    "pairing_not_found": "Nie można uruchomić żądania parowania, ponieważ telewizor wskazuje, że nie istnieje. Twój telewizor może nie wymagać uwierzytelniania lub nie być obsługiwany przez tę aplikację.\n\nSpróbuj dodać swój telewizor ręcznie bez uwierzytelniania.",
+    "provide_the_ip_address": "Podaj adres IP",
+    "device_not_found": "Urządzenie nie znalezione",
+    "something_went_wrong": "Coś poszło nie tak"
+  }
+}
