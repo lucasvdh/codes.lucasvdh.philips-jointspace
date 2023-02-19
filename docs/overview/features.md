@@ -1,6 +1,8 @@
-# Features
+---
+description: Welcome to the feature page of the Homey Philips TV app!
+---
 
-Welcome to the feature page of the Homey Philips TV app!&#x20;
+# Features
 
 This app was developed to bring your Philips TV into the smart home ecosystem of Homey. With this app, you can control your TV, automate it, and even have it trigger events in your home.&#x20;
 
