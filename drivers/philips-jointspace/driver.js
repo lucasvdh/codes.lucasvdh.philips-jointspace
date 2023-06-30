@@ -123,14 +123,14 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
           return
         }
 
-        if (pairingDevice.settings.secure === true) {
+        if (pairingDevice.data.requiresAuthentication === true) {
           this.log('Pairing device requires authentication')
 
           await session.showView('start_pair')
         } else {
           this.log('Pairing device does not require authentication')
 
-          await session.showView('add_device')
+          await session.showView('add_my_device')
         }
       }
 
@@ -143,6 +143,8 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
         this.jointspaceClient.getSystem()
           .then(async (response) => {
             let pairingType = this.getPairingTypeBySystemInfo(response)
+
+            this.log('Pairing type: ' + pairingType);
 
             if (pairingType === 'digest_auth_pairing') {
               // We've got an android tv which required pairing
@@ -184,7 +186,7 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
                 }
               })
             } else if (pairingType === 'none') {
-              await session.showView('add_device')
+              await session.showView('add_my_device')
             } else {
               await session.showView('discover')
               await session.emit('alert', this.homey.__('error.unknown_pairing_type', { pairingType }))
@@ -217,7 +219,7 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
         .then(function (credentials) {
           pairingDevice.data.credentials = credentials
 
-          session.showView('add_device')
+          session.showView('add_my_device')
 
           return true
         }).catch(async (error) => {
@@ -378,6 +380,7 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
         id: discoveryResult.id,
         mac: null,
         credentials: {},
+        requiresAuthentication: false,
       },
       settings: {
         ipAddress: discoveryResult.address,
@@ -398,6 +401,7 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
           id: ip,
           mac: null,
           credentials: {},
+          requiresAuthentication: false,
         },
         settings: {
           ipAddress: ip,
@@ -428,7 +432,9 @@ class PhilipsJointSpaceDriver extends Homey.Driver {
           device.settings.secure = response.featuring.systemfeatures.secured_transport === 'true'
         }
 
-        if (response.api_version.Major < 6) {
+        device.data.requiresAuthentication = this.getPairingTypeBySystemInfo(response) !== 'none'
+
+        if (device.settings.secure === false) {
           device.settings.port = 1925
         } else {
           device.settings.port = 1926
