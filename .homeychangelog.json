@@ -58,5 +58,17 @@
     "es": "Solucionar el problema de retroalimentación de errores de emparejamiento",
     "da": "Ret paring fejl tilbagemelding",
     "pl": "Naprawianie informacji zwrotnej o błędach łączenia"
+  },
+  "2.6.0": {
+    "en": "New pairing flow, pairing fixes and Jointspace client refactor",
+    "nl": "Nieuwe koppel-flow, koppel fixes en Jointspace-client refactor",
+    "de": "Neuer Pairing-Ablauf, Koppel-Fixes und Jointspace-Client-Refaktor",
+    "fr": "Nouveau flux d'appairage, corrections d'appairage et refonte du client Jointspace",
+    "it": "Nuovo flusso di accoppiamento, correzioni di accoppiamento e ristrutturazione del client Jointspace",
+    "sv": "Ny parningsflöde, korrigerade parningsproblem och Jointspace-klientens omstrukturering",
+    "no": "Ny paringsflyt, paringsfiks og Jointspace-klient-refaktorering",
+    "es": "Nuevo flujo de emparejamiento, correcciones de emparejamiento y refactorización del cliente Jointspace",
+    "da": "Ny paringsflow, paringsrettelser og Jointspace-klientrefaktorering",
+    "pl": "Nowy proces parowania, naprawy parowania i refaktoryzacja klienta Jointspace"
   }
 }
