@@ -18,6 +18,11 @@ class PhilipsTV extends Homey.App {
     this.homey.flow.getActionCard('open_google_assistant')
       .registerRunListener(this.onFlowActionOpenGoogleAssistant);
 
+      // this.homey.flow.getActionCard('application_opened')
+      //       .register()
+      //       .getArgument('app')
+      //       .registerAutocompleteListener(this.onFlowApplicationAutocomplete);
+
     this.homey.flow.getActionCard('select_source')
       .registerRunListener(this.onFlowActionSelectSource)
 

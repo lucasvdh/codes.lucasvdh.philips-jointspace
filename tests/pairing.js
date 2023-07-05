@@ -1,21 +1,14 @@
 "use strict"
 
-const JointspaceClient = require('../lib/JointspaceClient');
+const JointspaceClient = require('../lib/Jointspace/Client');
 const inquirer = require('inquirer');
 const fs = require('fs');
+const request = require("request");
 
 let questions = [{
         type: 'input',
         name: 'ipAddress',
         message: "What\'s your TV\'s IP?",
-    }, {
-        type: 'number',
-        name: 'apiVersion',
-        message: "What\'s your API version? (1 to 6)",
-    }, {
-        type: 'number',
-        name: 'port',
-        message: "What port number should be used? Either 1925 or 1926",
     }],
     deviceId = 'testing',
     client = new JointspaceClient(deviceId),
@@ -52,9 +45,55 @@ client.debug = true;
 
 inquirer.prompt(questions).then(answers => {
     logger('Updating _client config');
-    client.setConfig(answers.ipAddress, answers.apiVersion);
-    client.setSecure(false);
-    client.setPort(answers.port);
+
+    let apiVersions = [1, 5, 6],
+        host = answers.ipAddress;
+
+    apiVersions.forEach(apiVersion => {
+        let path = "/" + apiVersion + "/system",
+            uri = "http://" + host + ":1925" + path;
+
+        console.log(uri);
+
+        let options = {
+            url: uri,
+            method: 'GET',
+            json: true,
+            strictSSL: false,
+            debug: false,
+            timeout: 5000
+        };
+        request(options, (error, response, data) => {
+            console.log(uri, response.statusCode);
+        });
+    });
+
+
+    // this.request("system", "GET", {}, {}, 1925, false).then(response => {
+    //     const encryptedAttributes = [
+    //         'serialnumber',
+    //         'softwareversion',
+    //         'model',
+    //         'deviceid',
+    //     ];
+    //
+    //     encryptedAttributes.forEach((attribute) => {
+    //         if (typeof response[attribute + '_encrypted'] !== "undefined") {
+    //             try {
+    //                 response[attribute] = AES.decrypt(decryptionKeyBase64, ivBase64, response[attribute + '_encrypted'].trim());
+    //             } catch (e) {
+    //             }
+    //         }
+    //     });
+    //
+    //     return response;
+    // });
+    return;
+
+    // client.setConfig(answers.ipAddress, answers.apiVersion);
+    // client.setSecure(false);
+    // client.setPort(answers.port);
+    //
 
     let onResolvePair = (response) => {
         if (response.error_id === 'SUCCESS') {
