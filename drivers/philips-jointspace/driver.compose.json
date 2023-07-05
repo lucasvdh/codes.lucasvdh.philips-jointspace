@@ -190,7 +190,11 @@
       }
     },
     {
-      "id": "add_my_device"
+      "id": "validate_paired_device"
+    },
+    {
+      "id": "add_devices",
+      "template": "add_devices"
     }
   ]
 }

@@ -1,0 +1,10 @@
+<script type="application/javascript">
+    Homey.on('alert', function (message) {
+        Homey.alert(message)
+    })
+
+    Homey.emit('getDevice').then((device) => {
+        Homey.setViewStoreValue("add_devices", "devices", [device]);
+        Homey.showView("add_devices");
+    });
+</script>

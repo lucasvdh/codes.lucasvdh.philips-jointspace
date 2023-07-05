@@ -2,8 +2,8 @@
 
 const Homey = require('homey')
 const { setTimeout } = require('timers/promises')
-const JointspaceClient = require('../../lib/JointspaceClient.js')
-const wol = require('wol')
+const JointspaceClient = require('../../lib/Jointspace/Client.js')
+const wol = require('node-wol')
 const { AmbilightConfigurationEnum } = require('../../lib/Enums')
 
 const CAPABILITIES_SET_DEBOUNCE = 100
@@ -207,8 +207,8 @@ class PhilipsTV extends Homey.Device {
       if (this._applications === null || typeof this._applications === 'undefined') {
         this.getJointspaceClient()
           .getApplications()
-          .then(applications => {
-            return applications.map(application => {
+          .then(response => {
+            return response.applications.map(application => {
               return {
                 'id': application.id,
                 'name': application.label,
@@ -434,7 +434,7 @@ class PhilipsTV extends Homey.Device {
 
   // Real-time changes
   notifyChanges () {
-    this.getJointspaceClient().notifyChange(this.lastState)
+    this.getJointspaceClient().getInfo(this.lastState)
       .then((state) => {
         if (state instanceof Error) {
           this.log('Error received in then of notifyChanges', state)
@@ -515,7 +515,12 @@ class PhilipsTV extends Homey.Device {
   _onCapabilityOnOffSet (value) {
     this.log(`powering ${value ? 'on' : 'off'} device`)
 
-    // Always try sending a magic packet
+    // reset current application if tv is turned off
+        if (value === false) {
+            this.setCapabilityValue('current_application', '');
+        }
+
+        //Always try sending a magic packet
     if (value && this.getMACAddress()) {
       wol.wake(this.getMACAddress())
 
