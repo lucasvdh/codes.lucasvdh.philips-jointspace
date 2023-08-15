@@ -1,0 +1,70 @@
+{
+  "id": "set_ambilight",
+  "title": {
+    "en": "Turn Ambilight on/off",
+    "nl": "Zet Ambilight aan/uit",
+    "de": "Ambilight ein-/ausschalten",
+    "fr": "Allumer/éteindre Ambilight",
+    "it": "Accendi/spegni Ambilight",
+    "sv": "Slå på/av Ambilight",
+    "no": "Slå på/av Ambilight",
+    "es": "Encender/apagar Ambilight",
+    "da": "Tænd/sluk Ambilight",
+    "pl": "Włącz/wyłącz Ambilight"
+  },
+  "titleFormatted": {
+    "en": "Turn Ambilight [[state]]",
+    "nl": "Zet Ambilight [[state]]",
+    "de": "Schalte Ambilight [[state]]",
+    "fr": "Allumer/éteindre Ambilight [[state]]",
+    "it": "Accendi/spegni Ambilight [[state]]",
+    "sv": "Slå på/av Ambilight [[state]]",
+    "no": "Slå på/av Ambilight [[state]]",
+    "es": "Encender/apagar Ambilight [[state]]",
+    "da": "Tænd/sluk Ambilight [[state]]",
+    "pl": "Włącz/wyłącz Ambilight [[state]]"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=philips-jointspace"
+    },
+    {
+      "name": "state",
+      "type": "dropdown",
+      "values": [
+        {
+          "id": "on",
+          "label": {
+            "en": "On",
+            "nl": "Aan",
+            "de": "Ein",
+            "fr": "Allumé",
+            "it": "Acceso",
+            "sv": "På",
+            "no": "På",
+            "es": "Encendido",
+            "da": "Tændt",
+            "pl": "Włączony"
+          }
+        },
+        {
+          "id": "off",
+          "label": {
+            "en": "Off",
+            "nl": "Uit",
+            "de": "Aus",
+            "fr": "Off",
+            "it": "Spento",
+            "sv": "Av",
+            "no": "Av",
+            "es": "Apagado",
+            "da": "Slukket",
+            "pl": "Wyłączony"
+          }
+        }
+      ]
+    }
+  ]
+}

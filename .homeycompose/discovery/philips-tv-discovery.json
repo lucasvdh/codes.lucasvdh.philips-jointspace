@@ -1,0 +1,25 @@
+{
+  "type": "ssdp",
+  "ssdp": {
+    "search": "urn:schemas-upnp-org:device:MediaRenderer:3"
+  },
+  "id": "{{headers.usn}}",
+  "conditions": [
+    [
+      {
+        "field": "headers.st",
+        "match": {
+          "type": "string",
+          "value": "urn:schemas-upnp-org:device:MediaRenderer:3"
+        }
+      },
+      {
+        "field": "headers.server",
+        "match": {
+          "type": "regex",
+          "value": "philips"
+        }
+      }
+    ]
+  ]
+}

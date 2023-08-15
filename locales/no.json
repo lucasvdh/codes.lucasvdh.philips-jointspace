@@ -1,0 +1,39 @@
+{
+  "pair": {
+    "add_by_ip": {
+      "title": "Manuelt legg til",
+      "ip": "IP-adresse",
+      "no_new_devices_hint": "Alle funnet TV-er er allerede lagt til. Prøv å legge til TV-en manuelt.",
+      "need_help_pairing": "Trenger du hjelp med paring?",
+      "click_here_documentation": "Klikk her for å se dokumentasjonen."
+    },
+    "authenticate": {
+      "intro": "Skriv inn koden som vises på TV-en",
+      "submit": "Send inn"
+    },
+    "verify": {
+      "verifying": "Verifiserer Wake-on-LAN-konfigurasjonen...",
+      "verified": "Wake-on-LAN er aktivert og fungerer som den skal!",
+      "errorTitle": "Kunne ikke verifisere WOL",
+      "errorDescription": "TV-en kan ha uventet oppførsel når den slås av hvis Wake-on-LAN ikke er aktivert. <br/> Når TV-en settes på standby, kan du styre den i omtrent 10 minutter før den slås helt av. Uten Wake-on-LAN er det ingen måte å slå på TV-en igjen.",
+      "confirm": "Forstått"
+    },
+    "add_device": {
+      "title": "Legg til enhet"
+    }
+  },
+  "error": {
+    "generic": "Det oppstod en uventet feil",
+    "pairing_timeout": "Paringssesjonen har utløpt, prøv igjen.",
+    "endpoint_not_found": "TV-en kan nås, men det oppsto en feil under bestemmelse av Jointspace-versjonen. Prøv å legge til TV-en manuelt.",
+    "host_unreachable": "Kunne ikke nå TV-en på denne IP-adressen. Sjekk IP-adressen og sørg for at TV-en er på.",
+    "connection_timed_out": "Det oppstod en timeout under tilkobling til TV-en.\n\nPrøv å legge til TV-en på nytt. Hvis dette ikke fungerer, start TV-en på nytt eller prøv å legge den til manuelt.",
+    "unknown_pairing_type": "Ukjent paringsforespørselstype: __pairingType__.",
+    "could_not_start_pairing": "Noe gikk galt under starten av paringsforespørselen.",
+    "pairing_not_found": "Kunne ikke starte paringsforespørsel fordi TV-en indikerer at det ikke finnes. TV-en trenger kanskje ikke autentisering eller den støttes ikke av denne appen.\n\nPrøv å legge til TV-en manuelt uten autentisering.",
+    "concurrent_pairing": "En paringsforespørsel er allerede startet. Vent i 60 sekunder og prøv igjen.",
+    "provide_the_ip_address": "Oppgi IP-adressen",
+    "device_not_found": "Enhet ikke funnet",
+    "something_went_wrong": "Noe gikk galt"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "type": "boolean",
+  "title": {
+    "en": "Back",
+    "nl": "Terug",
+    "de": "Zurück",
+    "fr": "Retour",
+    "it": "Indietro",
+    "sv": "Tillbaka",
+    "no": "Tilbake",
+    "es": "Volver",
+    "da": "Tilbage",
+    "pl": "Wróć"
+  },
+  "getable": false,
+  "setable": true,
+  "uiComponent": "button",
+  "uiQuickAction": true,
+  "icon": "assets/capabilities/back.svg"
+}

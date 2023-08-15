@@ -1,0 +1,39 @@
+{
+  "pair": {
+    "add_by_ip": {
+      "title": "Manuel tilføjelse",
+      "ip": "IP-adresse",
+      "no_new_devices_hint": "Alle fundne tv'er er allerede tilføjet. Prøv at tilføje dit tv manuelt.",
+      "need_help_pairing": "Brug for hjælp til paring?",
+      "click_here_documentation": "Klik her for at se dokumentationen."
+    },
+    "authenticate": {
+      "intro": "Indtast koden vist på tv'et",
+      "submit": "Indsend"
+    },
+    "verify": {
+      "verifying": "Kontrollerer Wake-on-LAN-konfiguration...",
+      "verified": "Wake-on-LAN er aktiveret og fungerer korrekt!",
+      "errorTitle": "Kunne ikke bekræfte WOL",
+      "errorDescription": "Hvis Wake-on-LAN ikke er aktiveret, kan tv'ets tænd / sluk-opførsel muligvis ikke fungere korrekt. <br/> Når dit tv sættes på standby, kan du stadig styre det i cirka 10 minutter, før det slukkes helt. Uden Wake-on-LAN er der ingen måde at tænde dit tv igen på efter dette tidspunkt.",
+      "confirm": "Forstået"
+    },
+    "add_device": {
+      "title": "Tilføj enhed"
+    }
+  },
+  "error": {
+    "generic": "Der opstod en uventet fejl",
+    "pairing_timeout": "Paringsessionen er udløbet. Prøv igen.",
+    "endpoint_not_found": "Tv'et kan nås, men der ser ud til at være sket en fejl i bestemmelsen af Jointspace-versionen. Prøv at tilføje dit tv manuelt.",
+    "host_unreachable": "Kunne ikke nå tv'et på denne IP-adresse. Kontroller IP-adressen og sørg for, at tv'et er tændt.",
+    "connection_timed_out": "Der opstod en tidsudløb under forbindelsen til dit tv.\n\nPrøv at tilføje dit tv igen. Hvis det stadig ikke fungerer, skal du genstarte dit tv eller prøve at tilføje det manuelt.",
+    "unknown_pairing_type": "Ukendt paringsforespørgsel: __pairingType__.",
+    "could_not_start_pairing": "Der opstod en fejl under starten af paringsforespørgslen.",
+    "pairing_not_found": "Kunne ikke starte paringsforespørgslen, fordi tv'et angiver, at den ikke findes. Måske kræver dit tv ikke godkendelse, eller måske understøttes det ikke af denne app.\n\nPrøv at tilføje dit tv manuelt uden godkendelse.",
+    "concurrent_pairing": "Der er allerede startet en paringsforespørgsel. Vent 60 sekunder og prøv igen.",
+    "provide_the_ip_address": "Indtast IP-adressen",
+    "device_not_found": "Enhed ikke fundet",
+    "something_went_wrong": "Der gik noget galt"
+  }
+}

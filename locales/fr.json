@@ -1,0 +1,39 @@
+{
+  "pair": {
+    "add_by_ip": {
+      "title": "Ajouter manuellement",
+      "ip": "Adresse IP",
+      "no_new_devices_hint": "Tous les téléviseurs trouvés ont déjà été ajoutés. Essayez d'ajouter votre téléviseur manuellement.",
+      "need_help_pairing": "Besoin d'aide pour le couplage?",
+      "click_here_documentation": "Cliquez ici pour consulter la documentation."
+    },
+    "authenticate": {
+      "intro": "Entrez le code affiché sur votre téléviseur",
+      "submit": "Soumettre"
+    },
+    "verify": {
+      "verifying": "Vérification de la configuration Wake-on-LAN...",
+      "verified": "Wake-on-LAN est activé et fonctionne correctement !",
+      "errorTitle": "Impossible de vérifier le WOL",
+      "errorDescription": "Le comportement marche/arrêt de votre téléviseur peut ne pas fonctionner comme prévu si Wake-on-LAN n'est pas activé. <br/> Lorsque votre téléviseur est mis en veille, vous pouvez le contrôler pendant environ 10 minutes avant qu'il ne s'éteigne complètement. Sans Wake-on-LAN, il n'y a aucun moyen de le rallumer.",
+      "confirm": "Compris"
+    },
+    "add_device": {
+      "title": "Ajouter un appareil"
+    }
+  },
+  "error": {
+    "generic": "Une erreur inattendue s'est produite",
+    "pairing_timeout": "La session de couplage a expiré, veuillez réessayer.",
+    "endpoint_not_found": "La télévision est accessible mais il semble qu'il y ait eu une erreur lors de la détermination de la version Jointspace. Essayez d'ajouter votre téléviseur manuellement.",
+    "host_unreachable": "Impossible de contacter la télévision à cette adresse IP. Vérifiez l'adresse IP et assurez-vous que la télévision est allumée.",
+    "connection_timed_out": "Une temporisation s'est produite lors de la connexion à votre téléviseur.\n\nEssayez d'ajouter votre téléviseur à nouveau. Si cela échoue à nouveau, redémarrez complètement votre téléviseur ou essayez de l'ajouter manuellement.",
+    "unknown_pairing_type": "Type de demande de couplage inconnu : __pairingType__.",
+    "could_not_start_pairing": "Une erreur s'est produite lors du démarrage de la demande de couplage.",
+    "pairing_not_found": "Impossible de démarrer la demande de couplage car la télévision indique qu'elle n'existe pas. Il se peut que votre télévision n'ait pas besoin d'authentification ou que celle-ci ne soit pas prise en charge par cette application.\n\nEssayez d'ajouter manuellement votre téléviseur sans authentification.",
+    "concurrent_pairing": "Une demande de couplage est déjà en cours, veuillez patienter 60 secondes et réessayez.",
+    "provide_the_ip_address": "Entrez l'adresse IP",
+    "device_not_found": "Appareil introuvable",
+    "something_went_wrong": "Une erreur s'est produite"
+  }
+}

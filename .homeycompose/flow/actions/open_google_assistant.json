@@ -1,0 +1,51 @@
+{
+  "highlight": true,
+  "id": "open_google_assistant",
+  "title": {
+    "en": "Open Google Assistant",
+    "nl": "Open Google Assistent",
+    "de": "Öffne Google Assistant",
+    "fr": "Ouvrir Google Assistant",
+    "it": "Apri Google Assistant",
+    "sv": "Öppna Google Assistant",
+    "no": "Åpne Google Assistant",
+    "es": "Abrir Google Assistant",
+    "da": "Åbn Google Assistant",
+    "pl": "Otwórz Asystenta Google"
+  },
+  "titleFormatted": {
+    "en": "Open Google Assistant with [[input]]",
+    "nl": "Open Google Assistant met [[input]]",
+    "de": "Öffne Google Assistant mit [[input]]",
+    "fr": "Ouvrir Google Assistant avec [[input]]",
+    "it": "Apri Google Assistant con [[input]]",
+    "sv": "Öppna Google Assistant med [[input]]",
+    "no": "Åpne Google Assistant med [[input]]",
+    "es": "Abrir Google Assistant con [[input]]",
+    "da": "Åbn Google Assistant med [[input]]",
+    "pl": "Otwórz Asystenta Google z [[input]]"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=philips-jointspace"
+    },
+    {
+      "name": "input",
+      "type": "text",
+      "title": {
+        "en": "Input",
+        "nl": "Input",
+        "de": "Eingabe",
+        "fr": "Entrée",
+        "it": "Input",
+        "sv": "Indata",
+        "no": "Inndata",
+        "es": "Entrada",
+        "da": "Indtastning",
+        "pl": "Wprowadź"
+      }
+    }
+  ]
+}

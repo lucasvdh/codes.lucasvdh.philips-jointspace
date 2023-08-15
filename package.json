@@ -1,12 +1,10 @@
 {
   "private": true,
   "name": "philips-jointspace",
-  "version": "0.5.1",
+  "version": "2.6.0",
   "dependencies": {
-    "http.min": "^2.1.0",
-    "wol": "^1.0.7"
-  },
-  "devDependencies": {
-    "inquirer": "^6.3.1"
+    "crypto": "^1.0.1",
+    "needle": "^3.2.0",
+    "node-wol": "^0.1.1"
   }
 }

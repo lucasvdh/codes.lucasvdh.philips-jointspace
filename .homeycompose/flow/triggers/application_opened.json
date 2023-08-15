@@ -1,0 +1,41 @@
+{
+  "id": "application_opened",
+  "title": {
+    "en": "An app was opened",
+    "nl": "Er is een app geopend",
+    "de": "Eine App wurde geöffnet",
+    "fr": "Une application a été ouverte",
+    "it": "È stata aperta un'app",
+    "sv": "En app har öppnats",
+    "no": "En app ble åpnet",
+    "es": "Se abrió una aplicación",
+    "da": "En app blev åbnet",
+    "pl": "Otwarto aplikację"
+  },
+  "tokens": [
+    {
+      "name": "app",
+      "type": "string",
+      "title": {
+        "nl": "App",
+        "en": "App",
+        "de": "App",
+        "fr": "Application",
+        "it": "App",
+        "sv": "App",
+        "no": "App",
+        "es": "Aplicación",
+        "da": "App",
+        "pl": "Aplikacja"
+      },
+      "example": "Netflix"
+    }
+  ],
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=philips-jointspace"
+    }
+  ]
+}

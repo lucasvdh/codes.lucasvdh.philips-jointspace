@@ -1,0 +1,200 @@
+{
+  "name": {
+    "en": "Philips Television",
+    "nl": "Philips Televisie",
+    "de": "Philips Fernseher",
+    "fr": "Télévision Philips",
+    "it": "Televisione Philips",
+    "sv": "Philips TV",
+    "no": "Philips TV",
+    "es": "Televisión Philips",
+    "da": "Philips TV",
+    "pl": "Telewizor Philips"
+  },
+  "class": "tv",
+  "discovery": "philips-tv-discovery",
+  "capabilities": [
+    "onoff",
+    "ambilight_onoff",
+    "ambilight_mode",
+    "ambihue_onoff",
+    "key_play",
+    "key_pause",
+    "key_stop",
+    "key_back",
+    "key_confirm",
+    "key_home",
+    "key_previous",
+    "key_next",
+    "key_source",
+    "key_rewind",
+    "key_fast_forward",
+    "volume_up",
+    "volume_down",
+    "volume_mute",
+    "key_cursor_left",
+    "key_cursor_up",
+    "key_cursor_right",
+    "key_cursor_down",
+    "channel_up",
+    "channel_down",
+    "volume_set",
+    "speaker_next",
+    "speaker_prev",
+    "speaker_playing",
+    "key_play_pause",
+    "key_online",
+    "key_record",
+    "key_toggle_ambilight",
+    "key_toggle_subtitles",
+    "key_teletext",
+    "key_viewmode",
+    "key_watch_tv",
+    "key_adjust",
+    "key_info",
+    "key_digit_1",
+    "key_digit_2",
+    "key_digit_3",
+    "key_digit_4",
+    "key_digit_5",
+    "key_digit_6",
+    "key_digit_7",
+    "key_digit_8",
+    "key_digit_9",
+    "key_digit_0",
+    "key_dot",
+    "key_options",
+    "key_find",
+    "key_red",
+    "key_green",
+    "key_yellow",
+    "key_blue"
+  ],
+  "images": {
+    "large": "/drivers/philips-jointspace/assets/images/large.png",
+    "small": "/drivers/philips-jointspace/assets/images/small.png"
+  },
+  "platforms": [
+    "local"
+  ],
+  "connectivity": [
+    "lan"
+  ],
+  "pair": [
+    {
+      "id": "discover",
+      "options": {
+        "text": {
+          "en": "Searching for devices...",
+          "nl": "Zoeken naar apparaten...",
+          "de": "Suche nach Geräten...",
+          "fr": "Recherche de périphériques en cours...",
+          "it": "Ricerca di dispositivi in corso...",
+          "sv": "Söker efter enheter...",
+          "no": "Søker etter enheter...",
+          "es": "Buscando dispositivos...",
+          "da": "Søger efter enheder...",
+          "pl": "Wyszukiwanie urządzeń..."
+        }
+      },
+      "navigation": {
+        "next": "list_devices"
+      }
+    },
+    {
+      "id": "add_by_ip",
+      "navigation": {
+        "next": "check_ip",
+        "prev": "discover"
+      }
+    },
+    {
+      "id": "check_ip",
+      "template": "loading",
+      "navigation": {
+        "next": "list_devices",
+        "prev": "add_by_ip"
+      }
+    },
+    {
+      "id": "list_devices",
+      "template": "list_devices",
+      "navigation": {
+        "next": "validate",
+        "prev": "add_by_ip"
+      },
+      "options": {
+        "singular": true,
+        "title": {
+          "en": "Select the device you want to add",
+          "nl": "Selecteer het apparaat die je wil toevoegen",
+          "de": "Wähle das Gerät aus, das du hinzufügen möchtest",
+          "fr": "Sélectionnez l'appareil que vous voulez ajouter",
+          "it": "Seleziona il dispositivo che si desidera aggiungere",
+          "sv": "Välj enheten du vill lägga till",
+          "no": "Velg enheten du vil legge til",
+          "es": "Seleccione el dispositivo que desea agregar",
+          "da": "Vælg enheden, du vil tilføje",
+          "pl": "Wybierz urządzenie, które chcesz dodać"
+        }
+      }
+    },
+    {
+      "id": "validate",
+      "navigation": {
+        "next": "start_pair",
+        "prev": "discover"
+      }
+    },
+    {
+      "id": "start_pair",
+      "template": "loading",
+      "navigation": {
+        "next": "authenticate",
+        "prev": "discover"
+      }
+    },
+    {
+      "id": "authenticate",
+      "template": "pincode",
+      "options": {
+        "title": {
+          "en": "Pincode",
+          "nl": "Pincode",
+          "de": "Pin-Code",
+          "fr": "Code Pin",
+          "it": "Codice Pin",
+          "sv": "Pin-kod",
+          "no": "Pinkode",
+          "es": "Código PIN",
+          "da": "Pin-kode",
+          "pl": "Kod PIN"
+        },
+        "hint": {
+          "en": "Enter the code displayed on the TV",
+          "nl": "Vul de code in die op de TV wordt weergegeven",
+          "de": "Geben Sie den auf dem Fernseher angezeigten Code ein",
+          "fr": "Entrez le code affiché sur la télévision",
+          "it": "Inserisci il codice visualizzato sul televisore",
+          "sv": "Ange koden som visas på TV:n",
+          "no": "Skriv inn koden som vises på TV-en",
+          "es": "Ingrese el código que se muestra en la televisión",
+          "da": "Indtast koden, der vises på tv'et",
+          "pl": "Wprowadź kod wyświetlany na telewizorze"
+        },
+        "type": "number",
+        "length": 4
+      },
+      "navigation": {
+        "prev": "discover"
+      }
+    },
+    {
+      "id": "validate_paired_device"
+    },
+    {
+      "id": "add_devices",
+      "template": "add_devices"
+    }
+  ]
+}

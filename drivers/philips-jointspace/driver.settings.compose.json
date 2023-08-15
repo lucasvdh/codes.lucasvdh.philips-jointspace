@@ -1,0 +1,76 @@
+[
+  {
+    "type": "group",
+    "label": {
+      "en": "General settings",
+      "nl": "Algemene instellingen",
+      "de": "Allgemeine Einstellungen",
+      "fr": "Paramètres généraux",
+      "it": "Impostazioni generali",
+      "sv": "Allmänna inställningar",
+      "no": "Generelle innstillinger",
+      "es": "Configuración general",
+      "da": "Generelle indstillinger",
+      "pl": "Ustawienia ogólne"
+    },
+    "children": [
+      {
+        "id": "ipAddress",
+        "type": "text",
+        "label": {
+          "en": "IP address",
+          "nl": "IP adres",
+          "de": "IP-Adresse",
+          "fr": "Adresse IP",
+          "it": "Indirizzo IP",
+          "sv": "IP-adress",
+          "no": "IP-adresse",
+          "es": "Dirección IP",
+          "da": "IP-adresse",
+          "pl": "Adres IP"
+        },
+        "value": "0.0.0.0"
+      }
+    ]
+  },
+  {
+    "type": "group",
+    "label": {
+      "en": "Device settings"
+    },
+    "children": [
+      {
+        "id": "volumeMax",
+        "type": "number",
+        "label": {
+          "en": "Volume Max",
+          "de": "Lautstärke Max",
+          "fr": "Volume max",
+          "it": "Volume massimo",
+          "sv": "Volym Max",
+          "no": "Volum Max",
+          "es": "Volumen máximo",
+          "da": "Volumen max",
+          "pl": "Maksymalny poziom głośności"
+        },
+        "value": 60
+      },
+      {
+        "id": "volumeMin",
+        "type": "number",
+        "label": {
+          "en": "Volume Min",
+          "de": "Lautstärke Min",
+          "fr": "Volume minimum",
+          "it": "Volume minimo",
+          "sv": "Lägsta volym",
+          "no": "Minimum volum",
+          "es": "Volumen mínimo",
+          "da": "Minimumsvolumen",
+          "pl": "Minimalny poziom głośności"
+        },
+        "value": 0
+      }
+    ]
+  }
+]

@@ -1,0 +1,86 @@
+<base target="_blank"/>
+<div class="form-wrapper">
+    <fieldset class="homey-form-fieldset">
+        <div class="homey-form-group">
+            <label class="homey-form-label" for="ip"><span data-i18n="pair.add_by_ip.ip"></span></label>
+            <input class="homey-form-input" id="ip" type="text" value="" oninput="ipChanged(this.value)"/>
+        </div>
+    </fieldset>
+
+    <div class="footer">
+        <p id="hint" class="alert hint hidden"></p>
+        <p class="alert help">
+            <span data-i18n="pair.add_by_ip.need_help_pairing">Need help pairing?</span>
+            <a href="https://homey-philips-tv.gitbook.io/homey-philips-tv/guides/pairing"
+               data-i18n="pair.add_by_ip.click_here_documentation">Click here to view the documentation.</a>
+        </p>
+    </div>
+</div>
+
+<script type="application/javascript">
+
+  Homey.setTitle(Homey.__('pair.add_by_ip.title'))
+
+  Homey.on('alert', function (message) {
+    Homey.alert(message)
+  })
+
+  Homey.on('add_by_ip_hint', function (message) {
+    const hintElement = document.getElementById('hint')
+
+    hintElement.innerText = message
+    hintElement.classList.remove('hidden')
+  })
+
+  Homey.emit('getTvIp').then(function (ip) {
+    document.getElementById('ip').value = ip
+  })
+
+  function ipChanged (value) {
+    Homey.emit('setTvIp', value)
+      .then(function (result) {
+
+      })
+  }
+
+</script>
+
+<style type="text/css">
+    .form-wrapper {
+        width: 100%;
+        height: 100%;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+    }
+
+    .alert {
+        position: relative;
+        padding: 0.75rem 1.25rem;
+        margin-bottom: 1rem;
+        border: 1px solid transparent;
+        border-radius: 0.25rem;
+    }
+
+    .hint {
+        color: #004085;
+        background-color: #cce5ff;
+        border-color: #b8daff;
+    }
+
+    .help {
+        color: #383d41;
+        background-color: #f4f5f5;
+        border-color: #e4e5e7;
+    }
+
+    .footer {
+        margin-top: auto;
+    }
+
+    .hidden {
+        display: none;
+    }
+</style>

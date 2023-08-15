@@ -1,120 +1,116 @@
-'use strict';
+'use strict'
 
-if (process.env.DEBUG === '1') {
-    //require("inspector").open(9229, "0.0.0.0", false);
-    require('inspector').open(9229, "0.0.0.0");
-}
-
-const Homey = require('homey');
+const Homey = require('homey')
 
 class PhilipsTV extends Homey.App {
 
-    onInit() {
-        this.log('Philips TV app is running...');
+  async onInit () {
+    this.log('Philips TV app is running...')
 
-        this.onInitFlow();
-    }
+    this.onInitFlow()
+  }
 
-    onInitFlow() {
-        new Homey.FlowCardAction('open_application')
-            .register()
-            .registerRunListener(this.onFlowActionOpenApplication)
-            .getArgument('app')
-            .registerAutocompleteListener(this.onFlowApplicationAutocomplete);
+  onInitFlow () {
+    this.homey.flow.getActionCard('open_application')
+      .registerRunListener(this.onFlowActionOpenApplication)
+      .registerArgumentAutocompleteListener('app', this.onFlowApplicationAutocomplete)
 
-        new Homey.FlowCardAction('select_source')
-            .register()
-            .registerRunListener(this.onFlowActionSelectSource);
+    this.homey.flow.getActionCard('open_google_assistant')
+      .registerRunListener(this.onFlowActionOpenGoogleAssistant);
 
-        new Homey.FlowCardAction('set_ambihue')
-            .register()
-            .registerRunListener(this.onFlowActionSetAmbiHue);
+      // this.homey.flow.getActionCard('application_opened')
+      //       .register()
+      //       .getArgument('app')
+      //       .registerAutocompleteListener(this.onFlowApplicationAutocomplete);
 
-        new Homey.FlowCardAction('set_ambilight')
-            .register()
-            .registerRunListener(this.onFlowActionSetAmbilight);
+    this.homey.flow.getActionCard('select_source')
+      .registerRunListener(this.onFlowActionSelectSource)
 
-        new Homey.FlowCardAction('send_key')
-            .register()
-            .registerRunListener(this.onFlowActionSendKey)
-            .getArgument('option')
-            .registerAutocompleteListener(this.onFlowKeyAutocomplete.bind(this));
+    this.homey.flow.getActionCard('send_key')
+      .registerRunListener(this.onFlowActionSendKey)
+      .registerArgumentAutocompleteListener('option', this.onFlowKeyAutocomplete.bind(this))
 
-        this.log('Initialized flow');
-    }
+    this.homey.flow.getActionCard('set_ambihue')
+      .registerRunListener(this.onFlowActionSetAmbiHue)
 
-    async onFlowActionOpenApplication(args) {
-        let device = args.device,
-            app = args.app;
+    this.homey.flow.getActionCard('set_ambilight')
+      .registerRunListener(this.onFlowActionSetAmbilight)
 
-        return device.openApplication(app);
-    }
+    this.homey.flow.getActionCard('set_ambilight_mode')
+      .registerRunListener(this.onFlowActionSetAmbilightMode)
 
-    async onFlowActionSelectSource(args) {
-        let device = args.device,
-            source = args.source;
+    this.log('Initialized flow')
+  }
 
-        return device.sendGoogleAssistantSearch(source);
-    }
+  async onFlowActionOpenApplication ({ device, app }) {
+    return device.openApplication(app)
+  }
 
-    async onFlowActionSetAmbiHue(args) {
-        let device = args.device,
-            state = (args.state === 'on');
+  async onFlowActionSelectSource (args) {
+    let device = args.device,
+      source = args.source
 
-        return device.setAmbiHue(state);
-    }
+    return device.sendGoogleAssistantSearch(source)
+  }
 
-    async onFlowActionSetAmbilight(args) {
-        let device = args.device,
-            state = (args.state === 'on');
+  async onFlowActionSetAmbiHue ({ device, state }) {
+    return device.setAmbiHue(state === 'on')
+  }
 
-        return device.setAmbilight(state);
-    }
+  async onFlowActionSetAmbilight ({ device, state }) {
+    return device.setAmbilight(state === 'on')
+  }
 
-    async onFlowApplicationAutocomplete(query, args) {
-        let device = args.device;
+  async onFlowActionOpenGoogleAssistant ({ device, input }) {
+    return device.sendGoogleAssistantSearch(input)
+  }
 
-        return device.getApplications().then(applications => {
-            return applications.filter(result => {
-                return result.name.toLowerCase().indexOf(query.toLowerCase()) > -1;
-            });
-        });
-    }
+  async onFlowActionSetAmbilightMode ({ device, mode }) {
+    return device.setAmbilightMode(mode)
+  }
 
-    async onFlowActionSendKey(args) {
-        let device = args.device,
-            option = args.option,
-            client = device.getJointspaceClient();
+  async onFlowApplicationAutocomplete (query, { device }) {
+    return device.getApplications().then(applications => {
+      return applications.filter(result => {
+        return result.name.toLowerCase().indexOf(query.toLowerCase()) > -1
+      })
+    })
+  }
 
-        return client.sendKey(option.key);
-    }
+  async onFlowActionSendKey (args) {
+    let device = args.device,
+      option = args.option,
+      client = device.getJointspaceClient()
 
-    async onFlowKeyAutocomplete(query, args) {
-        let device = args.device,
-            client = device.getJointspaceClient();
+    return client.sendKey(option.key)
+  }
 
-        let results = client.getPossibleKeys().map(key => {
-            return {
-                "id": key.inputName,
-                "key": key.inputName,
-                "name": this.getI18nString(key.friendlyName)
-            }
-        }).filter(result => {
-            return result.name.toLowerCase().indexOf(query.toLowerCase()) > -1;
-        });
+  async onFlowKeyAutocomplete (query, args) {
+    let device = args.device,
+      client = device.getJointspaceClient()
 
-        return Promise.resolve(results);
-    }
+    let results = client.getPossibleKeys().map(key => {
+      return {
+        'id': key.inputName,
+        'key': key.inputName,
+        'name': this.getI18nString(key.friendlyName)
+      }
+    }).filter(result => {
+      return result.name.toLowerCase().indexOf(query.toLowerCase()) > -1
+    })
 
-	getI18nString(i18n) {
-		const lang = Homey.ManagerI18n.getLanguage();
-		if (i18n[lang])
-			return i18n[lang];
-		else if (i18n['en'])
-			return i18n['en'];
-		else
-			return `Untranslated string: ${i18n}`;
-	}
+    return Promise.resolve(results)
+  }
+
+  getI18nString (i18n) {
+    const lang = 'en' //Homey.ManagerI18n.getLanguage()
+    if (i18n[lang])
+      return i18n[lang]
+    else if (i18n['en'])
+      return i18n['en']
+    else
+      return `Untranslated string: ${i18n}`
+  }
 }
 
-module.exports = PhilipsTV;
+module.exports = PhilipsTV

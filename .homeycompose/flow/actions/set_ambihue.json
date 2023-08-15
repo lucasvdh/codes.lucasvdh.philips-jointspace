@@ -1,0 +1,70 @@
+{
+  "id": "set_ambihue",
+  "title": {
+    "en": "Set AmbiHue state",
+    "nl": "Stel AmbiHue in",
+    "de": "AmbiHue-Status einstellen",
+    "fr": "Définir l'état d'AmbiHue",
+    "it": "Imposta lo stato di AmbiHue",
+    "sv": "Ställ in AmbiHue-tillståndet",
+    "no": "Sett AmbiHue-tilstand",
+    "es": "Establecer el estado de AmbiHue",
+    "da": "Indstil AmbiHue-tilstand",
+    "pl": "Ustaw stan AmbiHue"
+  },
+  "titleFormatted": {
+    "en": "Turn AmbiHue [[state]]",
+    "nl": "Zet AmbiHue [[state]]",
+    "de": "Schalte AmbiHue [[state]]",
+    "fr": "Allumer/éteindre AmbiHue [[state]]",
+    "it": "Accendi/spegni AmbiHue [[state]]",
+    "sv": "Sätt på/stäng av AmbiHue [[state]]",
+    "no": "Slå på/av AmbiHue [[state]]",
+    "es": "Encender/apagar AmbiHue [[state]]",
+    "da": "Tænd/sluk AmbiHue [[state]]",
+    "pl": "Włącz/wyłącz AmbiHue [[state]]"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=philips-jointspace"
+    },
+    {
+      "name": "state",
+      "type": "dropdown",
+      "values": [
+        {
+          "id": "on",
+          "label": {
+            "en": "On",
+            "nl": "Aan",
+            "de": "Ein",
+            "fr": "Allumé",
+            "it": "Acceso",
+            "sv": "På",
+            "no": "På",
+            "es": "Encendido",
+            "da": "Tændt",
+            "pl": "Włączony"
+          }
+        },
+        {
+          "id": "off",
+          "label": {
+            "en": "Off",
+            "nl": "Uit",
+            "de": "Aus",
+            "fr": "Off",
+            "it": "Spento",
+            "sv": "Av",
+            "no": "Av",
+            "es": "Apagado",
+            "da": "Slukket",
+            "pl": "Wyłączony"
+          }
+        }
+      ]
+    }
+  ]
+}

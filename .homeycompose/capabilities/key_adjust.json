@@ -1,0 +1,20 @@
+{
+  "type": "boolean",
+  "title": {
+    "en": "Adjust",
+    "nl": "Aanpassen",
+    "de": "Anpassen",
+    "fr": "Ajuster",
+    "it": "Regolare",
+    "sv": "Justera",
+    "no": "Tilpasse",
+    "es": "Ajustar",
+    "da": "Justere",
+    "pl": "Dostosuj"
+  },
+  "getable": false,
+  "setable": true,
+  "uiComponent": "button",
+  "uiQuickAction": true,
+  "icon": "assets/capabilities/adjust.svg"
+}

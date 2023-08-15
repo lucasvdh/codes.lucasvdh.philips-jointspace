@@ -1,0 +1,68 @@
+{
+  "id": "codes.lucasvdh.philips-jointspace",
+  "version": "2.6.0",
+  "compatibility": ">=5.0.0",
+  "sdk": 3,
+  "brandColor": "#2A63CC",
+  "name": {
+    "en": "Philips TV",
+    "nl": "Philips TV",
+    "de": "Philips TV",
+    "fr": "Philips TV",
+    "it": "Philips TV",
+    "sv": "Philips TV",
+    "no": "Philips TV",
+    "es": "Philips TV",
+    "da": "Philips TV",
+    "pl": "Philips TV"
+  },
+  "description": {
+    "en": "Control and monitor your Philips TV",
+    "nl": "Beheer en monitoor uw Philips TV",
+    "de": "Steuern und Überwachen Sie Ihren Philips TV",
+    "fr": "Contrôlez et surveillez votre téléviseur Philips",
+    "it": "Controlla e monitora il tuo televisore Philips",
+    "sv": "Kontrollera och övervaka din Philips TV",
+    "no": "Kontroller og overvåk din Philips TV",
+    "es": "Controla y monitorea su televisor Philips",
+    "da": "Kontroller og overvåg din Philips TV",
+    "pl": "Kontroluj i monitoruj swój telewizor Philips"
+  },
+  "category": [
+    "video"
+  ],
+  "author": {
+    "name": "Lucas van der Have",
+    "email": "lucasvdhave@gmail.com"
+  },
+  "permissions": [],
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png",
+    "xlarge": "/assets/images/xlarge.png"
+  },
+  "contributors": {
+    "developers": [
+      {
+        "name": "Joolee"
+      }
+    ]
+  },
+  "contributing": {
+    "donate": {
+      "paypal": {
+        "username": "lucasvdh"
+      },
+      "githubSponsors": {
+        "username": "lucasvdh"
+      }
+    }
+  },
+  "bugs": {
+    "url": "https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues"
+  },
+  "homeyCommunityTopicId": 14064,
+  "source": "https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace",
+  "homepage": "https://homey-philips-tv.gitbook.io/homey-philips-tv/",
+  "support": "https://homey-philips-tv.gitbook.io/homey-philips-tv/overview/faq"
+}

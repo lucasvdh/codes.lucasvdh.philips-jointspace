@@ -1,0 +1,352 @@
+{
+  "type": "enum",
+  "title": {
+    "en": "Ambilight mode",
+    "nl": "Ambilight modus",
+    "de": "Ambilight Modus",
+    "fr": "Mode Ambilight",
+    "it": "Modalità Ambilight",
+    "sv": "Ambilight läge",
+    "no": "Ambilight-modus",
+    "es": "Modo Ambilight",
+    "da": "Ambilight tilstand",
+    "pl": "Tryb Ambilight"
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": "picker",
+  "uiQuickAction": true,
+  "icon": "assets/capabilities/ambilight.svg",
+  "values": [
+    {
+      "id": "off",
+      "title": {
+        "en": "Off",
+        "nl": "Uit",
+        "de": "Aus",
+        "fr": "Arrêt",
+        "it": "Spento",
+        "sv": "Av",
+        "no": "Av",
+        "es": "Apagado",
+        "da": "Slukket",
+        "pl": "Wyłączony"
+      }
+    },
+    {
+      "id": "color_hot_lava",
+      "title": {
+        "en": "Color hot lava",
+        "nl": "Kleur hete lava",
+        "de": "Farbe heiße Lava",
+        "fr": "Couleur lave chaude",
+        "it": "Colore lava calda",
+        "sv": "Färg het lava",
+        "no": "Farge varm lava",
+        "es": "Color lava caliente",
+        "da": "Farve varm lava",
+        "pl": "Kolor gorącej lawy"
+      }
+    },
+    {
+      "id": "color_warm_white",
+      "title": {
+        "en": "Color warm white",
+        "nl": "Kleur warm wit",
+        "de": "Farbe warmes Weiß",
+        "fr": "Couleur blanc chaud",
+        "it": "Colore bianco caldo",
+        "sv": "Färg varm vit",
+        "no": "Farge varm hvit",
+        "es": "Color blanco cálido",
+        "da": "Farve varm hvid",
+        "pl": "Kolor ciepłego białego"
+      }
+    },
+    {
+      "id": "color_cool_white",
+      "title": {
+        "en": "Color cool white",
+        "nl": "Kleur koel wit",
+        "de": "Farbe kühles Weiß",
+        "fr": "Couleur blanc frais",
+        "it": "Colore bianco fresco",
+        "sv": "Färg kall vit",
+        "no": "Farge kald hvit",
+        "es": "Color blanco fresco",
+        "da": "Farve kold hvid",
+        "pl": "Kolor chłodnego białego"
+      }
+    },
+    {
+      "id": "color_fresh_nature",
+      "title": {
+        "en": "Color fresh nature",
+        "nl": "Kleur frisse natuur",
+        "de": "Farbe frische Natur",
+        "fr": "Couleur fraîche nature",
+        "it": "Colore fresca natura",
+        "sv": "Färg frisk natur",
+        "no": "Farge frisk natur",
+        "es": "Color fresco naturaleza",
+        "da": "Farve frisk natur",
+        "pl": "Kolor świeża natura"
+      }
+    },
+    {
+      "id": "color_deep_water",
+      "title": {
+        "en": "Color deep water",
+        "nl": "Kleur diep water",
+        "de": "Tiefes Wasserfarbe",
+        "fr": "Couleur d'eau profonde",
+        "it": "Colore acqua profonda",
+        "sv": "Djup vatten färg",
+        "no": "Dyp vannfarge",
+        "es": "Color agua profunda",
+        "da": "Dyb vandfarve",
+        "pl": "Głęboki kolor wody"
+      }
+    },
+    {
+      "id": "video_standard",
+      "title": {
+        "en": "Video standard",
+        "nl": "Video standaard",
+        "de": "Video Standard",
+        "fr": "Norme vidéo",
+        "it": "Standard video",
+        "sv": "Videostandard",
+        "no": "Videostandard",
+        "es": "Estándar de vídeo",
+        "da": "Video standard",
+        "pl": "Standard wideo"
+      }
+    },
+    {
+      "id": "video_natural",
+      "title": {
+        "en": "Video natural",
+        "nl": "Video natuurlijk",
+        "de": "Video natürlich",
+        "fr": "Vidéo naturelle",
+        "it": "Video naturale",
+        "sv": "Video naturlig",
+        "no": "Video naturlig",
+        "es": "Video natural",
+        "da": "Video naturlig",
+        "pl": "Wideo naturalne"
+      }
+    },
+    {
+      "id": "video_vivid",
+      "title": {
+        "en": "Video vivid",
+        "nl": "Video helder",
+        "de": "Video lebhaft",
+        "fr": "Vidéo vive",
+        "it": "Video vivido",
+        "sv": "Video livfull",
+        "no": "Video livlig",
+        "es": "Video vívido",
+        "da": "Video livlig",
+        "pl": "Video wyraziste"
+      }
+    },
+    {
+      "id": "video_game",
+      "title": {
+        "en": "Video game",
+        "nl": "Video spel",
+        "de": "Videospiel",
+        "fr": "Jeu vidéo",
+        "it": "Videogioco",
+        "sv": "Videospel",
+        "no": "Videospill",
+        "es": "Juego de video",
+        "da": "Videospil",
+        "pl": "Gra wideo"
+      }
+    },
+    {
+      "id": "video_comfort",
+      "title": {
+        "en": "Video comfort",
+        "nl": "Video comfort",
+        "de": "Video Komfort",
+        "fr": "Vidéo confort",
+        "it": "Comfort video",
+        "sv": "Videokomfort",
+        "no": "Video komfort",
+        "es": "Comodidad de video",
+        "da": "Video komfort",
+        "pl": "Wygoda wideo"
+      }
+    },
+    {
+      "id": "video_relax",
+      "title": {
+        "en": "Video relax",
+        "nl": "Video ontspannen",
+        "de": "Video Entspannung",
+        "fr": "Vidéo détente",
+        "it": "Video rilassante",
+        "sv": "Video avslappning",
+        "no": "Video avslapping",
+        "es": "Video relajante",
+        "da": "Video afslapning",
+        "pl": "Wideo relaks"
+      }
+    },
+    {
+      "id": "audio_adapt_brightness",
+      "title": {
+        "en": "Audio adaptive brightness",
+        "nl": "Audio aanpassende helderheid",
+        "de": "Audio adaptive Helligkeit",
+        "fr": "Luminosité audio adaptative",
+        "it": "Audio luminosità adattiva",
+        "sv": "Ljudanpassad ljusstyrka",
+        "no": "Lyd tilpasset lysstyrke",
+        "es": "Brillo de audio adaptativo",
+        "da": "Audio tilpasset lysstyrke",
+        "pl": "Dostosowana jasność audio"
+      }
+    },
+    {
+      "id": "audio_adapt_colors",
+      "title": {
+        "en": "Audio adaptive colors",
+        "nl": "Audio aanpassende kleuren",
+        "de": "Audio anpassbare Farben",
+        "fr": "Couleurs audio adaptatives",
+        "it": "Colori audio adattivi",
+        "sv": "Ljudanpassade färger",
+        "no": "Lydtilpassede farger",
+        "es": "Colores de audio adaptativos",
+        "da": "Audio tilpassede farver",
+        "pl": "Adaptacyjne kolory dźwięku"
+      }
+    },
+    {
+      "id": "audio_vu_meter",
+      "title": {
+        "en": "Audio VU meter",
+        "nl": "Audio VU meter",
+        "de": "Audio-VU-Meter",
+        "fr": "Mètre VU audio",
+        "it": "Misuratore VU audio",
+        "sv": "Audio VU-mätare",
+        "no": "Audio VU-måler",
+        "es": "Medidor de VU de audio",
+        "da": "Audio VU-måler",
+        "pl": "Woltomierz audio VU"
+      }
+    },
+    {
+      "id": "audio_spectrum",
+      "title": {
+        "en": "Audio spectrum",
+        "nl": "Audiospectrum",
+        "de": "Audio-Spektrum",
+        "fr": "Spectre audio",
+        "it": "Spettro audio",
+        "sv": "Ljudspektrum",
+        "no": "Lydspekter",
+        "es": "Espectro de audio",
+        "da": "Lydspektrum",
+        "pl": "Widmo audio"
+      }
+    },
+    {
+      "id": "audio_knight_rider_1",
+      "title": {
+        "en": "Audio Knight Rider 1",
+        "nl": "Audio Knight Rider 1",
+        "de": "Audio Knight Rider 1",
+        "fr": "Audio Knight Rider 1",
+        "it": "Audio Knight Rider 1",
+        "sv": "Ljud Knight Rider 1",
+        "no": "Lyd Knight Rider 1",
+        "es": "Audio Knight Rider 1",
+        "da": "Lyd Knight Rider 1",
+        "pl": "Audio Knight Rider 1"
+      }
+    },
+    {
+      "id": "audio_knight_rider_2",
+      "title": {
+        "en": "Audio Knight Rider 2",
+        "nl": "Audio Knight Rider 2",
+        "de": "Audio Knight Rider 2",
+        "fr": "Audio Knight Rider 2",
+        "it": "Audio Knight Rider 2",
+        "sv": "Ljud Knight Rider 2",
+        "no": "Lyd Knight Rider 2",
+        "es": "Audio Knight Rider 2",
+        "da": "Lyd Knight Rider 2",
+        "pl": "Audio Knight Rider 2"
+      }
+    },
+    {
+      "id": "audio_flash",
+      "title": {
+        "en": "Audio flash",
+        "nl": "Audio flits",
+        "de": "Audio Blitz",
+        "fr": "Audio flash",
+        "it": "Audio flash",
+        "sv": "Audio blixt",
+        "no": "Audio blits",
+        "es": "Audio flash",
+        "da": "Audio blitz",
+        "pl": "Audio błysk"
+      }
+    },
+    {
+      "id": "audio_strobo",
+      "title": {
+        "en": "Audio strobo",
+        "nl": "Audio strobo",
+        "de": "Audio Strobe",
+        "fr": "Stroboscope audio",
+        "it": "Strobo audio",
+        "sv": "Ljudstrobo",
+        "no": "Lydstrobo",
+        "es": "Estroboscopio de audio",
+        "da": "Audio strobe",
+        "pl": "Audio stroboskop"
+      }
+    },
+    {
+      "id": "audio_party",
+      "title": {
+        "en": "Audio party",
+        "nl": "Audio feest",
+        "de": "Audio-Party",
+        "fr": "Audio fête",
+        "it": "Audio festa",
+        "sv": "Ljudfest",
+        "no": "Lydfest",
+        "es": "Fiesta de audio",
+        "da": "Lydfest",
+        "pl": "Impreza audio"
+      }
+    },
+    {
+      "id": "audio_random",
+      "title": {
+        "en": "Audio random",
+        "nl": "Audio willekeurig",
+        "de": "Audio Zufall",
+        "fr": "Audio aléatoire",
+        "it": "Audio casuale",
+        "sv": "Audio slumpmässig",
+        "no": "Audio tilfeldig",
+        "es": "Audio aleatorio",
+        "da": "Audio tilfældigt",
+        "pl": "Audio losowy"
+      }
+    }
+  ]
+}
