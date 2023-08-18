@@ -175,6 +175,12 @@ class PhilipsTV extends Homey.Device {
       }
       return this.setVolume(value)
     })
+    this.registerCapabilityListener('channel_up', value => {
+      return this.sendKey('ChannelStepUp')
+    })
+    this.registerCapabilityListener('channel_down', value => {
+      return this.sendKey('ChannelStepDown')
+    })
 
   }
 
