@@ -1,14 +1,28 @@
 {
-  "private": true,
   "name": "philips-jointspace",
   "version": "2.5.1",
+  "private": true,
+  "main": "app.js",
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "build": "tsc",
+    "homey-validate": "homey app validate --level verified",
+    "homey-build": "homey app build",
+    "homey-run": "homey app run"
+  },
   "dependencies": {
-    "axios": "^0.27.2",
-    "crypto": "^1.0.1",
-    "http": "^0.0.1-security",
-    "http.min": "^2.1.0",
-    "inquirer": "^9.1.4",
-    "needle": "^3.2.0",
+    "@mhoc/axios-digest-auth": "^0.8.0",
+    "axios": "^1.7.7",
     "wol": "^1.0.7"
+  },
+  "devDependencies": {
+    "@tsconfig/node22": "^22.0.0",
+    "@types/homey": "npm:homey-apps-sdk-v3-types@^0.3.12",
+    "@types/node": "^22.10.0",
+    "@types/wol": "^1.0.4",
+    "homey": "^4.2.1",
+    "typescript": "^5.9.0"
   }
 }

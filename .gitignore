@@ -1,6 +1,10 @@
 /.idea
 /.vscode
+/.claude
 /node_modules
+
+# TypeScript
+*.tsbuildinfo
 
 # Added by Homey CLI
 /.homeybuild/
