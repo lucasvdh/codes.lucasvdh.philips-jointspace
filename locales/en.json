@@ -34,6 +34,8 @@
     "concurrent_pairing": "A pairing request has already been started, please wait 60 seconds and try again.",
     "provide_the_ip_address": "Provide the IP address",
     "device_not_found": "Device not found",
-    "something_went_wrong": "Something went wrong"
+    "something_went_wrong": "Something went wrong",
+    "invalid_response": "The TV responded but the data couldn't be parsed. Your TV model may not be supported, or it's running an unusual firmware. Please check the IP address and try again.",
+    "protocol_error": "The connection to the TV was reset. Try again — if this keeps happening, restart the TV completely."
   }
 }

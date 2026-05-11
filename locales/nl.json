@@ -34,6 +34,8 @@
     "concurrent_pairing": "Er is reeds een koppelingverzoek gestart, wacht 60 seconden en probeer het opnieuw.",
     "provide_the_ip_address": "Vul het IP adres in",
     "device_not_found": "Apparaat niet gevonden",
-    "something_went_wrong": "Er ging iets fout"
+    "something_went_wrong": "Er ging iets fout",
+    "invalid_response": "De tv reageerde, maar de respons kon niet worden gelezen. Mogelijk wordt uw tv-model niet ondersteund of draait er een afwijkende firmware. Controleer het IP-adres en probeer het opnieuw.",
+    "protocol_error": "De verbinding met de tv werd verbroken. Probeer het opnieuw — als dit blijft gebeuren, herstart de tv volledig."
   }
 }

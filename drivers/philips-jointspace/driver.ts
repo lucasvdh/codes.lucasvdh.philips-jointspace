@@ -5,9 +5,11 @@ import Homey from "homey";
 import { JointspaceApi } from "./jointspace-api";
 import { PairingStatus } from "./enums";
 import {
+  InvalidResponseError,
   NotFoundError,
   OfflineError,
   PairingError,
+  ProtocolError,
   UnauthenticatedError,
 } from "./errors";
 import {
@@ -209,7 +211,7 @@ class PhilipsTvDriver extends Homey.Driver {
       ctx.candidates = [candidate];
       await session.showView("list_devices");
     } catch (err) {
-      await this.handleSystemInfoError(err, session);
+      await this.handleSystemInfoError(err, session, "add_by_ip");
     }
   }
 
@@ -282,25 +284,24 @@ class PhilipsTvDriver extends Homey.Driver {
     return false;
   }
 
-  private async handleSystemInfoError(err: unknown, session: Homey.Driver.PairSession): Promise<void> {
+  private async handleSystemInfoError(
+    err: unknown,
+    session: Homey.Driver.PairSession,
+    returnView: "discover" | "add_by_ip" = "discover",
+  ): Promise<void> {
     this.log("System info / pairing failure:", err);
-    if (err instanceof NotFoundError) {
-      await session.showView("add_by_ip");
-      await session.emit("alert", this.homey.__("error.endpoint_not_found"));
-      return;
-    }
-    if (err instanceof OfflineError) {
-      await session.showView("discover");
-      await session.emit("alert", this.homey.__("error.host_unreachable"));
-      return;
-    }
-    if (err instanceof UnauthenticatedError) {
-      await session.showView("discover");
-      await session.emit("alert", this.homey.__("error.generic"));
-      return;
-    }
-    await session.showView("discover");
-    await session.emit("alert", this.homey.__("error.generic"));
+    const messageKey = this.localeKeyForError(err);
+    await session.showView(returnView);
+    await session.emit("alert", this.homey.__(messageKey));
+  }
+
+  private localeKeyForError(err: unknown): string {
+    if (err instanceof NotFoundError) return "error.endpoint_not_found";
+    if (err instanceof OfflineError) return "error.host_unreachable";
+    if (err instanceof InvalidResponseError) return "error.invalid_response";
+    if (err instanceof ProtocolError) return "error.protocol_error";
+    if (err instanceof UnauthenticatedError) return "error.generic";
+    return "error.generic";
   }
 
   // --- discovery / probing ---------------------------------------------
