@@ -2159,6 +2159,14 @@
           }
         ]
       ]
+    },
+    "philips-tv-mdns": {
+      "type": "mdns-sd",
+      "mdns-sd": {
+        "name": "philipstv_s_rpc",
+        "protocol": "tcp"
+      },
+      "id": "{{name}}"
     }
   }
 }

@@ -145,11 +145,18 @@ class PhilipsTvDriver extends Homey.Driver {
   // --- pair view handlers ----------------------------------------------
 
   private async handleDiscoverView(session: Homey.Driver.PairSession, ctx: PairContext): Promise<void> {
-    const discoveryStrategy = this.getDiscoveryStrategy();
-    const results = Object.values(discoveryStrategy.getDiscoveryResults());
+    const ssdpResults = Object.values(this.getDiscoveryStrategy().getDiscoveryResults()) as Array<{
+      id: string;
+      address: string;
+    }>;
+    const mdnsResults = Object.values(this.homey.discovery.getStrategy("philips-tv-mdns").getDiscoveryResults()) as Array<{
+      id: string;
+      address: string;
+    }>;
+    const merged = this.mergeDiscoveryResults([...ssdpResults, ...mdnsResults]);
     const existingDeviceIds = new Set(this.getDevices().map((d) => d.getData().id as string));
 
-    const probed = await Promise.allSettled(results.map((r) => this.deviceFromDiscoveryResult(r)));
+    const probed = await Promise.allSettled(merged.map((r) => this.deviceFromDiscoveryResult(r)));
     ctx.candidates = probed
       .filter(
         (p): p is PromiseFulfilledResult<DeviceDescriptor> =>
@@ -158,7 +165,7 @@ class PhilipsTvDriver extends Homey.Driver {
       .map((p) => p.value)
       .filter((d) => !existingDeviceIds.has(d.data.id));
 
-    const hadDiscoveryResults = results.length > 0;
+    const hadDiscoveryResults = merged.length > 0;
 
     if (ctx.candidates.length > 0) {
       await session.showView("list_devices");
@@ -168,6 +175,19 @@ class PhilipsTvDriver extends Homey.Driver {
         await session.emit("add_by_ip_hint", this.homey.__("pair.add_by_ip.no_new_devices_hint"));
       }
     }
+  }
+
+  private mergeDiscoveryResults<T extends { id: string; address: string }>(results: T[]): T[] {
+    // SSDP and mDNS can report the same TV. Deduplicate on IP address since
+    // the strategy-specific id (USN vs mDNS service name) differs.
+    const seen = new Set<string>();
+    const out: T[] = [];
+    for (const r of results) {
+      if (seen.has(r.address)) continue;
+      seen.add(r.address);
+      out.push(r);
+    }
+    return out;
   }
 
   private async handleCheckIpView(session: Homey.Driver.PairSession, ctx: PairContext): Promise<void> {
