@@ -100,6 +100,7 @@ const KEY_CAPABILITY_TO_TV_KEY: Record<string, string> = {
 };
 
 const NEW_CAPABILITIES = ["current_application"] as const;
+const REMOVED_CAPABILITIES = ["speaker_playing"] as const;
 
 class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   private api!: JointspaceApi;
@@ -358,6 +359,13 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
         );
       }
     }
+    for (const capability of REMOVED_CAPABILITIES) {
+      if (this.hasCapability(capability)) {
+        await this.removeCapability(capability).catch((err: Error) =>
+          this.error(`Failed to remove capability ${capability}:`, err),
+        );
+      }
+    }
   }
 
   private registerCapabilityListeners(): void {
@@ -378,10 +386,6 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     this.registerCapabilityListener("ambihue_onoff", (value: boolean) => this.onCapabilityAmbiHueOnOffSet(value));
     this.registerCapabilityListener("speaker_next", () => this.sendKey("Next"));
     this.registerCapabilityListener("speaker_prev", () => this.sendKey("Previous"));
-    this.registerCapabilityListener("speaker_playing", (value: boolean) => {
-      void this.sendKey(value ? "Play" : "Pause");
-      return Promise.resolve();
-    });
     this.registerCapabilityListener("volume_up", () => this.sendKey("VolumeUp"));
     this.registerCapabilityListener("volume_down", () => this.sendKey("VolumeDown"));
     this.registerCapabilityListener("volume_mute", (value: boolean) => {

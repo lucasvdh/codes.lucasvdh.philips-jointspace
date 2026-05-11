@@ -214,10 +214,19 @@ export class JointspaceApi {
   }
 
   async setPowerState(on: boolean): Promise<void> {
-    if (on) {
-      // ChromeCast app launch via port 8008 has the side effect of waking the
-      // TV on some models. WOL (sent by the device handler) is the primary
-      // path; this is a best-effort fallback for TVs without a known MAC.
+    if (!on) {
+      await this.request<unknown>({ method: "POST", path: "powerstate", data: { powerstate: "Standby" } });
+      return;
+    }
+    try {
+      await this.request<unknown>({ method: "POST", path: "powerstate", data: { powerstate: "On" } });
+      return;
+    } catch (err) {
+      // Older Homey releases (<= 2.x) relied on POSTing to apps/ChromeCast
+      // on port 8008 as a wake trick. ha-philipsjs and pylips both prefer
+      // the standard endpoint above. Keep ChromeCast as a last-resort
+      // fallback for TVs that don't honour the standard call.
+      if (this.debug) this.log("powerstate=On failed, trying ChromeCast fallback:", err);
       await this.request<unknown>({
         method: "POST",
         path: "apps/ChromeCast",
@@ -227,9 +236,7 @@ export class JointspaceApi {
         prefixApiVersion: false,
         requireAuth: false,
       });
-      return;
     }
-    await this.request<unknown>({ method: "POST", path: "powerstate", data: { powerstate: "Standby" } });
   }
 
   async getAudioData(): Promise<AudioData> {
@@ -254,6 +261,18 @@ export class JointspaceApi {
       path: "ambilight/power",
       data: { power: on ? "On" : "Off" },
     });
+    if (!on) {
+      // MSAF (Android XTV) firmware sometimes acks ambilight/power but doesn't
+      // actuate the off command. Posting an "OFF" style to the configuration
+      // endpoint forces the TV to apply it.
+      await this.request<unknown>({
+        method: "POST",
+        path: "ambilight/currentconfiguration",
+        data: { styleName: "OFF", isExpert: false },
+      }).catch((err) => {
+        if (this.debug) this.log("ambilight off backstop failed:", err);
+      });
+    }
   }
 
   async setAmbilightConfiguration(config: AmbilightConfiguration): Promise<void> {
