@@ -11,9 +11,13 @@ import {
   ApplicationIntent,
   ApplicationsResponse,
   AudioData,
+  ChannelDbTv,
+  ChannelList,
+  CurrentSource,
   InputKeyDescriptor,
   JointspaceConfig,
   JointspaceCredentials,
+  LegacyChannels,
   MenuItemsSettingUpdate,
   NotifyChangePayload,
   NotifyChangeState,
@@ -23,6 +27,7 @@ import {
   PairRequestResponse,
   PowerState,
   Protocol,
+  SourcesMap,
   SystemInfo,
 } from "./types";
 import {
@@ -294,6 +299,57 @@ export class JointspaceApi {
 
   async setSetting(setting: MenuItemsSettingUpdate): Promise<void> {
     await this.request<unknown>({ method: "POST", path: "menuitems/settings/update", data: setting });
+  }
+
+  // --- channels --------------------------------------------------------
+
+  async getChannelLists(): Promise<ChannelDbTv> {
+    return this.request<ChannelDbTv>({ method: "GET", path: "channeldb/tv" });
+  }
+
+  async getChannelList(listId = "alltv"): Promise<ChannelList> {
+    return this.request<ChannelList>({ method: "GET", path: `channeldb/tv/channelLists/${encodeURIComponent(listId)}` });
+  }
+
+  async getLegacyChannels(): Promise<LegacyChannels> {
+    return this.request<LegacyChannels>({ method: "GET", path: "channels" });
+  }
+
+  async setChannel(ccid: number | string, listId = "alltv"): Promise<void> {
+    if (this.config.apiVersion >= 5) {
+      await this.request<unknown>({
+        method: "POST",
+        path: "activities/tv",
+        data: {
+          channel: { ccid: typeof ccid === "string" ? Number(ccid) || ccid : ccid },
+          channelList: { id: listId, version: "" },
+        },
+      });
+      return;
+    }
+    await this.request<unknown>({
+      method: "POST",
+      path: "channels/current",
+      data: { id: typeof ccid === "string" ? ccid : String(ccid) },
+    });
+  }
+
+  // --- sources ---------------------------------------------------------
+
+  async getSources(): Promise<SourcesMap> {
+    return this.request<SourcesMap>({ method: "GET", path: "sources" });
+  }
+
+  async getCurrentSource(): Promise<CurrentSource> {
+    return this.request<CurrentSource>({ method: "GET", path: "sources/current" });
+  }
+
+  async setSource(id: string): Promise<void> {
+    await this.request<unknown>({
+      method: "POST",
+      path: "sources/current",
+      data: { id },
+    });
   }
 
   /**

@@ -163,3 +163,53 @@ export interface InputKeyDescriptor {
   inputName: string;
   friendlyName: Record<string, string>;
 }
+
+export interface Channel {
+  ccid: number | string;
+  preset?: string;
+  name?: string;
+  onid?: number;
+  tsid?: number;
+  sid?: number;
+  serviceType?: string;
+  type?: string;
+  logoVersion?: number | string;
+}
+
+export interface ChannelList {
+  id: string;
+  version?: number | string;
+  listType?: string;
+  medium?: string;
+  Channel?: Channel[];
+}
+
+export interface ChannelDbTvListMeta {
+  id: string;
+  version?: number | string;
+  listType?: string;
+  medium?: string;
+}
+
+export interface ChannelDbTv {
+  channelLists?: ChannelDbTvListMeta[];
+  favoriteLists?: ChannelDbTvListMeta[];
+}
+
+export interface LegacyChannelEntry {
+  preset?: string;
+  name?: string;
+}
+
+export type LegacyChannels = Record<string, LegacyChannelEntry>;
+
+export interface Source {
+  id: string;
+  name?: string;
+}
+
+export type SourcesMap = Record<string, { name?: string }>;
+
+export interface CurrentSource {
+  id: string;
+}

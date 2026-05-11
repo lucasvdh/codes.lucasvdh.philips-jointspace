@@ -46,6 +46,13 @@ interface SimplifiedApplication {
   intent: ApplicationIntent;
 }
 
+interface SimplifiedChannel {
+  id: string;
+  name: string;
+  ccid: number | string;
+  preset?: string;
+}
+
 interface PhilipsTvDriverLike {
   triggerApplicationOpenedTrigger(device: Homey.Device, args: { app: string }): Promise<unknown>;
   triggerAmbiHueChangedTrigger(device: Homey.Device, args: { enabled: boolean }): Promise<unknown>;
@@ -112,6 +119,8 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   private api!: JointspaceApi;
   private poller?: StatePoller;
   private applications: SimplifiedApplication[] | null = null;
+  private channels: SimplifiedChannel[] | null = null;
+  private channelListId: string = "alltv";
   private deviceData!: DeviceData;
   private deviceSettings!: DeviceSettings;
   private initOffFallback?: NodeJS.Timeout;
@@ -207,6 +216,28 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       .catch(this.error.bind(this));
   }
 
+  /**
+   * Source-select with dual strategy: try the proper /sources/current
+   * endpoint first (legacy TVs honour this), fall back to a Google
+   * Assistant search by name for Android TVs where /sources is not
+   * exposed.
+   *
+   * `label` comes from the action dropdown ("HDMI 1", "HDMI 2", ...).
+   * We derive the legacy source ID by lowercasing and stripping spaces:
+   * "HDMI 1" -> "hdmi1".
+   */
+  async selectSource(label: string): Promise<void> {
+    const sourceId = label.toLowerCase().replace(/\s+/g, "");
+    try {
+      await this.api.setSource(sourceId);
+      this.log(`Switched source to ${label} via /sources/current`);
+      return;
+    } catch (err) {
+      this.log(`/sources/current failed for ${label}, falling back to GA search:`, (err as Error).message);
+    }
+    await this.sendGoogleAssistantSearch(label);
+  }
+
   async sendGoogleAssistantSearch(query: string): Promise<void> {
     const intent: ApplicationIntent = {
       extras: { query },
@@ -262,6 +293,59 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
         .catch(this.error.bind(this));
     } catch (err) {
       this.log("setAmbilightMode failed", err);
+    }
+  }
+
+  async getChannels(): Promise<SimplifiedChannel[]> {
+    if (this.channels) return this.channels;
+    try {
+      const apiVersion = Number(this.deviceSettings.apiVersion) || 1;
+      if (apiVersion >= 5) {
+        await this.discoverPreferredChannelListId();
+        const list = await this.api.getChannelList(this.channelListId);
+        this.channels = (list.Channel ?? []).map((c) => ({
+          id: String(c.ccid),
+          name: c.name ?? c.preset ?? `Channel ${c.ccid}`,
+          ccid: c.ccid,
+          preset: c.preset,
+        }));
+      } else {
+        const legacy = await this.api.getLegacyChannels();
+        this.channels = Object.entries(legacy).map(([id, entry]) => ({
+          id,
+          name: entry.name ?? entry.preset ?? `Channel ${id}`,
+          ccid: id,
+          preset: entry.preset,
+        }));
+      }
+      return this.channels;
+    } catch (err) {
+      this.error("getChannels failed", err);
+      throw err;
+    }
+  }
+
+  async setChannel(channel: SimplifiedChannel): Promise<void> {
+    try {
+      await this.api.setChannel(channel.ccid, this.channelListId);
+    } catch (err) {
+      this.error(`setChannel(${channel.name}) failed`, err);
+      throw err;
+    }
+  }
+
+  /**
+   * v6+ TVs expose multiple channel lists (alltv, allsat, allcable). Pick
+   * the first one advertised under channelLists so the autocomplete and
+   * setChannel use the same list.
+   */
+  private async discoverPreferredChannelListId(): Promise<void> {
+    try {
+      const db = await this.api.getChannelLists();
+      const first = db.channelLists?.[0]?.id;
+      if (first) this.channelListId = first;
+    } catch (err) {
+      this.log("Could not enumerate channel lists, defaulting to 'alltv':", (err as Error).message);
     }
   }
 

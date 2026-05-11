@@ -923,6 +923,44 @@
             ]
           }
         ]
+      },
+      {
+        "id": "set_channel",
+        "title": {
+          "en": "Switch to channel",
+          "nl": "Wissel naar kanaal",
+          "de": "Zu Sender wechseln",
+          "fr": "Basculer vers la chaîne",
+          "it": "Cambia canale",
+          "sv": "Byt till kanal",
+          "no": "Bytt til kanal",
+          "es": "Cambiar a canal",
+          "da": "Skift til kanal",
+          "pl": "Przełącz na kanał"
+        },
+        "titleFormatted": {
+          "en": "Switch to channel [[channel]]",
+          "nl": "Wissel naar kanaal [[channel]]",
+          "de": "Wechseln zu Sender [[channel]]",
+          "fr": "Basculer vers la chaîne [[channel]]",
+          "it": "Cambia al canale [[channel]]",
+          "sv": "Byt till kanal [[channel]]",
+          "no": "Bytt til kanal [[channel]]",
+          "es": "Cambiar al canal [[channel]]",
+          "da": "Skift til kanal [[channel]]",
+          "pl": "Przełącz na kanał [[channel]]"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=philips-jointspace"
+          },
+          {
+            "name": "channel",
+            "type": "autocomplete"
+          }
+        ]
       }
     ]
   },

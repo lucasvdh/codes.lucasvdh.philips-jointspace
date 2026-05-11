@@ -18,13 +18,23 @@ interface JointspaceClientLike {
   getPossibleKeys(): KeyDescriptor[];
 }
 
+interface ChannelDescriptor {
+  id: string;
+  name: string;
+  ccid: number | string;
+  preset?: string;
+}
+
 interface PhilipsTvDeviceLike {
   openApplication(app: ApplicationDescriptor): Promise<unknown>;
   sendGoogleAssistantSearch(query: string): Promise<unknown>;
+  selectSource(label: string): Promise<unknown>;
   setAmbiHue(state: boolean): Promise<unknown>;
   setAmbilight(state: boolean): Promise<unknown>;
   setAmbilightMode(mode: string): Promise<unknown>;
   getApplications(): Promise<ApplicationDescriptor[]>;
+  getChannels(): Promise<ChannelDescriptor[]>;
+  setChannel(channel: ChannelDescriptor): Promise<unknown>;
   getJointspaceClient(): JointspaceClientLike;
 }
 
@@ -60,7 +70,7 @@ class PhilipsTV extends Homey.App {
     this.homey.flow
       .getActionCard("select_source")
       .registerRunListener(async ({ device, source }: { device: PhilipsTvDeviceLike; source: string }) =>
-        device.sendGoogleAssistantSearch(source)
+        device.selectSource(source)
       );
 
     this.homey.flow
@@ -88,7 +98,23 @@ class PhilipsTV extends Homey.App {
         device.setAmbilightMode(mode)
       );
 
+    this.homey.flow
+      .getActionCard("set_channel")
+      .registerRunListener(async ({ device, channel }: { device: PhilipsTvDeviceLike; channel: ChannelDescriptor }) =>
+        device.setChannel(channel)
+      )
+      .registerArgumentAutocompleteListener("channel", this.onFlowChannelAutocomplete.bind(this));
+
     this.log("Initialized flow");
+  }
+
+  private async onFlowChannelAutocomplete(
+    query: string,
+    { device }: { device: PhilipsTvDeviceLike }
+  ): Promise<ChannelDescriptor[]> {
+    const channels = await device.getChannels();
+    const q = query.toLowerCase();
+    return channels.filter((c) => c.name.toLowerCase().includes(q) || (c.preset ?? "").toLowerCase().includes(q));
   }
 
   private async onFlowApplicationAutocomplete(
