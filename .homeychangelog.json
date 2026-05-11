@@ -1,4 +1,16 @@
 {
+  "3.1.0": {
+    "en": "Adds channel switching, proper source switching on legacy TVs, and several reliability improvements.",
+    "nl": "Voegt kanaalwisseling, echte input-schakeling op oudere tv's en diverse stabiliteitsverbeteringen toe.",
+    "de": "Fügt Senderwechsel, echte Quellenumschaltung auf älteren TVs und mehrere Stabilitätsverbesserungen hinzu.",
+    "fr": "Ajoute le changement de chaîne, un vrai changement de source sur les TV anciens et plusieurs améliorations de fiabilité.",
+    "it": "Aggiunge cambio canale, vero cambio sorgente sui TV legacy e diversi miglioramenti di stabilità.",
+    "sv": "Lägger till kanalbyte, riktig källväxling på äldre TV och flera tillförlitlighetsförbättringar.",
+    "no": "Legger til kanalbytte, ekte kildebytte på eldre TV-er og flere stabilitetsforbedringer.",
+    "es": "Añade cambio de canal, cambio de fuente real en TVs antiguos y varias mejoras de fiabilidad.",
+    "da": "Tilføjer kanalskift, rigtigt kildeskift på ældre tv og flere pålidelighedsforbedringer.",
+    "pl": "Dodaje zmianę kanału, prawdziwe przełączanie źródeł na starszych telewizorach i kilka usprawnień stabilności."
+  },
   "3.0.0": {
     "en": "Major rewrite. Fixes the long-standing 'app stops responding' problem. Adds auto-discovery for modern Android TVs over mDNS, working channel up/down keys, more reliable power-on and ambilight off. Removes the unused 'speaker playing' capability. Requires Homey firmware 12.2 or newer.",
     "nl": "Grote herschrijving. Lost het bekende 'app reageert niet meer'-probleem op. Voegt auto-detectie voor moderne Android-tv's via mDNS toe, werkende kanaal-omhoog/omlaag toetsen, betrouwbaardere inschakeling en ambilight uit. Verwijdert de ongebruikte 'aan het afspelen'-functie. Vereist Homey firmware 12.2 of nieuwer.",
