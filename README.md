@@ -1,42 +1,81 @@
 # Philips TV
 
-This app adds support for Philips TV's models ranging from ~2014 up to 2019 using the Jointspace protocol. 
-Older models might need to manually enable this.
+Control and monitor Philips TVs from Homey using the Jointspace protocol.
+Supports models from roughly 2014 onwards, including the 2016+ Android-based
+sets that use HTTPS with digest authentication.
 
-Some Flow card actions that are currently available:
-- Turn on/off (device must have WOL enabled to turn on after long period of time)
-- Set volume
-- Mute/unmute volume
-- Send a key (send any key from your remote to the TV)
-- Open an app (only available from Android TV models)
+## Capabilities
 
-Some Flow card triggers that will soon be available:
-- Turned on/off
-- Volume changed
-- Open application changed
-- The ambilight mode was changed
+- On/off (Wake-on-LAN for deep-off; powerstate endpoint otherwise)
+- Volume up/down, mute, volume slider
+- Ambilight on/off and 20+ ambilight modes (color follow, video follow, audio follow)
+- AmbiHue on/off
+- Channel up/down
+- A full remote keypad (digits, cursor, colour keys, playback, options, source, ...)
 
-Some Flow card actions that will soon be available:
-- Turn ambilight on/off
-- Turn ambilight mode to "Video standard"
-- Turn ambilight + Hue on/off
-- Turn screen off
+## Flow cards
 
----
+**Triggers**
 
-## Known issues
-There are still some unresolved issues in the pairing process which is required for ~2016+ models. 
-The latest JointspaceClient fix should resolve some of these.
+- The TV was turned on / off
+- An application was opened
+- Ambilight changed
+- Ambilight mode changed
+- AmbiHue changed
 
-If you're experiencing pairing issues or other bugs, please see the following forum topic:
+**Actions**
 
-https://community.athom.com/t/philips-tv-testing/14064
+- Open an application (autocomplete from the apps installed on the TV)
+- Open Google Assistant
+- Select a source
+- Send any remote key
+- Set ambilight on/off and ambilight mode
+- Set AmbiHue on/off
+
+## Pairing
+
+Auto-discovery uses two mechanisms in parallel:
+
+- SSDP (`MediaRenderer:3`) for older non-Android TVs
+- mDNS (`_philipstv_s_rpc._tcp`) for modern Android TVs
+
+If your TV isn't found automatically you can add it by IP. 2016+ Android TVs
+will prompt for a pairing PIN displayed on the screen.
+
+## Known limitations
+
+- Channel switching by name and source switching as first-class actions are
+  on the roadmap for v3.1. The current `Send any remote key` action can stand
+  in via `ChannelStepUp` / `ChannelStepDown` and `Source`.
+- Some ambilight modes are firmware-dependent and may not be available on
+  every model.
+- Power-on from a fully-off TV requires Wake-on-LAN to be enabled in the TV
+  settings.
+
+## Reporting issues
+
+If pairing or device behaviour breaks, please open an issue with:
+
+- TV model + firmware version (Settings → Help → Software info)
+- The output of `https://<TV-IP>:1926/6/system` (or `:1925/1/system` on older
+  TVs) so we can see the API features your set advertises
+- A Homey diagnostic report ID if you have one
+
+Community thread: <https://community.athom.com/t/philips-tv-testing/14064>
 
 ## Changelog
 
-- **v2.4.0** - Add new `set_ambilight_mode` capability
-- **v2.3.0** - Add translations for `de`, `fr`, `it`, `sv`, `no`, `es`, `da` and `pl`
-- **v2.2.1** - Fix (some) pincode submit errors
-- **v2.2.0** - Automatically resolving TV settings such as Jointspace version and authentication method
-- **v2.1.0** - New pairing views that follow Homey design standard
-- **v2.0.0** - Homey SDK v3 upgrade to support the latest Homey models
+- **v3.0.0** — Major rewrite to TypeScript. Fixes the long-standing "app
+  stops responding" cluster (background poller no longer dies on transient
+  errors). Adds mDNS auto-discovery for Android TVs, channel up/down keys,
+  more reliable power-on, working ambilight off on Android XTV firmware.
+  Removes the unused `speaker_playing` capability. Requires Homey firmware
+  12.2 or newer.
+- **v2.5.0** — More pairing-process translations and a new `Open Google
+  Assistant` action.
+- **v2.4.0** — `set_ambilight_mode` action.
+- **v2.3.0** — Translations for `de`, `fr`, `it`, `sv`, `no`, `es`, `da`, `pl`.
+- **v2.2.0** — Automatic resolution of Jointspace version and authentication
+  method during pairing.
+- **v2.1.0** — Pairing views aligned with Homey design.
+- **v2.0.0** — Homey SDK v3 upgrade.
