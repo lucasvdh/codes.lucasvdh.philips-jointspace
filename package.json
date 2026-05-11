@@ -13,7 +13,6 @@
     "homey-run": "homey app run"
   },
   "dependencies": {
-    "@mhoc/axios-digest-auth": "^0.8.0",
     "axios": "^1.7.7",
     "wol": "^1.0.7"
   },

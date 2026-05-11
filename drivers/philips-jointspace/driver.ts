@@ -18,6 +18,7 @@ import {
   PairingState,
   SystemInfo,
 } from "./types";
+import { extractTransportConfig } from "./quirks";
 
 interface DeviceDescriptor {
   name: string;
@@ -334,15 +335,11 @@ class PhilipsTvDriver extends Homey.Driver {
 
     const system = await api.getSystem();
     if (system.name) descriptor.name = system.name;
-    descriptor.settings.apiVersion = system.api_version?.Major ?? descriptor.settings.apiVersion;
-    descriptor.settings.secure = this.securedTransportFromSystem(system);
-    descriptor.settings.port = descriptor.settings.apiVersion < 6 ? 1925 : 1926;
+    const transport = extractTransportConfig(system);
+    descriptor.settings.apiVersion = transport.apiVersion;
+    descriptor.settings.secure = transport.secured;
+    descriptor.settings.port = transport.port;
     return descriptor;
-  }
-
-  private securedTransportFromSystem(system: SystemInfo): boolean {
-    const value = system.featuring?.systemfeatures?.secured_transport;
-    return value === true || value === "true";
   }
 
   private pairingTypeFromSystem(system: SystemInfo): string {

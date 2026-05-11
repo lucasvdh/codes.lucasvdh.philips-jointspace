@@ -6,7 +6,7 @@ import * as wol from "wol";
 import { JointspaceApi } from "./jointspace-api";
 import { StatePoller, StateChangeListener, StateChangeSource } from "./state-poller";
 import { AmbilightConfigurations, ambilightModeFromConfiguration, AmbilightModeKey } from "./enums";
-import { extractSystemMetadata, osHasAmbilightModeQuirk } from "./quirks";
+import { extractSystemMetadata, extractTransportConfig, osHasAmbilightModeQuirk } from "./quirks";
 import {
   AmbiHueState,
   AmbilightConfiguration,
@@ -23,6 +23,7 @@ const CAPABILITY_DEBOUNCE_MS = 100;
 const INIT_OFF_FALLBACK_MS = 3_000;
 const WOL_RETRY_DELAY_MS = 1_000;
 const DEFAULT_VOLUME_MAX = 60;
+const SYSTEM_REPROBE_INTERVAL_MS = 60 * 60 * 1000;
 
 interface DeviceData {
   id: string;
@@ -114,6 +115,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   private deviceData!: DeviceData;
   private deviceSettings!: DeviceSettings;
   private initOffFallback?: NodeJS.Timeout;
+  private systemReprobeTimer?: NodeJS.Timeout;
 
   async onInit(): Promise<void> {
     this.deviceData = this.getData() as DeviceData;
@@ -143,6 +145,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       { notifyChangeSupported },
     );
     void this.refreshSystemMetadata();
+    this.scheduleSystemReprobe();
     this.poller.start();
     this.log("Initialised");
   }
@@ -150,6 +153,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   async onDeleted(): Promise<void> {
     this.poller?.stop();
     if (this.initOffFallback) clearTimeout(this.initOffFallback);
+    if (this.systemReprobeTimer) clearTimeout(this.systemReprobeTimer);
   }
 
   async onSettings({
@@ -406,9 +410,13 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   }
 
   /**
-   * Best-effort probe to refresh osType / notifyChange-support cache. Runs
-   * in the background at every onInit — if the TV is unreachable we just
-   * keep using whatever was cached during the last successful pair/probe.
+   * Best-effort probe to refresh cached system state. Runs at every onInit
+   * and once an hour after that. Updates two layers:
+   *   - store: osType + notifyChange-support flag (used by quirks + poller)
+   *   - settings: apiVersion / secured / port (so firmware updates that
+   *     change endpoints are picked up without a re-pair)
+   * If the TV is unreachable we keep using whatever was cached during the
+   * last successful pair/probe.
    */
   private async refreshSystemMetadata(): Promise<void> {
     try {
@@ -416,9 +424,27 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       const { osType, notifyChangeSupported } = extractSystemMetadata(system);
       await this.setStoreValue(STORE_OS_TYPE, osType);
       await this.setStoreValue(STORE_NOTIFY_CHANGE_SUPPORTED, notifyChangeSupported);
+
+      const transport = extractTransportConfig(system);
+      const settingsUpdate: Partial<DeviceSettings> = {};
+      if (transport.apiVersion !== this.deviceSettings.apiVersion) settingsUpdate.apiVersion = transport.apiVersion;
+      if (transport.secured !== this.deviceSettings.secure) settingsUpdate.secure = transport.secured;
+      if (transport.port !== this.deviceSettings.port) settingsUpdate.port = transport.port;
+      if (Object.keys(settingsUpdate).length > 0) {
+        this.log("Transport changed, updating settings:", settingsUpdate);
+        await this.setSettings(settingsUpdate);
+        this.deviceSettings = { ...this.deviceSettings, ...settingsUpdate };
+        this.api.updateConfig(this.buildApiConfig());
+      }
     } catch (err) {
       this.log("refreshSystemMetadata failed (TV likely offline):", (err as Error).message);
     }
+  }
+
+  private scheduleSystemReprobe(): void {
+    this.systemReprobeTimer = setTimeout(() => {
+      void this.refreshSystemMetadata().finally(() => this.scheduleSystemReprobe());
+    }, SYSTEM_REPROBE_INTERVAL_MS);
   }
 
   private async migrateCapabilities(): Promise<void> {

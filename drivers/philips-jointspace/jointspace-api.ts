@@ -1,7 +1,8 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from "axios";
-import AxiosDigestAuth from "@mhoc/axios-digest-auth";
 import * as crypto from "crypto";
 import * as https from "https";
+
+import { CachedDigestAuth } from "./cached-digest";
 
 import {
   AmbilightConfiguration,
@@ -80,7 +81,7 @@ export class JointspaceApi {
   private readonly debug: boolean;
   private readonly httpsAgent: https.Agent;
   private anonClient: AxiosInstance;
-  private digestClient: AxiosDigestAuth | null = null;
+  private digestClient: CachedDigestAuth | null = null;
 
   constructor(config: JointspaceConfig, options: JointspaceApiOptions = {}) {
     this.config = config;
@@ -335,9 +336,10 @@ export class JointspaceApi {
       this.digestClient = null;
       return;
     }
-    this.digestClient = new AxiosDigestAuth({
+    this.digestClient = new CachedDigestAuth({
       username: credentials.user,
       password: credentials.pass,
+      axios: this.anonClient,
     });
   }
 
@@ -399,10 +401,12 @@ export class JointspaceApi {
     if (opts.requireAuth !== false && credentials?.user && credentials?.pass) {
       const digest = credentials === this.config.credentials
         ? this.digestClient
-        : new AxiosDigestAuth({ username: credentials.user, password: credentials.pass });
-      if (digest) {
-        return digest.request(requestConfig as never) as unknown as AxiosResponse;
-      }
+        : new CachedDigestAuth({
+            username: credentials.user,
+            password: credentials.pass,
+            axios: this.anonClient,
+          });
+      if (digest) return digest.request(requestConfig);
     }
     return this.anonClient.request(requestConfig);
   }

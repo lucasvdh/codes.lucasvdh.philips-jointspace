@@ -46,3 +46,21 @@ export function extractSystemMetadata(system: SystemInfo): SystemMetadata {
     notifyChangeSupported: extractNotifyChangeSupport(system),
   };
 }
+
+export function extractSecuredTransport(system: SystemInfo): boolean {
+  const value = system.featuring?.systemfeatures?.secured_transport;
+  return value === true || value === "true";
+}
+
+export interface TransportConfig {
+  apiVersion: number;
+  secured: boolean;
+  port: number;
+}
+
+export function extractTransportConfig(system: SystemInfo): TransportConfig {
+  const apiVersion = system.api_version?.Major ?? 1;
+  const secured = extractSecuredTransport(system);
+  const port = apiVersion < 6 ? 1925 : 1926;
+  return { apiVersion, secured, port };
+}
