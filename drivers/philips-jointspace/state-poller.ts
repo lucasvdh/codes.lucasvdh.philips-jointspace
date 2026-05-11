@@ -41,6 +41,7 @@ export class StatePoller {
   private lastState: NotifyChangeState = {};
   private stopped = false;
   private readonly notifyChangeSupported: boolean;
+  private offlineLogged = false;
 
   constructor(
     private readonly api: JointspaceApi,
@@ -78,6 +79,7 @@ export class StatePoller {
     while (!this.stopped) {
       try {
         const state = await this.api.notifyChange(this.lastState);
+        this.noteReachable();
         if (state) {
           this.lastState = state;
           this.parseNotifyState(state);
@@ -87,10 +89,28 @@ export class StatePoller {
           // TV closed the lingering connection — that's normal, loop again.
           continue;
         }
+        if (err instanceof OfflineError) {
+          this.noteUnreachable(err);
+          await this.delay(NOTIFY_RETRY_BACKOFF_MS);
+          continue;
+        }
+        // Unexpected error — log with detail, back off and retry.
         this.log("notifyChange failed", err);
         await this.delay(NOTIFY_RETRY_BACKOFF_MS);
       }
     }
+  }
+
+  private noteUnreachable(err: Error): void {
+    if (this.offlineLogged) return;
+    this.offlineLogged = true;
+    this.log(`TV unreachable, polling continues in background: ${err.message}`);
+  }
+
+  private noteReachable(): void {
+    if (!this.offlineLogged) return;
+    this.offlineLogged = false;
+    this.log("TV reachable again");
   }
 
   private parseNotifyState(state: NotifyChangeState): void {
@@ -126,8 +146,11 @@ export class StatePoller {
 
       const power = await this.api.getPowerState();
       this.listener.handlePowerStateChange("poll", power);
+      this.noteReachable();
     } catch (err) {
-      this.listener.onPollFailure(err instanceof Error ? err : new Error(String(err)));
+      const error = err instanceof Error ? err : new Error(String(err));
+      if (error instanceof OfflineError) this.noteUnreachable(error);
+      this.listener.onPollFailure(error);
     }
   }
 
