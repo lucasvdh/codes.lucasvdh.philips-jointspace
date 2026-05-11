@@ -36,6 +36,6 @@
     "device_not_found": "Apparaat niet gevonden",
     "something_went_wrong": "Er ging iets fout",
     "invalid_response": "De tv reageerde, maar de respons kon niet worden gelezen. Mogelijk wordt uw tv-model niet ondersteund of draait er een afwijkende firmware. Controleer het IP-adres en probeer het opnieuw.",
-    "protocol_error": "De verbinding met de tv werd verbroken. Probeer het opnieuw — als dit blijft gebeuren, herstart de tv volledig."
+    "protocol_error": "De verbinding met de tv werd verbroken. Probeer het opnieuw. Als dit blijft gebeuren, herstart de tv volledig."
   }
 }

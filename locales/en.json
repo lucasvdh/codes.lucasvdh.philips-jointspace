@@ -36,6 +36,6 @@
     "device_not_found": "Device not found",
     "something_went_wrong": "Something went wrong",
     "invalid_response": "The TV responded but the data couldn't be parsed. Your TV model may not be supported, or it's running an unusual firmware. Please check the IP address and try again.",
-    "protocol_error": "The connection to the TV was reset. Try again — if this keeps happening, restart the TV completely."
+    "protocol_error": "The connection to the TV was reset. Try again. If this keeps happening, restart the TV completely."
   }
 }

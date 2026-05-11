@@ -165,17 +165,27 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
 
   async getApplications(): Promise<SimplifiedApplication[]> {
     if (this.applications) return this.applications;
-    const raw = await this.api.getApplications();
-    this.applications = raw.map((app: Application) => ({
-      id: app.id,
-      name: app.label,
-      intent: app.intent,
-    }));
-    return this.applications;
+    try {
+      const raw = await this.api.getApplications();
+      this.applications = raw.map((app: Application) => ({
+        id: app.id,
+        name: app.label,
+        intent: app.intent,
+      }));
+      return this.applications;
+    } catch (err) {
+      this.error("getApplications failed", err);
+      throw err;
+    }
   }
 
   async openApplication(app: SimplifiedApplication): Promise<void> {
-    await this.api.launchActivity(app.intent);
+    try {
+      await this.api.launchActivity(app.intent);
+    } catch (err) {
+      this.error(`openApplication(${app.name}) failed`, err);
+      throw err;
+    }
     await this.driverApi()
       .triggerApplicationOpenedTrigger(this, { app: app.name })
       .catch(this.error.bind(this));
@@ -190,11 +200,21 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
         className: "com.google.android.apps.tvsearch.app.launch.trampoline.SearchActivityTrampoline",
       },
     };
-    await this.api.launchActivity(intent);
+    try {
+      await this.api.launchActivity(intent);
+    } catch (err) {
+      this.error("sendGoogleAssistantSearch failed", err);
+      throw err;
+    }
   }
 
   async setAmbiHue(state: boolean): Promise<void> {
-    await this.api.setAmbiHue(state);
+    try {
+      await this.api.setAmbiHue(state);
+    } catch (err) {
+      this.error(`setAmbiHue(${state}) failed`, err);
+      throw err;
+    }
     await this.driverApi()
       .triggerAmbiHueChangedTrigger(this, { enabled: state })
       .catch(this.error.bind(this));
@@ -388,10 +408,15 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     this.registerCapabilityListener("speaker_prev", () => this.sendKey("Previous"));
     this.registerCapabilityListener("volume_up", () => this.sendKey("VolumeUp"));
     this.registerCapabilityListener("volume_down", () => this.sendKey("VolumeDown"));
-    this.registerCapabilityListener("volume_mute", (value: boolean) => {
+    this.registerCapabilityListener("volume_mute", async (value: boolean) => {
       const fallback = Math.round(this.getVolumeMax() / 2);
       const currentVolume = (this.getCapabilityValue("volume_set") as number | null) ?? fallback;
-      return this.api.setVolume(currentVolume, value);
+      try {
+        await this.api.setVolume(currentVolume, value);
+      } catch (err) {
+        this.error(`volume_mute(${value}) failed`, err);
+        throw err;
+      }
     });
     this.registerCapabilityListener("volume_set", (value: number) => {
       const clamped = Math.min(Math.max(Math.round(value), 0), this.getVolumeMax());
@@ -435,18 +460,23 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     // rather than the HueLamp/power endpoint. Keep the legacy menu-item
     // path that was used before — POST to HueLamp/power doesn't actuate
     // on every model.
-    await this.api.setSetting({
-      values: [
-        {
-          value: {
-            Nodeid: 2131230774,
-            Controllable: "true",
-            Available: "true",
-            data: { value: value ? "true" : "false" },
+    try {
+      await this.api.setSetting({
+        values: [
+          {
+            value: {
+              Nodeid: 2131230774,
+              Controllable: "true",
+              Available: "true",
+              data: { value: value ? "true" : "false" },
+            },
           },
-        },
-      ],
-    });
+        ],
+      });
+    } catch (err) {
+      this.error(`ambihue_onoff(${value}) failed`, err);
+      throw err;
+    }
   }
 
   private async sendKey(key: string): Promise<void> {

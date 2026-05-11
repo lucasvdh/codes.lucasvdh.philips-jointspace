@@ -1,39 +1,27 @@
 {
-  "2.4.0": {
-    "en": "Upgrade to Homey SDKv3, translations and improvements to pairing process",
-    "nl": "Upgrade naar Homey SDKv3, vertalingen en verbeteringen aan het koppelproces",
-    "de": "Aktualisieren auf Homey SDKv3, Übersetzungen und Verbesserungen des Kopplungsprozesses",
-    "fr": "Mise à niveau vers Homey SDKv3, traductions et améliorations du processus d'appariement",
-    "it": "Aggiornamento a Homey SDKv3, traduzioni e miglioramenti del processo di accoppiamento",
-    "sv": "Uppgradering till Homey SDKv3, översättningar och förbättringar av parningsprocessen",
-    "no": "Oppgradering til Homey SDKv3, oversettelser og forbedringer av paringsprosessen",
-    "es": "Actualización a Homey SDKv3, traducciones y mejoras en el proceso de emparejamiento",
-    "da": "Opgradering til Homey SDKv3, oversættelser og forbedringer af parringsprocessen",
-    "pl": "Aktualizacja do Homey SDKv3, tłumaczenia i ulepszenia procesu łączenia"
+  "3.0.0": {
+    "en": "Major rewrite. Fixes the long-standing 'app stops responding' problem. Adds auto-discovery for modern Android TVs over mDNS, working channel up/down keys, more reliable power-on and ambilight off. Removes the unused 'speaker playing' capability. Requires Homey firmware 12.2 or newer.",
+    "nl": "Grote herschrijving. Lost het bekende 'app reageert niet meer'-probleem op. Voegt auto-detectie voor moderne Android-tv's via mDNS toe, werkende kanaal-omhoog/omlaag toetsen, betrouwbaardere inschakeling en ambilight uit. Verwijdert de ongebruikte 'aan het afspelen'-functie. Vereist Homey firmware 12.2 of nieuwer.",
+    "de": "Großes Re-write. Behebt das langjährige Problem 'App reagiert nicht mehr'. Fügt Auto-Erkennung für moderne Android-TVs über mDNS hinzu, funktionierende Sender-Tasten Hoch/Runter, zuverlässigeres Einschalten und Ambilight Aus. Entfernt die ungenutzte 'Wiedergabe'-Funktion. Erfordert Homey-Firmware 12.2 oder neuer.",
+    "fr": "Réécriture majeure. Corrige le problème de longue date où 'l'application cesse de répondre'. Ajoute la détection automatique des TV Android modernes via mDNS, des touches chaîne haut/bas fonctionnelles, un allumage plus fiable et l'extinction d'ambilight. Supprime la capacité 'en cours de lecture' inutilisée. Requiert le firmware Homey 12.2 ou plus récent.",
+    "it": "Riscrittura completa. Risolve il problema di lunga data 'l'app smette di rispondere'. Aggiunge il rilevamento automatico dei TV Android moderni tramite mDNS, tasti canale su/giù funzionanti, accensione più affidabile e spegnimento ambilight. Rimuove la capacità 'in riproduzione' inutilizzata. Richiede il firmware Homey 12.2 o più recente.",
+    "sv": "Stor omskrivning. Åtgärdar det långvariga problemet 'appen slutar svara'. Lägger till automatisk identifiering av moderna Android-TV via mDNS, fungerande kanal upp/ned-tangenter, mer tillförlitlig påslagning och ambilight av. Tar bort den oanvända 'spelar upp'-funktionen. Kräver Homey-firmware 12.2 eller nyare.",
+    "no": "Stor omskriving. Løser det langvarige problemet 'appen slutter å svare'. Legger til automatisk oppdaging av moderne Android-TV-er via mDNS, fungerende kanal opp/ned-knapper, mer pålitelig påslåing og ambilight av. Fjerner den ubrukte 'spiller av'-funksjonen. Krever Homey-fastvare 12.2 eller nyere.",
+    "es": "Reescritura mayor. Corrige el problema de larga data 'la app deja de responder'. Añade detección automática de TVs Android modernos vía mDNS, teclas canal arriba/abajo funcionales, encendido más fiable y apagado de ambilight. Elimina la capacidad 'reproduciendo' no utilizada. Requiere firmware Homey 12.2 o superior.",
+    "da": "Stor omskrivning. Løser det langvarige problem 'appen holder op med at svare'. Tilføjer automatisk registrering af moderne Android-tv via mDNS, virkende kanal op/ned-taster, mere pålideligt tænd og ambilight fra. Fjerner den ubrugte 'afspiller'-funktion. Kræver Homey-firmware 12.2 eller nyere.",
+    "pl": "Duża przeróbka. Naprawia długotrwały problem 'aplikacja przestaje odpowiadać'. Dodaje automatyczne wykrywanie nowoczesnych telewizorów Android przez mDNS, działające przyciski kanał w górę/w dół, bardziej niezawodne włączanie i wyłączanie ambilight. Usuwa nieużywaną funkcję 'odtwarzanie'. Wymaga firmware Homey 12.2 lub nowszego."
   },
-  "2.4.1": {
-    "en": "Fix flow card triggers and actions",
-    "nl": "Fix flow triggers en acties",
-    "de": "Beheben Sie Flow-Kartenauslöser und -aktionen",
-    "fr": "Corrigez les déclencheurs et les actions des cartes de flux",
-    "it": "Correggi i trigger e le azioni della scheda di flusso",
-    "sv": "Fixa flödeskorttriggers och åtgärder",
-    "no": "Fiks strøm kort utløsere og handlinger",
-    "es": "Arreglar los desencadenantes y acciones de las tarjetas de flujo",
-    "da": "Fix flow kort udløsere og handlinger",
-    "pl": "Napraw wyzwalacze i akcje karty przepływu"
-  },
-  "2.4.2": {
-    "en": "Fix getting device applications",
-    "nl": "Fix apparaat applicaties ophalen",
-    "de": "Beheben des Abrufs von Geräteanwendungen",
-    "fr": "Correction de la récupération des applications de l'appareil",
-    "it": "Correggere il recupero delle applicazioni del dispositivo",
-    "sv": "Fixa hämtning av enhetsapplikationer",
-    "no": "Fikse henting av enhetsprogrammer",
-    "es": "Arreglar la obtención de aplicaciones del dispositivo",
-    "da": "Fix at få enhedsapplikationer",
-    "pl": "Naprawa pobierania aplikacji urządzenia"
+  "2.5.1": {
+    "en": "Fix pairing error feedback",
+    "nl": "Fix koppelproces feedback",
+    "de": "Behebung des Pairing-Fehler-Feedbacks",
+    "fr": "Correction de la rétroaction d'erreur de couplage",
+    "it": "Correzione del feedback sull'errore di accoppiamento",
+    "sv": "Fixa återkoppling vid parningsfel",
+    "no": "Fiks tilbakemelding ved paringsfeil",
+    "es": "Solucionar el problema de retroalimentación de errores de emparejamiento",
+    "da": "Ret paring fejl tilbagemelding",
+    "pl": "Naprawianie informacji zwrotnej o błędach łączenia"
   },
   "2.5.0": {
     "en": "Added more translations (de, fr, it, sv, no, es, da, pl) to the pairing process, improved feedback in the pairing process and a new \"Open Google Assistant\" action.",
@@ -47,16 +35,40 @@
     "da": "Tilføjet flere oversættelser (de, fr, it, sv, no, es, da, pl) til paringsprocessen, forbedret feedback i paringsprocessen og en ny \"Åbn Google Assistent\"-handling.",
     "pl": "Dodano więcej tłumaczeń (de, fr, it, sv, no, es, da, pl) do procesu parowania, poprawiono informacje zwrotne w procesie parowania i dodano nową akcję \"Otwórz Google Assistant\"."
   },
-  "2.5.1": {
-    "en": "Fix pairing error feedback",
-    "nl": "Fix koppelproces feedback",
-    "de": "Behebung des Pairing-Fehler-Feedbacks",
-    "fr": "Correction de la rétroaction d'erreur de couplage",
-    "it": "Correzione del feedback sull'errore di accoppiamento",
-    "sv": "Fixa återkoppling vid parningsfel",
-    "no": "Fiks tilbakemelding ved paringsfeil",
-    "es": "Solucionar el problema de retroalimentación de errores de emparejamiento",
-    "da": "Ret paring fejl tilbagemelding",
-    "pl": "Naprawianie informacji zwrotnej o błędach łączenia"
+  "2.4.2": {
+    "en": "Fix getting device applications",
+    "nl": "Fix apparaat applicaties ophalen",
+    "de": "Beheben des Abrufs von Geräteanwendungen",
+    "fr": "Correction de la récupération des applications de l'appareil",
+    "it": "Correggere il recupero delle applicazioni del dispositivo",
+    "sv": "Fixa hämtning av enhetsapplikationer",
+    "no": "Fikse henting av enhetsprogrammer",
+    "es": "Arreglar la obtención de aplicaciones del dispositivo",
+    "da": "Fix at få enhedsapplikationer",
+    "pl": "Naprawa pobierania aplikacji urządzenia"
+  },
+  "2.4.1": {
+    "en": "Fix flow card triggers and actions",
+    "nl": "Fix flow triggers en acties",
+    "de": "Beheben Sie Flow-Kartenauslöser und -aktionen",
+    "fr": "Corrigez les déclencheurs et les actions des cartes de flux",
+    "it": "Correggi i trigger e le azioni della scheda di flusso",
+    "sv": "Fixa flödeskorttriggers och åtgärder",
+    "no": "Fiks strøm kort utløsere og handlinger",
+    "es": "Arreglar los desencadenantes y acciones de las tarjetas de flujo",
+    "da": "Fix flow kort udløsere og handlinger",
+    "pl": "Napraw wyzwalacze i akcje karty przepływu"
+  },
+  "2.4.0": {
+    "en": "Upgrade to Homey SDKv3, translations and improvements to pairing process",
+    "nl": "Upgrade naar Homey SDKv3, vertalingen en verbeteringen aan het koppelproces",
+    "de": "Aktualisieren auf Homey SDKv3, Übersetzungen und Verbesserungen des Kopplungsprozesses",
+    "fr": "Mise à niveau vers Homey SDKv3, traductions et améliorations du processus d'appariement",
+    "it": "Aggiornamento a Homey SDKv3, traduzioni e miglioramenti del processo di accoppiamento",
+    "sv": "Uppgradering till Homey SDKv3, översättningar och förbättringar av parningsprocessen",
+    "no": "Oppgradering til Homey SDKv3, oversettelser og forbedringer av paringsprosessen",
+    "es": "Actualización a Homey SDKv3, traducciones y mejoras en el proceso de emparejamiento",
+    "da": "Opgradering til Homey SDKv3, oversættelser og forbedringer af parningsprocessen",
+    "pl": "Aktualizacja do Homey SDKv3, tłumaczenia i ulepszenia procesu łączenia"
   }
 }
