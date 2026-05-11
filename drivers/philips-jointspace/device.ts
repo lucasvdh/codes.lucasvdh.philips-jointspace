@@ -6,6 +6,7 @@ import * as wol from "wol";
 import { JointspaceApi } from "./jointspace-api";
 import { StatePoller, StateChangeListener, StateChangeSource } from "./state-poller";
 import { AmbilightConfigurations, ambilightModeFromConfiguration, AmbilightModeKey } from "./enums";
+import { extractSystemMetadata, osHasAmbilightModeQuirk } from "./quirks";
 import {
   AmbiHueState,
   AmbilightConfiguration,
@@ -102,6 +103,10 @@ const KEY_CAPABILITY_TO_TV_KEY: Record<string, string> = {
 const NEW_CAPABILITIES = ["current_application"] as const;
 const REMOVED_CAPABILITIES = ["speaker_playing"] as const;
 
+const STORE_OS_TYPE = "osType";
+const STORE_NOTIFY_CHANGE_SUPPORTED = "notifyChangeSupported";
+const STORE_LAST_AMBILIGHT_MODE = "lastSetAmbilightMode";
+
 class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   private api!: JointspaceApi;
   private poller?: StatePoller;
@@ -130,7 +135,14 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       this.setCapabilityValue("onoff", false).catch(this.error.bind(this));
     }, INIT_OFF_FALLBACK_MS);
 
-    this.poller = new StatePoller(this.api, this, (...args) => this.log(`[poller]`, ...args));
+    const notifyChangeSupported = (this.getStoreValue(STORE_NOTIFY_CHANGE_SUPPORTED) as boolean | null) ?? true;
+    this.poller = new StatePoller(
+      this.api,
+      this,
+      (...args) => this.log(`[poller]`, ...args),
+      { notifyChangeSupported },
+    );
+    void this.refreshSystemMetadata();
     this.poller.start();
     this.log("Initialised");
   }
@@ -240,6 +252,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     }
     try {
       await this.api.setAmbilightConfiguration(configuration);
+      await this.setStoreValue(STORE_LAST_AMBILIGHT_MODE, mode).catch(this.error.bind(this));
       await this.driverApi()
         .triggerAmbilightModeChangedTrigger(this, { mode })
         .catch(this.error.bind(this));
@@ -304,7 +317,8 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
         .catch(this.error.bind(this));
     }
 
-    const newMode = ambilightModeFromConfiguration(state);
+    const reportedMode = ambilightModeFromConfiguration(state);
+    const newMode = this.applyAmbilightModeQuirk(reportedMode);
     const currentMode = this.getCapabilityValue("ambilight_mode") as string | null;
     if (newMode && newMode !== currentMode) {
       this.log(`Ambilight mode ${currentMode ?? "?"} -> ${newMode} (${source})`);
@@ -313,6 +327,26 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
         .triggerAmbilightModeChangedTrigger(this, { mode: newMode })
         .catch(this.error.bind(this));
     }
+  }
+
+  /**
+   * On MSAF/Linux firmware the TV doesn't echo back the new mode after a set,
+   * so the reported mode lags behind reality. If we have a locally cached
+   * "last set" mode and we know this TV has the quirk, prefer the local value.
+   * The cache is cleared the next time the user changes mode or when the TV
+   * reports the same mode the user set (firmware caught up).
+   */
+  private applyAmbilightModeQuirk(reportedMode: AmbilightModeKey | undefined): AmbilightModeKey | undefined {
+    const osType = this.getStoreValue(STORE_OS_TYPE) as string | null;
+    if (!osHasAmbilightModeQuirk(osType)) return reportedMode;
+    const cached = this.getStoreValue(STORE_LAST_AMBILIGHT_MODE) as AmbilightModeKey | null;
+    if (!cached) return reportedMode;
+    if (reportedMode === cached) {
+      // Firmware caught up; clear the cache so we trust TV reports again.
+      void this.setStoreValue(STORE_LAST_AMBILIGHT_MODE, null).catch(this.error.bind(this));
+      return reportedMode;
+    }
+    return cached;
   }
 
   handleActivityChange(source: StateChangeSource, state: CurrentActivity): void {
@@ -369,6 +403,22 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
 
   private driverApi(): PhilipsTvDriverLike {
     return this.driver as unknown as PhilipsTvDriverLike;
+  }
+
+  /**
+   * Best-effort probe to refresh osType / notifyChange-support cache. Runs
+   * in the background at every onInit — if the TV is unreachable we just
+   * keep using whatever was cached during the last successful pair/probe.
+   */
+  private async refreshSystemMetadata(): Promise<void> {
+    try {
+      const system = await this.api.getSystem();
+      const { osType, notifyChangeSupported } = extractSystemMetadata(system);
+      await this.setStoreValue(STORE_OS_TYPE, osType);
+      await this.setStoreValue(STORE_NOTIFY_CHANGE_SUPPORTED, notifyChangeSupported);
+    } catch (err) {
+      this.log("refreshSystemMetadata failed (TV likely offline):", (err as Error).message);
+    }
   }
 
   private async migrateCapabilities(): Promise<void> {

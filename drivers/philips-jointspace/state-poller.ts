@@ -30,18 +30,25 @@ interface NotifyHandler {
   (source: StateChangeSource, value: unknown): void;
 }
 
+export interface StatePollerOptions {
+  notifyChangeSupported: boolean;
+}
+
 export class StatePoller {
   private readonly notifyHandlers: Record<string, NotifyHandler>;
   private pollTimer?: NodeJS.Timeout;
   private notifyTimer?: NodeJS.Timeout;
   private lastState: NotifyChangeState = {};
   private stopped = false;
+  private readonly notifyChangeSupported: boolean;
 
   constructor(
     private readonly api: JointspaceApi,
     private readonly listener: StateChangeListener,
     private readonly log: LogFn,
+    options: StatePollerOptions = { notifyChangeSupported: true },
   ) {
+    this.notifyChangeSupported = options.notifyChangeSupported;
     this.notifyHandlers = {
       "powerstate": (s, v) => this.listener.handlePowerStateChange(s, v as PowerState),
       "audio/volume": (s, v) => this.listener.handleAudioChange(s, v as AudioData),
@@ -53,7 +60,11 @@ export class StatePoller {
 
   start(): void {
     this.stopped = false;
-    void this.runNotifyLoop();
+    if (this.notifyChangeSupported) {
+      void this.runNotifyLoop();
+    } else {
+      this.log("notifyChange not supported on this TV; relying on poll only");
+    }
     this.scheduleNextPoll(POLL_INTERVAL_MS);
   }
 
