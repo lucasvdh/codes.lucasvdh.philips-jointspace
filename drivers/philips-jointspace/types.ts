@@ -115,6 +115,10 @@ export interface PowerState {
   powerstate: "On" | "Standby" | string;
 }
 
+export interface ScreenState {
+  screenstate: "screenOn" | "screenOff" | string;
+}
+
 export interface AudioData {
   muted: boolean;
   current: number;

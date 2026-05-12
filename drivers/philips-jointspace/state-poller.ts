@@ -8,6 +8,7 @@ import {
   CurrentActivity,
   NotifyChangeState,
   PowerState,
+  ScreenState,
 } from "./types";
 import { OfflineError, ProtocolError } from "./errors";
 
@@ -19,6 +20,7 @@ export interface StateChangeListener {
   handleAmbiHueChange(source: StateChangeSource, state: AmbiHueState): void;
   handleAmbilightChange(source: StateChangeSource, state: AmbilightConfiguration): void;
   handleActivityChange(source: StateChangeSource, state: CurrentActivity): void;
+  handleScreenStateChange(source: StateChangeSource, state: ScreenState): void;
   onPollFailure(error: Error): void;
 }
 
@@ -56,6 +58,7 @@ export class StatePoller {
       "activities/current": (s, v) => this.listener.handleActivityChange(s, v as CurrentActivity),
       "huelamp/power": (s, v) => this.listener.handleAmbiHueChange(s, v as AmbiHueState),
       "ambilight/currentconfiguration": (s, v) => this.listener.handleAmbilightChange(s, v as AmbilightConfiguration),
+      "screenstate": (s, v) => this.listener.handleScreenStateChange(s, v as ScreenState),
     };
   }
 

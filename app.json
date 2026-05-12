@@ -2170,6 +2170,36 @@
       "uiComponent": "button",
       "uiQuickAction": true,
       "icon": "assets/capabilities/yellow.svg"
+    },
+    "screen_on": {
+      "type": "boolean",
+      "title": {
+        "en": "Screen",
+        "nl": "Scherm",
+        "de": "Bildschirm",
+        "fr": "Écran",
+        "it": "Schermo",
+        "sv": "Skärm",
+        "no": "Skjerm",
+        "es": "Pantalla",
+        "da": "Skærm",
+        "pl": "Ekran"
+      },
+      "desc": {
+        "en": "Turn the TV's screen off while keeping audio playing.",
+        "nl": "Zet het scherm van de tv uit zonder de audio te stoppen.",
+        "de": "Schalte den Bildschirm aus, ohne den Ton zu unterbrechen.",
+        "fr": "Éteindre l'écran du TV tout en gardant l'audio.",
+        "it": "Spegne lo schermo del TV mantenendo l'audio.",
+        "sv": "Stäng av skärmen utan att avbryta ljudet.",
+        "no": "Slå av skjermen uten å stoppe lyden.",
+        "es": "Apagar la pantalla del TV manteniendo el audio.",
+        "da": "Sluk skærmen uden at afbryde lyden.",
+        "pl": "Wyłącz ekran telewizora, zachowując dźwięk."
+      },
+      "getable": true,
+      "setable": true,
+      "uiComponent": "toggle"
     }
   },
   "discovery": {

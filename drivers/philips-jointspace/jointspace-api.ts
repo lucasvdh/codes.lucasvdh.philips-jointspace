@@ -27,6 +27,7 @@ import {
   PairRequestResponse,
   PowerState,
   Protocol,
+  ScreenState,
   SourcesMap,
   SystemInfo,
 } from "./types";
@@ -265,6 +266,14 @@ export class JointspaceApi {
         requireAuth: false,
       });
     }
+  }
+
+  async getScreenState(): Promise<ScreenState> {
+    return this.request<ScreenState>({ method: "GET", path: "screenstate" });
+  }
+
+  async setScreenState(state: "screenOn" | "screenOff"): Promise<void> {
+    await this.request<unknown>({ method: "POST", path: "screenstate", data: { screenstate: state } });
   }
 
   async getAudioData(): Promise<AudioData> {

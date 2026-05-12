@@ -17,6 +17,7 @@ import {
   JointspaceConfig,
   JointspaceCredentials,
   PowerState,
+  ScreenState,
 } from "./types";
 
 const CAPABILITY_DEBOUNCE_MS = 100;
@@ -114,6 +115,9 @@ const REMOVED_CAPABILITIES = ["speaker_playing"] as const;
 const STORE_OS_TYPE = "osType";
 const STORE_NOTIFY_CHANGE_SUPPORTED = "notifyChangeSupported";
 const STORE_LAST_AMBILIGHT_MODE = "lastSetAmbilightMode";
+const STORE_SCREEN_STATE_SUPPORTED = "screenStateSupported";
+
+const CAPABILITY_SCREEN_ON = "screen_on";
 
 class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   private api!: JointspaceApi;
@@ -138,6 +142,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     });
 
     this.registerCapabilityListeners();
+    await this.applyScreenStateCapability();
     await this.setVolumeSliderBounds();
 
     // If we don't hear from the TV within INIT_OFF_FALLBACK_MS, assume it's
@@ -472,6 +477,15 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       .catch(this.error.bind(this));
   }
 
+  handleScreenStateChange(source: StateChangeSource, state: ScreenState): void {
+    if (!this.hasCapability(CAPABILITY_SCREEN_ON)) return;
+    const on = state.screenstate === "screenOn";
+    if (this.getCapabilityValue(CAPABILITY_SCREEN_ON) !== on) {
+      this.log(`Screen state -> ${on ? "on" : "off"} (${source})`);
+      this.setCapabilityValue(CAPABILITY_SCREEN_ON, on).catch(this.error.bind(this));
+    }
+  }
+
   onPollFailure(error: Error): void {
     if (this.getCapabilityValue("onoff")) {
       this.log("Poll failed; marking TV off:", error.message);
@@ -516,6 +530,8 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       await this.setStoreValue(STORE_OS_TYPE, osType);
       await this.setStoreValue(STORE_NOTIFY_CHANGE_SUPPORTED, notifyChangeSupported);
 
+      await this.probeScreenStateSupport();
+
       const transport = extractTransportConfig(system);
       const settingsUpdate: Partial<DeviceSettings> = {};
       if (transport.apiVersion !== this.deviceSettings.apiVersion) settingsUpdate.apiVersion = transport.apiVersion;
@@ -534,9 +550,74 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
 
   private scheduleSystemReprobe(): void {
     this.systemReprobeTimer = setTimeout(() => {
-      void this.refreshSystemMetadata().finally(() => this.scheduleSystemReprobe());
+      void this.refreshSystemMetadata()
+        .then(() => this.applyScreenStateCapability())
+        .finally(() => this.scheduleSystemReprobe());
     }, SYSTEM_REPROBE_INTERVAL_MS);
   }
+
+  /**
+   * Probes GET /screenstate to decide whether this TV exposes the
+   * screen-only-off mode. Only writes the store flag; the capability
+   * itself is added/removed by applyScreenStateCapability(). Called from
+   * refreshSystemMetadata so the result lands alongside osType /
+   * notifyChange support.
+   */
+  private async probeScreenStateSupport(): Promise<void> {
+    try {
+      const state = await this.api.getScreenState();
+      const supported = typeof state?.screenstate === "string" && state.screenstate.length > 0;
+      await this.setStoreValue(STORE_SCREEN_STATE_SUPPORTED, supported);
+      if (supported && this.hasCapability(CAPABILITY_SCREEN_ON)) {
+        const on = state.screenstate === "screenOn";
+        if (this.getCapabilityValue(CAPABILITY_SCREEN_ON) !== on) {
+          await this.setCapabilityValue(CAPABILITY_SCREEN_ON, on);
+        }
+      }
+    } catch {
+      // 404 / 503 here is the normal "screen state not supported" signal.
+      // Stay silent; hourly probe would otherwise spam logs.
+      await this.setStoreValue(STORE_SCREEN_STATE_SUPPORTED, false);
+    }
+  }
+
+  /**
+   * Add or remove the screen_on capability based on the cached probe
+   * result. Adding also wires the capability listener. Removal happens
+   * silently. Called at onInit (from the cached flag) and after every
+   * probe.
+   */
+  private async applyScreenStateCapability(): Promise<void> {
+    const supported = (this.getStoreValue(STORE_SCREEN_STATE_SUPPORTED) as boolean | null) ?? false;
+    const present = this.hasCapability(CAPABILITY_SCREEN_ON);
+    if (supported && !present) {
+      await this.addCapability(CAPABILITY_SCREEN_ON).catch((err: Error) =>
+        this.error(`addCapability(${CAPABILITY_SCREEN_ON}) failed:`, err),
+      );
+      this.registerCapabilityListener(CAPABILITY_SCREEN_ON, (value: boolean) =>
+        this.onCapabilityScreenOnSet(value),
+      );
+    } else if (!supported && present) {
+      await this.removeCapability(CAPABILITY_SCREEN_ON).catch((err: Error) =>
+        this.error(`removeCapability(${CAPABILITY_SCREEN_ON}) failed:`, err),
+      );
+    } else if (present) {
+      // Capability was added in a previous run; listener was registered
+      // there and persists across restarts via Homey's internal state, so
+      // we don't re-register here. Re-registering is a no-op or throws on
+      // some SDK versions, which is why we gate it on the !present branch.
+    }
+  }
+
+  private async onCapabilityScreenOnSet(value: boolean): Promise<void> {
+    try {
+      await this.api.setScreenState(value ? "screenOn" : "screenOff");
+    } catch (err) {
+      this.error(`setScreenState(${value}) failed`, err);
+      throw err;
+    }
+  }
+
 
   private async migrateCapabilities(): Promise<void> {
     for (const capability of NEW_CAPABILITIES) {
