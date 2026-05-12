@@ -54,12 +54,10 @@ will prompt for a pairing PIN displayed on the screen.
 
 ## Reporting issues
 
-If pairing or device behaviour breaks, please open an issue with:
-
-- TV model + firmware version (Settings → Help → Software info)
-- The output of `https://<TV-IP>:1926/6/system` (or `:1925/1/system` on older
-  TVs) so we can see the API features your set advertises
-- A Homey diagnostic report ID if you have one
+Please attach a diagnostic report when opening an issue. It captures
+everything we need to triage in one paste.
+See [DIAGNOSE.md](DIAGNOSE.md) for two ways to generate one (the
+recommended path runs from inside the Homey app, no install required).
 
 Community thread: <https://community.athom.com/t/philips-tv-testing/14064>
 

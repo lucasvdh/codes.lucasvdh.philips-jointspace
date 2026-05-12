@@ -67,5 +67,17 @@
   "homeyCommunityTopicId": 14064,
   "source": "https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace",
   "homepage": "https://homey-philips-tv.gitbook.io/homey-philips-tv/",
-  "support": "https://homey-philips-tv.gitbook.io/homey-philips-tv/overview/faq"
+  "support": "https://homey-philips-tv.gitbook.io/homey-philips-tv/overview/faq",
+  "api": {
+    "listDevices": {
+      "method": "get",
+      "path": "/devices",
+      "public": false
+    },
+    "generateReport": {
+      "method": "post",
+      "path": "/report",
+      "public": false
+    }
+  }
 }

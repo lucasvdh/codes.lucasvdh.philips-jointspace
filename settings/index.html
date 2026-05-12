@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script type="text/javascript" src="/homey.js" data-origin="settings"></script>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    body { padding: 1rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    h1 { font-size: 1.2rem; margin: 0 0 0.5rem 0; }
+    p.lead { color: #555; margin: 0 0 1.25rem 0; line-height: 1.4; font-size: 0.92rem; }
+    .row { display: flex; gap: 0.5rem; align-items: stretch; margin-bottom: 0.75rem; flex-wrap: wrap; }
+    select { flex: 1 1 200px; min-width: 0; max-width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; text-overflow: ellipsis; }
+    button { padding: 0.5rem 1rem; border-radius: 4px; border: 1px solid #2A63CC; background: #2A63CC; color: white; cursor: pointer; font-size: 0.95rem; }
+    button.secondary { background: white; color: #2A63CC; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    button:not(:disabled):hover { filter: brightness(1.05); }
+    textarea { width: 100%; height: 320px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.78rem; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .status { margin-top: 0.5rem; padding: 0.5rem; border-radius: 4px; font-size: 0.88rem; display: none; }
+    .status.show { display: block; }
+    .status.ok { background: #e6f4ea; color: #1e6c33; }
+    .status.err { background: #fce8e8; color: #9b2222; }
+    .footer { margin-top: 1rem; font-size: 0.82rem; color: #666; line-height: 1.5; }
+    .footer code { background: #f1f1f1; padding: 0.1rem 0.3rem; border-radius: 3px; }
+  </style>
+</head>
+<body>
+<h1>Diagnostic report</h1>
+<p class="lead">
+  Generates a snapshot of one paired TV: its settings, cached state, capability values, and the result of probing every Jointspace endpoint we use. The report stays on your device; nothing is auto-sent. Use it when reporting an issue.
+</p>
+
+<div class="row">
+  <select id="device"></select>
+  <button id="generate">Generate report</button>
+</div>
+<textarea id="output" placeholder="The report will appear here after you click 'Generate report'." readonly></textarea>
+<div class="row" style="margin-top: 0.5rem;">
+  <button id="copy" class="secondary" disabled>Copy to clipboard</button>
+</div>
+<div id="status" class="status"></div>
+
+<p class="footer">
+  Paste the copied report into a new <a href="https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues/new" target="_blank">GitHub issue</a>. The report contains your TV's local IP, MAC address and model serial - these are only useful on your home network, not a security risk to share. If you'd rather strip them before sharing, edit the text after pasting.
+</p>
+
+<script>
+  function onHomeyReady(Homey) {
+    const deviceSelect = document.getElementById('device');
+    const generateBtn = document.getElementById('generate');
+    const copyBtn = document.getElementById('copy');
+    const output = document.getElementById('output');
+    const status = document.getElementById('status');
+
+    function showStatus(kind, msg) {
+      status.className = 'status show ' + kind;
+      status.textContent = msg;
+    }
+
+    function clearStatus() {
+      status.className = 'status';
+      status.textContent = '';
+    }
+
+    Homey.api('GET', '/devices', null, function (err, devices) {
+      if (err) {
+        showStatus('err', 'Could not list devices: ' + (err.message || err));
+        generateBtn.disabled = true;
+        return;
+      }
+      if (!devices || devices.length === 0) {
+        showStatus('err', 'No paired TVs found. Pair a Philips TV first, then come back here.');
+        generateBtn.disabled = true;
+        return;
+      }
+      devices.forEach(function (d) {
+        const opt = document.createElement('option');
+        opt.value = d.id;
+        opt.textContent = d.name;
+        opt.title = d.id; // full id still visible on hover
+        deviceSelect.appendChild(opt);
+      });
+    });
+
+    generateBtn.addEventListener('click', function () {
+      clearStatus();
+      const deviceId = deviceSelect.value;
+      if (!deviceId) {
+        showStatus('err', 'Pick a device first.');
+        return;
+      }
+      generateBtn.disabled = true;
+      generateBtn.textContent = 'Running probes…';
+      output.value = '';
+      copyBtn.disabled = true;
+
+      Homey.api('POST', '/report', { deviceId: deviceId }, function (err, result) {
+        generateBtn.disabled = false;
+        generateBtn.textContent = 'Generate report';
+        if (err) {
+          showStatus('err', 'Report failed: ' + (err.message || err));
+          return;
+        }
+        output.value = (result && result.markdown) || '';
+        copyBtn.disabled = false;
+        showStatus('ok', 'Report ready. Copy it and paste into a new GitHub issue.');
+      });
+    });
+
+    copyBtn.addEventListener('click', function () {
+      clearStatus();
+      if (!output.value) return;
+      const finish = function (ok) {
+        if (ok) showStatus('ok', 'Copied to clipboard.');
+        else showStatus('err', 'Could not copy automatically - select the text manually and copy.');
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(output.value).then(function () { finish(true); }, function () { finish(false); });
+      } else {
+        output.select();
+        try { finish(document.execCommand('copy')); } catch (e) { finish(false); }
+      }
+    });
+
+    Homey.ready();
+  }
+</script>
+</body>
+</html>
