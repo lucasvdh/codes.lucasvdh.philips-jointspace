@@ -6,9 +6,14 @@
     html, body { height: 100%; margin: 0; }
     body { padding: 1rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     h1 { font-size: 1.2rem; margin: 0 0 0.5rem 0; }
-    p.lead { color: #555; margin: 0 0 1.25rem 0; line-height: 1.4; font-size: 0.92rem; }
+    p.lead { color: #555; margin: 0 0 1rem 0; line-height: 1.4; font-size: 0.92rem; }
+    .tabs { display: flex; gap: 0.25rem; margin-bottom: 1rem; border-bottom: 1px solid #ddd; }
+    .tab { padding: 0.5rem 0.9rem; cursor: pointer; border: 1px solid transparent; border-bottom: none; border-radius: 4px 4px 0 0; font-size: 0.92rem; color: #555; background: transparent; }
+    .tab.active { background: white; border-color: #ddd; color: #2A63CC; margin-bottom: -1px; }
+    .pane { display: none; }
+    .pane.active { display: block; }
     .row { display: flex; gap: 0.5rem; align-items: stretch; margin-bottom: 0.75rem; flex-wrap: wrap; }
-    select { flex: 1 1 200px; min-width: 0; max-width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; text-overflow: ellipsis; }
+    select, input[type="text"] { flex: 1 1 200px; min-width: 0; max-width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; text-overflow: ellipsis; }
     button { padding: 0.5rem 1rem; border-radius: 4px; border: 1px solid #2A63CC; background: #2A63CC; color: white; cursor: pointer; font-size: 0.95rem; }
     button.secondary { background: white; color: #2A63CC; }
     button:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -19,20 +24,37 @@
     .status.ok { background: #e6f4ea; color: #1e6c33; }
     .status.err { background: #fce8e8; color: #9b2222; }
     .footer { margin-top: 1rem; font-size: 0.82rem; color: #666; line-height: 1.5; }
-    .footer code { background: #f1f1f1; padding: 0.1rem 0.3rem; border-radius: 3px; }
+    .hint { color: #666; font-size: 0.82rem; margin: -0.25rem 0 0.75rem 0; }
   </style>
 </head>
 <body>
 <h1>Diagnostic report</h1>
 <p class="lead">
-  Generates a snapshot of one paired TV: its settings, cached state, capability values, and the result of probing every Jointspace endpoint we use. The report stays on your device; nothing is auto-sent. Use it when reporting an issue.
+  Generates a snapshot of one TV: settings, cached state, capability values and the result of probing every Jointspace endpoint we use. The report stays on your device; nothing is auto-sent. Use it when reporting an issue.
 </p>
 
-<div class="row">
-  <select id="device"></select>
-  <button id="generate">Generate report</button>
+<div class="tabs">
+  <button class="tab active" data-tab="paired">Paired device</button>
+  <button class="tab" data-tab="ip">By IP address</button>
 </div>
-<textarea id="output" placeholder="The report will appear here after you click 'Generate report'." readonly></textarea>
+
+<div class="pane active" id="pane-paired">
+  <div class="row">
+    <select id="device"></select>
+    <button id="generate">Generate report</button>
+  </div>
+  <p class="hint">Use this when the TV is paired with Homey, even if it's currently marked unavailable.</p>
+</div>
+
+<div class="pane" id="pane-ip">
+  <div class="row">
+    <input id="ip" type="text" placeholder="e.g. 192.168.1.42" />
+    <button id="generate-ip">Probe IP</button>
+  </div>
+  <p class="hint">Use this when discovery / pairing fails so option A isn't available yet. Only unauthenticated endpoints are probed.</p>
+</div>
+
+<textarea id="output" placeholder="The report will appear here after you click 'Generate report' / 'Probe IP'." readonly></textarea>
 <div class="row" style="margin-top: 0.5rem;">
   <button id="copy" class="secondary" disabled>Copy to clipboard</button>
 </div>
@@ -46,6 +68,8 @@
   function onHomeyReady(Homey) {
     const deviceSelect = document.getElementById('device');
     const generateBtn = document.getElementById('generate');
+    const ipInput = document.getElementById('ip');
+    const generateIpBtn = document.getElementById('generate-ip');
     const copyBtn = document.getElementById('copy');
     const output = document.getElementById('output');
     const status = document.getElementById('status');
@@ -54,11 +78,20 @@
       status.className = 'status show ' + kind;
       status.textContent = msg;
     }
-
     function clearStatus() {
       status.className = 'status';
       status.textContent = '';
     }
+
+    document.querySelectorAll('.tab').forEach(function (t) {
+      t.addEventListener('click', function () {
+        document.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('active'); });
+        document.querySelectorAll('.pane').forEach(function (x) { x.classList.remove('active'); });
+        t.classList.add('active');
+        document.getElementById('pane-' + t.dataset.tab).classList.add('active');
+        clearStatus();
+      });
+    });
 
     Homey.api('GET', '/devices', null, function (err, devices) {
       if (err) {
@@ -67,7 +100,7 @@
         return;
       }
       if (!devices || devices.length === 0) {
-        showStatus('err', 'No paired TVs found. Pair a Philips TV first, then come back here.');
+        deviceSelect.innerHTML = '<option disabled selected>No paired TVs found</option>';
         generateBtn.disabled = true;
         return;
       }
@@ -75,26 +108,21 @@
         const opt = document.createElement('option');
         opt.value = d.id;
         opt.textContent = d.name;
-        opt.title = d.id; // full id still visible on hover
+        opt.title = d.id;
         deviceSelect.appendChild(opt);
       });
     });
 
-    generateBtn.addEventListener('click', function () {
+    function runReport(button, runningLabel, restoreLabel, call) {
       clearStatus();
-      const deviceId = deviceSelect.value;
-      if (!deviceId) {
-        showStatus('err', 'Pick a device first.');
-        return;
-      }
-      generateBtn.disabled = true;
-      generateBtn.textContent = 'Running probes…';
+      const originalLabel = button.textContent;
+      button.disabled = true;
+      button.textContent = runningLabel;
       output.value = '';
       copyBtn.disabled = true;
-
-      Homey.api('POST', '/report', { deviceId: deviceId }, function (err, result) {
-        generateBtn.disabled = false;
-        generateBtn.textContent = 'Generate report';
+      call(function (err, result) {
+        button.disabled = false;
+        button.textContent = restoreLabel || originalLabel;
         if (err) {
           showStatus('err', 'Report failed: ' + (err.message || err));
           return;
@@ -102,6 +130,28 @@
         output.value = (result && result.markdown) || '';
         copyBtn.disabled = false;
         showStatus('ok', 'Report ready. Copy it and paste into a new GitHub issue.');
+      });
+    }
+
+    generateBtn.addEventListener('click', function () {
+      const deviceId = deviceSelect.value;
+      if (!deviceId) {
+        showStatus('err', 'Pick a device first.');
+        return;
+      }
+      runReport(generateBtn, 'Running probes…', 'Generate report', function (cb) {
+        Homey.api('POST', '/report', { deviceId: deviceId }, cb);
+      });
+    });
+
+    generateIpBtn.addEventListener('click', function () {
+      const ip = (ipInput.value || '').trim();
+      if (!ip) {
+        showStatus('err', 'Enter an IP address first.');
+        return;
+      }
+      runReport(generateIpBtn, 'Probing…', 'Probe IP', function (cb) {
+        Homey.api('POST', '/probe-ip', { ip: ip }, cb);
       });
     });
 

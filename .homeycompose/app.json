@@ -1,6 +1,6 @@
 {
   "id": "codes.lucasvdh.philips-jointspace",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "compatibility": ">=12.2.0",
   "sdk": 3,
   "platforms": [
@@ -77,6 +77,11 @@
     "generateReport": {
       "method": "post",
       "path": "/report",
+      "public": false
+    },
+    "probeByIp": {
+      "method": "post",
+      "path": "/probe-ip",
       "public": false
     }
   }

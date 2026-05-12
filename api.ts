@@ -1,4 +1,11 @@
-import { generateDeviceReport, renderMarkdown, DiscoverySnapshot, NetworkSnapshot } from "./drivers/philips-jointspace/diagnostic";
+import {
+  generateDeviceReport,
+  generateIpReport,
+  renderMarkdown,
+  DiscoverySnapshot,
+  NetworkSnapshot,
+} from "./drivers/philips-jointspace/diagnostic";
+import { JointspaceApi } from "./drivers/philips-jointspace/jointspace-api";
 
 const DRIVER_ID = "philips-jointspace";
 
@@ -8,6 +15,10 @@ interface ApiArgs {
 
 interface ReportArgs extends ApiArgs {
   body: { deviceId: string };
+}
+
+interface ProbeIpArgs extends ApiArgs {
+  body: { ip: string };
 }
 
 interface DeviceLite {
@@ -49,18 +60,52 @@ module.exports = {
 
     return { markdown: renderMarkdown(report) };
   },
+
+  async probeByIp({ homey, body }: ProbeIpArgs): Promise<{ markdown: string }> {
+    const ip = String(body?.ip ?? "").trim();
+    if (!ip) throw new Error("ip is required");
+    if (!/^\d{1,3}(\.\d{1,3}){3}$/.test(ip)) throw new Error(`"${ip}" doesn't look like an IPv4 address`);
+
+    const api = new JointspaceApi({ host: ip, apiVersion: 1, secured: false, port: 1925 });
+    const report = await generateIpReport({
+      ip,
+      api,
+      appVersion: String(homey.manifest?.version ?? "unknown"),
+      homeyFirmwareVersion: typeof homey.version === "string" ? homey.version : undefined,
+      homeyPlatform: typeof homey.platform === "string" ? homey.platform : undefined,
+      network: await collectNetworkForIp(homey, ip),
+      discovery: collectDiscovery(homey),
+    });
+
+    return { markdown: renderMarkdown(report) };
+  },
 };
+
+async function collectNetworkForIp(homey: any, ip: string): Promise<NetworkSnapshot> {
+  try {
+    const mac = await Promise.race([
+      homey.arp.getMAC(ip),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("ARP lookup timed out after 2s")), 2000),
+      ),
+    ]);
+    return { ip, arpMac: typeof mac === "string" && mac.length > 0 ? mac : undefined };
+  } catch (err) {
+    return { ip, arpError: humaniseArpError((err as Error).message) };
+  }
+}
 
 async function collectNetwork(homey: any, device: any): Promise<NetworkSnapshot | undefined> {
   const settings = device.getSettings?.() ?? {};
   const ip: string | undefined = settings.ipAddress;
   if (!ip) return undefined;
-  try {
-    const mac = await homey.arp.getMAC(ip);
-    return { ip, arpMac: typeof mac === "string" && mac.length > 0 ? mac : undefined };
-  } catch (err) {
-    return { ip, arpError: (err as Error).message };
-  }
+  return collectNetworkForIp(homey, ip);
+}
+
+function humaniseArpError(message: string): string {
+  if (message.includes("ping")) return "TV did not respond to ARP probe (likely powered off)";
+  if (message.includes("timed out")) return "ARP lookup timed out";
+  return message;
 }
 
 function collectDiscovery(homey: any): DiscoverySnapshot | undefined {

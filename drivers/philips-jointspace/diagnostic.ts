@@ -42,7 +42,9 @@ export interface DiagnosticReport {
   appVersion: string;
   homeyFirmwareVersion?: string;
   homeyPlatform?: string;
-  device: DeviceSnapshot;
+  scope: "paired-device" | "ip-only";
+  scopeTarget: string;
+  device?: DeviceSnapshot;
   network?: NetworkSnapshot;
   discovery?: DiscoverySnapshot;
   probes: ProbeResult[];
@@ -76,10 +78,43 @@ export async function generateDeviceReport(opts: {
     appVersion,
     homeyFirmwareVersion,
     homeyPlatform,
+    scope: "paired-device",
+    scopeTarget: device.getName(),
     device: snapshotDevice(device),
     network,
     discovery,
     probes: await runProbes(api),
+  };
+}
+
+/**
+ * Build a report against an IP address only, used when the TV refuses to
+ * pair or when discovery never finds it. We can only run the handful of
+ * probes that don't require credentials (which means: getSystem and not
+ * much else), so the body is intentionally thinner than the paired-device
+ * report.
+ */
+export async function generateIpReport(opts: {
+  ip: string;
+  api: JointspaceApi;
+  appVersion: string;
+  homeyFirmwareVersion?: string;
+  homeyPlatform?: string;
+  discovery?: DiscoverySnapshot;
+  network?: NetworkSnapshot;
+}): Promise<DiagnosticReport> {
+  const { ip, api, appVersion, homeyFirmwareVersion, homeyPlatform, discovery, network } = opts;
+
+  return {
+    generatedAt: new Date().toISOString(),
+    appVersion,
+    homeyFirmwareVersion,
+    homeyPlatform,
+    scope: "ip-only",
+    scopeTarget: ip,
+    network,
+    discovery,
+    probes: await runUnauthenticatedProbes(api),
   };
 }
 
@@ -186,6 +221,20 @@ async function runProbes(api: JointspaceApi): Promise<ProbeResult[]> {
   );
 }
 
+async function runUnauthenticatedProbes(api: JointspaceApi): Promise<ProbeResult[]> {
+  const probes: Array<{ label: string; method: "GET" | "POST"; endpoint: string; runner: ProbeRunner }> = [
+    {
+      label: "System info",
+      method: "GET",
+      endpoint: "/system (HTTP/1925 → HTTPS/1926 fallback)",
+      runner: async () => ({ result: await api.getSystem() }),
+    },
+  ];
+  return Promise.all(
+    probes.map((p) => runProbe(p.label, p.method, p.endpoint, p.runner)),
+  );
+}
+
 async function runProbe(
   label: string,
   method: "GET" | "POST",
@@ -247,46 +296,52 @@ function summariseResponse(value: unknown): string {
 
 export function renderMarkdown(report: DiagnosticReport): string {
   const lines: string[] = [];
+  const scopeHeader = report.scope === "paired-device"
+    ? `paired device "${report.scopeTarget}"`
+    : `IP address \`${report.scopeTarget}\` (no paired device)`;
   lines.push("# Philips TV diagnostic report");
   lines.push("");
   lines.push(`- Generated: ${report.generatedAt}`);
   lines.push(`- App version: ${report.appVersion}`);
   if (report.homeyFirmwareVersion) lines.push(`- Homey firmware: ${report.homeyFirmwareVersion}`);
   if (report.homeyPlatform) lines.push(`- Homey platform: ${report.homeyPlatform}`);
+  lines.push(`- Scope: ${scopeHeader}`);
   lines.push("");
 
-  lines.push("## Device snapshot");
-  lines.push("");
-  lines.push(`- Name: ${report.device.name}`);
-  lines.push(`- Data id: ${report.device.id}`);
-  lines.push(`- MAC: ${report.device.mac ?? "-"}`);
-  lines.push(`- Has credentials: ${report.device.hasCredentials ? "yes" : "no"}`);
-  lines.push("");
-  lines.push("### Settings");
-  lines.push("```json");
-  lines.push(JSON.stringify(report.device.settings, null, 2));
-  lines.push("```");
-  lines.push("");
-  lines.push("### Store");
-  lines.push("```json");
-  lines.push(JSON.stringify(report.device.store, null, 2));
-  lines.push("```");
-  lines.push("");
-  const stateful = report.device.capabilities.filter((c) => c.value !== null && c.value !== undefined);
-  const stateless = report.device.capabilities.filter((c) => c.value === null || c.value === undefined);
-  lines.push(`### Capabilities (${report.device.capabilities.length} total, ${stateful.length} with state)`);
-  for (const cap of stateful) {
-    lines.push(`- \`${cap.id}\` = ${JSON.stringify(cap.value)}`);
+  if (report.device) {
+    const device = report.device;
+    lines.push("## Device snapshot");
+    lines.push("");
+    lines.push(`- Name: ${device.name}`);
+    lines.push(`- Data id: ${device.id}`);
+    lines.push(`- Has credentials: ${device.hasCredentials ? "yes" : "no"}`);
+    lines.push("");
+    lines.push("### Settings");
+    lines.push("```json");
+    lines.push(JSON.stringify(device.settings, null, 2));
+    lines.push("```");
+    lines.push("");
+    lines.push("### Store");
+    lines.push("```json");
+    lines.push(JSON.stringify(device.store, null, 2));
+    lines.push("```");
+    lines.push("");
+    const stateful = device.capabilities.filter((c) => c.value !== null && c.value !== undefined);
+    const stateless = device.capabilities.filter((c) => c.value === null || c.value === undefined);
+    lines.push(`### Capabilities (${device.capabilities.length} total, ${stateful.length} with state)`);
+    for (const cap of stateful) {
+      lines.push(`- \`${cap.id}\` = ${JSON.stringify(cap.value)}`);
+    }
+    if (stateless.length > 0) {
+      lines.push("");
+      lines.push(`<details><summary>${stateless.length} stateless capabilities (write-only keys / triggers)</summary>`);
+      lines.push("");
+      lines.push(stateless.map((c) => `\`${c.id}\``).join(", "));
+      lines.push("");
+      lines.push("</details>");
+    }
+    lines.push("");
   }
-  if (stateless.length > 0) {
-    lines.push("");
-    lines.push(`<details><summary>${stateless.length} stateless capabilities (write-only keys / triggers)</summary>`);
-    lines.push("");
-    lines.push(stateless.map((c) => `\`${c.id}\``).join(", "));
-    lines.push("");
-    lines.push("</details>");
-  }
-  lines.push("");
 
   if (report.network) {
     lines.push("## Network");

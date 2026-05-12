@@ -1,4 +1,16 @@
 {
+  "3.3.0": {
+    "en": "Adds a diagnostic report page in app settings to make reporting issues easier.",
+    "nl": "Voegt een diagnose-rapportpagina toe aan de app-instellingen zodat issues makkelijker te melden zijn.",
+    "de": "Fügt eine Diagnoseberichts-Seite in den App-Einstellungen hinzu, damit Probleme einfacher gemeldet werden können.",
+    "fr": "Ajoute une page de rapport de diagnostic dans les paramètres de l'application pour faciliter le signalement des problèmes.",
+    "it": "Aggiunge una pagina di rapporto diagnostico nelle impostazioni dell'app per facilitare la segnalazione dei problemi.",
+    "sv": "Lägger till en diagnosrapportsida i appens inställningar för att göra det enklare att rapportera problem.",
+    "no": "Legger til en diagnoserapportside i app-innstillingene for å gjøre det enklere å rapportere problemer.",
+    "es": "Añade una página de informe de diagnóstico en los ajustes de la app para facilitar el reporte de problemas.",
+    "da": "Tilføjer en diagnoserapportside i app-indstillingerne for at gøre fejlrapportering nemmere.",
+    "pl": "Dodaje stronę raportu diagnostycznego w ustawieniach aplikacji, ułatwiając zgłaszanie problemów."
+  },
   "3.2.0": {
     "en": "Adds an optional screen on/off toggle on TVs that support it (audio keeps playing).",
     "nl": "Voegt een optionele scherm aan/uit-knop toe op tv's die dat ondersteunen (geluid blijft aan).",

@@ -9,20 +9,31 @@ There are two ways to generate one. Pick whichever matches your situation.
 
 ## Option A: in the Homey app (recommended)
 
-Use this when the TV is already paired with Homey, even if it's currently
-misbehaving or marked unavailable.
+Open the Homey mobile or web app, go to
+**More** → **Apps** → **Philips TV** → **Settings**. There are two tabs:
 
-1. Open the Homey mobile app or the web app.
-2. Go to **More** → **Apps** → **Philips TV** → **Settings**.
-3. If you have multiple Philips TVs, pick the one with the problem from
-   the dropdown.
-4. Click **Generate report**. It takes about five seconds.
-5. Click **Copy to clipboard**.
-6. Paste the report into a [new GitHub issue](https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues/new).
+**Paired device**: use this when the TV is paired with Homey, even if it's
+currently misbehaving or marked unavailable.
 
-## Option B: standalone script (for pairing issues)
+1. Pick the TV from the dropdown.
+2. Click **Generate report**. Takes about five seconds.
+3. Click **Copy to clipboard** and paste into a
+   [new GitHub issue](https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues/new).
 
-Use this when the TV won't pair at all, so option A isn't available yet.
+**By IP address**: use this when the TV won't pair or wasn't discovered,
+so there's nothing to pick from the dropdown. Only the unauthenticated
+endpoints are probed; the report is shorter but still tells us whether
+your TV speaks Jointspace and which API version it advertises.
+
+1. Switch to the **By IP address** tab.
+2. Enter the TV's IP address.
+3. Click **Probe IP**, then **Copy to clipboard** and paste into a
+   [new GitHub issue](https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues/new).
+
+## Option B: standalone script (no Homey required)
+
+Use this if you can't get to the Homey app for some reason, or if you want
+to probe a TV that Homey can't reach but your computer can.
 You'll need Node.js 18 or newer installed on your computer. The computer
 needs to be on the same Wi-Fi/LAN as the TV.
 
