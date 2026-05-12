@@ -1,4 +1,16 @@
 {
+  "3.1.1": {
+    "en": "Fixes pairing on TV models that only expose the system endpoint over HTTPS. The current-application capability is now cleared when the TV is turned off.",
+    "nl": "Fix koppelen op tv-modellen die het systeem-endpoint alleen via HTTPS aanbieden. De huidige-app-capability wordt nu leeggemaakt als de tv uit gaat.",
+    "de": "Behebt das Koppeln von TV-Modellen, die den System-Endpunkt nur über HTTPS bereitstellen. Die Aktuelle-App-Anzeige wird jetzt zurückgesetzt, wenn der TV ausgeschaltet wird.",
+    "fr": "Corrige le couplage des TV qui n'exposent le point d'accès système qu'en HTTPS. La capacité application-en-cours est désormais effacée quand la TV s'éteint.",
+    "it": "Risolve l'accoppiamento sui TV che espongono l'endpoint di sistema solo via HTTPS. La capacità app-corrente viene ora azzerata quando il TV si spegne.",
+    "sv": "Fixar parning på TV-modeller som bara exponerar systemslutpunkten via HTTPS. Aktuell-app-funktionen nollställs nu när TV:n stängs av.",
+    "no": "Fikser paring på TV-modeller som kun eksponerer systemendepunktet via HTTPS. Gjeldende-app-funksjonen nullstilles nå når TV-en slås av.",
+    "es": "Corrige el emparejamiento en TVs que solo exponen el endpoint de sistema por HTTPS. La capacidad de app-actual se restablece ahora cuando el TV se apaga.",
+    "da": "Retter parring på tv-modeller, der kun eksponerer systemendepunktet via HTTPS. Nuværende-app-funktionen nulstilles nu, når tv'et slukkes.",
+    "pl": "Naprawia parowanie telewizorów, które udostępniają endpoint systemowy tylko przez HTTPS. Funkcja bieżącej aplikacji jest teraz czyszczona po wyłączeniu telewizora."
+  },
   "3.1.0": {
     "en": "Adds channel switching, proper source switching on legacy TVs, and several reliability improvements.",
     "nl": "Voegt kanaalwisseling, echte input-schakeling op oudere tv's en diverse stabiliteitsverbeteringen toe.",

@@ -127,15 +127,29 @@ export class JointspaceApi {
   // --- public API -------------------------------------------------------
 
   /**
-   * System info is always exposed on HTTP/1925 even on Android TVs; some
-   * models will not serve it over the secured transport.
+   * Most TVs expose system info on HTTP/1925 unauthenticated, even Android
+   * models. Some sets (e.g. 43PUS8546, reported in PR #41) return HTTP 200
+   * with an empty body on /1925/system and only serve real data on
+   * HTTPS/1926/system. Try the standard endpoint first, fall back to the
+   * secured one when the body parses to nothing useful.
    */
   async getSystem(): Promise<SystemInfo> {
-    return this.request<SystemInfo>({
+    const primary = await this.request<SystemInfo>({
       method: "GET",
       path: "system",
       port: HTTP_PORT,
       protocol: "http",
+      prefixApiVersion: false,
+      requireAuth: false,
+    });
+    if (primary?.api_version?.Major) return primary;
+
+    if (this.debug) this.log("HTTP/1925/system returned empty body, falling back to HTTPS/1926");
+    return this.request<SystemInfo>({
+      method: "GET",
+      path: "system",
+      port: HTTPS_PORT,
+      protocol: "https",
       prefixApiVersion: false,
       requireAuth: false,
     });

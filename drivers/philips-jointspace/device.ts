@@ -357,9 +357,16 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       this.initOffFallback = undefined;
     }
     const on = state.powerstate === "On";
-    if (this.getCapabilityValue("onoff") !== on) {
+    const wasOn = this.getCapabilityValue("onoff") as boolean | null;
+    if (wasOn !== on) {
       this.log(`Power state -> ${on} (${source})`);
       this.setCapabilityValue("onoff", on).catch(this.error.bind(this));
+      // When the TV turns off, the previously-running app is no longer
+      // active — reset the capability so flows checking "current app is X"
+      // don't misfire on a stale value.
+      if (!on && this.getCapabilityValue("current_application") !== null) {
+        this.setCapabilityValue("current_application", null).catch(this.error.bind(this));
+      }
     }
   }
 
