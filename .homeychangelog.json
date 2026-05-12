@@ -1,4 +1,16 @@
 {
+  "3.2.0": {
+    "en": "Adds an optional screen on/off toggle on TVs that support it (audio keeps playing).",
+    "nl": "Voegt een optionele scherm aan/uit-knop toe op tv's die dat ondersteunen (geluid blijft aan).",
+    "de": "Fügt einen optionalen Bildschirm-Ein/Aus-Schalter auf unterstützten TVs hinzu (Ton bleibt eingeschaltet).",
+    "fr": "Ajoute un interrupteur écran on/off optionnel sur les TV compatibles (le son reste actif).",
+    "it": "Aggiunge un interruttore schermo on/off opzionale sui TV compatibili (l'audio rimane attivo).",
+    "sv": "Lägger till en valfri skärm på/av-knapp på TV som stöder det (ljudet fortsätter spela).",
+    "no": "Legger til en valgfri skjerm på/av-knapp på TV-er som støtter det (lyden fortsetter).",
+    "es": "Añade un interruptor opcional de pantalla on/off en TVs compatibles (el audio sigue sonando).",
+    "da": "Tilføjer en valgfri skærm-til/fra-knap på understøttede tv (lyden fortsætter).",
+    "pl": "Dodaje opcjonalny przełącznik ekranu wł./wył. dla obsługujących telewizorów (dźwięk pozostaje włączony)."
+  },
   "3.1.1": {
     "en": "Fixes pairing on TV models that only expose the system endpoint over HTTPS. The current-application capability is now cleared when the TV is turned off.",
     "nl": "Fix koppelen op tv-modellen die het systeem-endpoint alleen via HTTPS aanbieden. De huidige-app-capability wordt nu leeggemaakt als de tv uit gaat.",
