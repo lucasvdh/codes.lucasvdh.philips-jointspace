@@ -20,7 +20,7 @@ export function osHasAmbilightModeQuirk(osType: string | null): boolean {
 }
 
 /**
- * The os_type field lives in two places depending on TV generation —
+ * The os_type field lives in two places depending on TV generation -
  * Android puts it at the root; Saphi nests it under
  * featuring.systemfeatures. Return whichever is present.
  */

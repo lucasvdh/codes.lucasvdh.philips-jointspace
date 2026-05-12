@@ -86,7 +86,7 @@ export class StatePoller {
         }
       } catch (err) {
         if (err instanceof ProtocolError) {
-          // TV closed the lingering connection — that's normal, loop again.
+          // TV closed the lingering connection - that's normal, loop again.
           continue;
         }
         if (err instanceof OfflineError) {
@@ -94,7 +94,7 @@ export class StatePoller {
           await this.delay(NOTIFY_RETRY_BACKOFF_MS);
           continue;
         }
-        // Unexpected error — log with detail, back off and retry.
+        // Unexpected error - log with detail, back off and retry.
         this.log("notifyChange failed", err);
         await this.delay(NOTIFY_RETRY_BACKOFF_MS);
       }

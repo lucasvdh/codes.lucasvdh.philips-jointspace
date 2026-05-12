@@ -65,17 +65,17 @@ Community thread: <https://community.athom.com/t/philips-tv-testing/14064>
 
 ## Changelog
 
-- **v3.0.0** — Major rewrite to TypeScript. Fixes the long-standing "app
+- **v3.0.0** - Major rewrite to TypeScript. Fixes the long-standing "app
   stops responding" cluster (background poller no longer dies on transient
   errors). Adds mDNS auto-discovery for Android TVs, channel up/down keys,
   more reliable power-on, working ambilight off on Android XTV firmware.
   Removes the unused `speaker_playing` capability. Requires Homey firmware
   12.2 or newer.
-- **v2.5.0** — More pairing-process translations and a new `Open Google
+- **v2.5.0** - More pairing-process translations and a new `Open Google
   Assistant` action.
-- **v2.4.0** — `set_ambilight_mode` action.
-- **v2.3.0** — Translations for `de`, `fr`, `it`, `sv`, `no`, `es`, `da`, `pl`.
-- **v2.2.0** — Automatic resolution of Jointspace version and authentication
+- **v2.4.0** - `set_ambilight_mode` action.
+- **v2.3.0** - Translations for `de`, `fr`, `it`, `sv`, `no`, `es`, `da`, `pl`.
+- **v2.2.0** - Automatic resolution of Jointspace version and authentication
   method during pairing.
-- **v2.1.0** — Pairing views aligned with Homey design.
-- **v2.0.0** — Homey SDK v3 upgrade.
+- **v2.1.0** - Pairing views aligned with Homey design.
+- **v2.0.0** - Homey SDK v3 upgrade.

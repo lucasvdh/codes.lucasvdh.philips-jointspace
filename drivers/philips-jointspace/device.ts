@@ -357,9 +357,16 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       this.initOffFallback = undefined;
     }
     const on = state.powerstate === "On";
-    if (this.getCapabilityValue("onoff") !== on) {
+    const wasOn = this.getCapabilityValue("onoff") as boolean | null;
+    if (wasOn !== on) {
       this.log(`Power state -> ${on} (${source})`);
       this.setCapabilityValue("onoff", on).catch(this.error.bind(this));
+      // When the TV turns off, the previously-running app is no longer
+      // active - reset the capability so flows checking "current app is X"
+      // don't misfire on a stale value.
+      if (!on && this.getCapabilityValue("current_application") !== null) {
+        this.setCapabilityValue("current_application", null).catch(this.error.bind(this));
+      }
     }
   }
 
@@ -375,7 +382,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
 
     // When muted, the TV reports volume 0. We need the pre-mute level to
     // restore it on unmute, so skip volume updates while muted. We also skip
-    // updates when the TV is off — speaker switches (TV / audio system)
+    // updates when the TV is off - speaker switches (TV / audio system)
     // change the reported volume independently.
     if (!muted && powerOn && currentVolume !== state.current) {
       this.log(`Volume ${currentVolume} -> ${state.current} (${source})`);
@@ -618,7 +625,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   private async onCapabilityAmbiHueOnOffSet(value: boolean): Promise<void> {
     // Some firmwares expect the AmbiHue toggle as a menu setting update
     // rather than the HueLamp/power endpoint. Keep the legacy menu-item
-    // path that was used before — POST to HueLamp/power doesn't actuate
+    // path that was used before - POST to HueLamp/power doesn't actuate
     // on every model.
     try {
       await this.api.setSetting({

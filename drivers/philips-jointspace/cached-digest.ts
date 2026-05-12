@@ -42,7 +42,7 @@ export class CachedDigestAuth {
     if (this.challenge) {
       const attempt = await this.axios.request(this.withAuthHeader(config, this.challenge));
       if (!this.is401(attempt)) return attempt;
-      // Cached challenge stale or rotated — fall through to fresh challenge.
+      // Cached challenge stale or rotated - fall through to fresh challenge.
       this.challenge = null;
       this.cachedHa1 = null;
     }
