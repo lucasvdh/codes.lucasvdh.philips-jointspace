@@ -32,7 +32,19 @@
     },
     {
       "name": "channel",
-      "type": "autocomplete"
+      "type": "autocomplete",
+      "title": {
+        "en": "Channel",
+        "nl": "Kanaal",
+        "de": "Kanal",
+        "fr": "Chaîne",
+        "it": "Canale",
+        "sv": "Kanal",
+        "no": "Kanal",
+        "es": "Canal",
+        "da": "Kanal",
+        "pl": "Kanał"
+      }
     }
   ]
 }

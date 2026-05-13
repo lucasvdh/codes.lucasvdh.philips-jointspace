@@ -33,6 +33,18 @@
     {
       "name": "mode",
       "type": "dropdown",
+      "title": {
+        "en": "Mode",
+        "nl": "Modus",
+        "de": "Modus",
+        "fr": "Mode",
+        "it": "Modalità",
+        "sv": "Läge",
+        "no": "Modus",
+        "es": "Modo",
+        "da": "Tilstand",
+        "pl": "Tryb"
+      },
       "values": [
         {
           "id": "color_hot_lava",

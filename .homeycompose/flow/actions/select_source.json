@@ -33,6 +33,18 @@
     {
       "name": "source",
       "type": "dropdown",
+      "title": {
+        "en": "Source",
+        "nl": "Bron",
+        "de": "Quelle",
+        "fr": "Source",
+        "it": "Sorgente",
+        "sv": "Källa",
+        "no": "Kilde",
+        "es": "Fuente",
+        "da": "Kilde",
+        "pl": "Źródło"
+      },
       "values": [
         {
           "id": "HDMI 1",

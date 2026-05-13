@@ -33,7 +33,19 @@
     },
     {
       "name": "app",
-      "type": "autocomplete"
+      "type": "autocomplete",
+      "title": {
+        "en": "App",
+        "nl": "App",
+        "de": "App",
+        "fr": "Application",
+        "it": "App",
+        "sv": "App",
+        "no": "App",
+        "es": "Aplicación",
+        "da": "App",
+        "pl": "Aplikacja"
+      }
     }
   ]
 }

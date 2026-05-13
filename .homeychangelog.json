@@ -1,4 +1,16 @@
 {
+  "3.5.2": {
+    "en": "Adds missing labels to Flow action fields, so each argument now shows a translated name in the Flow editor (App, Source, Channel, …) instead of its internal field name.",
+    "nl": "Voegt ontbrekende labels toe aan velden van Flow-acties, zodat elk argument in de Flow-editor nu een vertaalde naam toont (App, Bron, Kanaal, …) in plaats van de interne veldnaam.",
+    "de": "Fügt fehlende Beschriftungen zu Flow-Aktionsfeldern hinzu, sodass jedes Argument im Flow-Editor jetzt einen übersetzten Namen anzeigt (App, Quelle, Kanal, …) statt des internen Feldnamens.",
+    "fr": "Ajoute des libellés manquants aux champs des actions Flow, afin que chaque argument affiche désormais un nom traduit dans l'éditeur Flow (Application, Source, Chaîne, …) au lieu de son nom de champ interne.",
+    "it": "Aggiunge etichette mancanti ai campi delle azioni Flow, in modo che ogni argomento ora mostri un nome tradotto nell'editor Flow (App, Sorgente, Canale, …) invece del nome interno del campo.",
+    "sv": "Lägger till saknade etiketter på Flow-åtgärdsfält, så att varje argument nu visar ett översatt namn i Flow-redigeraren (App, Källa, Kanal, …) istället för det interna fältnamnet.",
+    "no": "Legger til manglende etiketter på Flow-handlingsfelter, slik at hvert argument nå viser et oversatt navn i Flow-editoren (App, Kilde, Kanal, …) i stedet for det interne feltnavnet.",
+    "es": "Añade etiquetas que faltaban a los campos de las acciones de Flow, de modo que cada argumento muestra ahora un nombre traducido en el editor de Flow (App, Fuente, Canal, …) en lugar de su nombre de campo interno.",
+    "da": "Tilføjer manglende etiketter til felterne i Flow-handlinger, så hvert argument nu viser et oversat navn i Flow-editoren (App, Kilde, Kanal, …) i stedet for det interne feltnavn.",
+    "pl": "Dodaje brakujące etykiety pól w akcjach Flow, dzięki czemu każdy argument w edytorze Flow pokazuje teraz przetłumaczoną nazwę (Aplikacja, Źródło, Kanał, …) zamiast wewnętrznej nazwy pola."
+  },
   "3.5.0": {
     "en": "Major stability improvements: significantly fewer crashes of the TV's internal API service (which previously required a power-cycle of the TV to recover), and devices stay marked 'available' more consistently in Homey.",
     "nl": "Grote stabiliteitsverbeteringen: aanzienlijk minder crashes van de interne API-service van de tv (die voorheen alleen te herstellen waren door de stekker eruit te trekken), en apparaten blijven consistenter als 'beschikbaar' gemarkeerd in Homey.",

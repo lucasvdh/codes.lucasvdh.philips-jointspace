@@ -32,7 +32,19 @@
     },
     {
       "name": "option",
-      "type": "autocomplete"
+      "type": "autocomplete",
+      "title": {
+        "en": "Key",
+        "nl": "Toets",
+        "de": "Taste",
+        "fr": "Touche",
+        "it": "Tasto",
+        "sv": "Knapp",
+        "no": "Tast",
+        "es": "Tecla",
+        "da": "Tast",
+        "pl": "Klawisz"
+      }
     }
   ]
 }

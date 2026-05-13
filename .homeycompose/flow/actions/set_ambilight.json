@@ -33,6 +33,18 @@
     {
       "name": "state",
       "type": "dropdown",
+      "title": {
+        "en": "State",
+        "nl": "Status",
+        "de": "Status",
+        "fr": "État",
+        "it": "Stato",
+        "sv": "Tillstånd",
+        "no": "Tilstand",
+        "es": "Estado",
+        "da": "Tilstand",
+        "pl": "Stan"
+      },
       "values": [
         {
           "id": "on",

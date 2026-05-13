@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "codes.lucasvdh.philips-jointspace",
-  "version": "3.5.0",
+  "version": "3.5.2",
   "compatibility": ">=12.9.0",
   "sdk": 3,
   "platforms": [
@@ -289,7 +289,19 @@
           },
           {
             "name": "app",
-            "type": "autocomplete"
+            "type": "autocomplete",
+            "title": {
+              "en": "App",
+              "nl": "App",
+              "de": "App",
+              "fr": "Application",
+              "it": "App",
+              "sv": "App",
+              "no": "App",
+              "es": "Aplicación",
+              "da": "App",
+              "pl": "Aplikacja"
+            }
           }
         ]
       },
@@ -379,6 +391,18 @@
           {
             "name": "source",
             "type": "dropdown",
+            "title": {
+              "en": "Source",
+              "nl": "Bron",
+              "de": "Quelle",
+              "fr": "Source",
+              "it": "Sorgente",
+              "sv": "Källa",
+              "no": "Kilde",
+              "es": "Fuente",
+              "da": "Kilde",
+              "pl": "Źródło"
+            },
             "values": [
               {
                 "id": "HDMI 1",
@@ -442,7 +466,19 @@
           },
           {
             "name": "option",
-            "type": "autocomplete"
+            "type": "autocomplete",
+            "title": {
+              "en": "Key",
+              "nl": "Toets",
+              "de": "Taste",
+              "fr": "Touche",
+              "it": "Tasto",
+              "sv": "Knapp",
+              "no": "Tast",
+              "es": "Tecla",
+              "da": "Tast",
+              "pl": "Klawisz"
+            }
           }
         ]
       },
@@ -481,6 +517,18 @@
           {
             "name": "state",
             "type": "dropdown",
+            "title": {
+              "en": "State",
+              "nl": "Status",
+              "de": "Status",
+              "fr": "État",
+              "it": "Stato",
+              "sv": "Tillstånd",
+              "no": "Tilstand",
+              "es": "Estado",
+              "da": "Tilstand",
+              "pl": "Stan"
+            },
             "values": [
               {
                 "id": "on",
@@ -551,6 +599,18 @@
           {
             "name": "state",
             "type": "dropdown",
+            "title": {
+              "en": "State",
+              "nl": "Status",
+              "de": "Status",
+              "fr": "État",
+              "it": "Stato",
+              "sv": "Tillstånd",
+              "no": "Tilstand",
+              "es": "Estado",
+              "da": "Tilstand",
+              "pl": "Stan"
+            },
             "values": [
               {
                 "id": "on",
@@ -621,6 +681,18 @@
           {
             "name": "mode",
             "type": "dropdown",
+            "title": {
+              "en": "Mode",
+              "nl": "Modus",
+              "de": "Modus",
+              "fr": "Mode",
+              "it": "Modalità",
+              "sv": "Läge",
+              "no": "Modus",
+              "es": "Modo",
+              "da": "Tilstand",
+              "pl": "Tryb"
+            },
             "values": [
               {
                 "id": "color_hot_lava",
@@ -975,7 +1047,19 @@
           },
           {
             "name": "channel",
-            "type": "autocomplete"
+            "type": "autocomplete",
+            "title": {
+              "en": "Channel",
+              "nl": "Kanaal",
+              "de": "Kanal",
+              "fr": "Chaîne",
+              "it": "Canale",
+              "sv": "Kanal",
+              "no": "Kanal",
+              "es": "Canal",
+              "da": "Kanal",
+              "pl": "Kanał"
+            }
           }
         ]
       }
