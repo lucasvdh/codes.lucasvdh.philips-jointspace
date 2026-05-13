@@ -49,3 +49,16 @@ export class InvalidResponseError extends JointspaceError {
     super(message, 502);
   }
 }
+
+/**
+ * Raised during the pair flow when the TV advertises digest_auth_pairing
+ * but its HTTPS/1926 server isn't responding. We can't fall back to
+ * HTTP/1925 here because pair/request is only available on the secured
+ * transport; surfacing the specific cause lets the UI tell the user to
+ * power-cycle the TV instead of showing a generic "endpoint not found".
+ */
+export class HttpsUnavailableError extends JointspaceError {
+  constructor(message = "TV HTTPS service is not responding") {
+    super(message, 503);
+  }
+}

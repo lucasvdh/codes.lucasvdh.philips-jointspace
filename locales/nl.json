@@ -22,6 +22,13 @@
       "title": "Apparaat toevoegen"
     }
   },
+  "repair": {
+    "done": {
+      "title": "Reparatie voltooid",
+      "body": "Het apparaat is opnieuw gekoppeld aan de tv. Alle bestaande flows blijven werken.",
+      "close": "Klaar"
+    }
+  },
   "error": {
     "generic": "Er is een onverwachte fout opgetreden",
     "pairing_timeout": "De koppelsessie is verlopen, probeer het nogmaals.",
@@ -36,6 +43,7 @@
     "device_not_found": "Apparaat niet gevonden",
     "something_went_wrong": "Er ging iets fout",
     "invalid_response": "De tv reageerde, maar de respons kon niet worden gelezen. Mogelijk wordt uw tv-model niet ondersteund of draait er een afwijkende firmware. Controleer het IP-adres en probeer het opnieuw.",
-    "protocol_error": "De verbinding met de tv werd verbroken. Probeer het opnieuw. Als dit blijft gebeuren, herstart de tv volledig."
+    "protocol_error": "De verbinding met de tv werd verbroken. Probeer het opnieuw. Als dit blijft gebeuren, herstart de tv volledig.",
+    "https_unavailable_for_pair": "Uw tv vereist koppelen via HTTPS, maar de HTTPS-service reageert niet. Dit is een bekend probleem op bepaalde Philips firmwares. Trek de stekker er 30 seconden uit, sluit de tv weer aan en probeer het opnieuw."
   }
 }

@@ -1,0 +1,18 @@
+{
+  "type": "string",
+  "title": {
+    "en": "Current source",
+    "nl": "Huidige bron",
+    "de": "Aktuelle Quelle",
+    "fr": "Source actuelle",
+    "it": "Sorgente corrente",
+    "sv": "Aktuell källa",
+    "no": "Nåværende kilde",
+    "es": "Fuente actual",
+    "da": "Nuværende kilde",
+    "pl": "Bieżące źródło"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": null
+}

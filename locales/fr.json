@@ -22,6 +22,13 @@
       "title": "Ajouter un appareil"
     }
   },
+  "repair": {
+    "done": {
+      "title": "Réparation terminée",
+      "body": "Votre appareil a été reconnecté au téléviseur. Tous vos flux existants continuent de fonctionner.",
+      "close": "Terminé"
+    }
+  },
   "error": {
     "generic": "Une erreur inattendue s'est produite",
     "pairing_timeout": "La session de couplage a expiré, veuillez réessayer.",
@@ -34,6 +41,9 @@
     "concurrent_pairing": "Une demande de couplage est déjà en cours, veuillez patienter 60 secondes et réessayez.",
     "provide_the_ip_address": "Entrez l'adresse IP",
     "device_not_found": "Appareil introuvable",
-    "something_went_wrong": "Une erreur s'est produite"
+    "something_went_wrong": "Une erreur s'est produite",
+    "invalid_response": "Le téléviseur a répondu mais les données n'ont pas pu être lues. Votre modèle de TV n'est peut-être pas pris en charge, ou il exécute un firmware inhabituel. Vérifiez l'adresse IP et réessayez.",
+    "protocol_error": "La connexion au téléviseur a été réinitialisée. Réessayez. Si le problème persiste, redémarrez complètement votre téléviseur.",
+    "https_unavailable_for_pair": "Votre téléviseur nécessite un couplage via HTTPS, mais son service HTTPS ne répond pas. C'est un problème connu sur certains firmwares Philips. Débranchez le téléviseur pendant 30 secondes, rebranchez-le et réessayez."
   }
 }

@@ -22,18 +22,28 @@
       "title": "Gerät hinzufügen"
     }
   },
+  "repair": {
+    "done": {
+      "title": "Reparatur abgeschlossen",
+      "body": "Ihr Gerät wurde mit dem Fernseher neu verbunden. Alle bestehenden Flows funktionieren weiterhin.",
+      "close": "Fertig"
+    }
+  },
   "error": {
     "generic": "Ein unerwarteter Fehler ist aufgetreten",
     "pairing_timeout": "Die Koppelsitzung ist abgelaufen. Bitte versuchen Sie es erneut.",
     "endpoint_not_found": "Der TV ist erreichbar, aber es ist ein Fehler bei der Bestimmung der Jointspace-Version aufgetreten. Versuchen Sie, Ihren TV manuell hinzuzufügen.",
     "host_unreachable": "Der TV konnte unter dieser IP-Adresse nicht erreicht werden. Überprüfen Sie die IP-Adresse und stellen Sie sicher, dass der TV eingeschaltet ist.",
     "connection_timed_out": "Es ist ein Timeout aufgetreten während der Verbindungsherstellung zu Ihrem TV.\n\nVersuchen Sie, Ihren TV erneut hinzuzufügen. Wenn es erneut fehlschlägt, starten Sie Ihren TV vollständig neu oder versuchen Sie, ihn manuell hinzuzufügen.",
-    "unknown_pairing_type": "Unbekannter Kopplungstyp: pairingType.",
+    "unknown_pairing_type": "Unbekannter Kopplungstyp: __pairingType__.",
     "could_not_start_pairing": "Beim Starten des Kopplungsanforderung ist ein Fehler aufgetreten.",
     "pairing_not_found": "Kopplungsanforderung konnte nicht gestartet werden, weil der TV angibt, dass sie nicht vorhanden ist. Möglicherweise benötigt Ihr TV keine Authentifizierung oder wird von dieser App nicht unterstützt.\n\nVersuchen Sie, Ihren TV manuell ohne Authentifizierung hinzuzufügen.",
     "concurrent_pairing": "Es wurde bereits eine Kopplungsanforderung gestartet. Warten Sie 60 Sekunden und versuchen Sie es erneut.",
     "provide_the_ip_address": "Geben Sie die IP-Adresse ein",
     "device_not_found": "Gerät nicht gefunden",
-    "something_went_wrong": "Es ist ein Fehler aufgetreten"
+    "something_went_wrong": "Es ist ein Fehler aufgetreten",
+    "invalid_response": "Der TV hat geantwortet, aber die Daten konnten nicht gelesen werden. Möglicherweise wird Ihr TV-Modell nicht unterstützt oder es läuft eine ungewöhnliche Firmware. Bitte überprüfen Sie die IP-Adresse und versuchen Sie es erneut.",
+    "protocol_error": "Die Verbindung zum TV wurde zurückgesetzt. Versuchen Sie es erneut. Wenn das Problem weiter auftritt, starten Sie den TV vollständig neu.",
+    "https_unavailable_for_pair": "Ihr TV erfordert die Kopplung über HTTPS, aber sein HTTPS-Dienst antwortet nicht. Dies ist ein bekanntes Problem bei einigen Philips-Firmwares. Trennen Sie den TV bitte 30 Sekunden vom Strom, schließen Sie ihn wieder an und versuchen Sie es erneut."
   }
 }

@@ -1,4 +1,28 @@
 {
+  "3.5.0": {
+    "en": "Major stability improvements: significantly fewer crashes of the TV's internal API service (which previously required a power-cycle of the TV to recover), and devices stay marked 'available' more consistently in Homey.",
+    "nl": "Grote stabiliteitsverbeteringen: aanzienlijk minder crashes van de interne API-service van de tv (die voorheen alleen te herstellen waren door de stekker eruit te trekken), en apparaten blijven consistenter als 'beschikbaar' gemarkeerd in Homey.",
+    "de": "Große Stabilitätsverbesserungen: deutlich weniger Abstürze des internen API-Dienstes des TVs (die zuvor nur durch einen Neustart des TVs behoben werden konnten) und Geräte bleiben in Homey konsistenter als 'verfügbar' markiert.",
+    "fr": "Améliorations majeures de la stabilité : nettement moins de plantages du service API interne de la TV (qui nécessitaient auparavant un redémarrage de la TV pour récupérer) et les appareils restent marqués 'disponibles' de manière plus cohérente dans Homey.",
+    "it": "Importanti miglioramenti della stabilità: notevolmente meno crash del servizio API interno del TV (che in precedenza richiedevano un riavvio del TV per il ripristino) e i dispositivi rimangono contrassegnati come 'disponibili' in modo più coerente in Homey.",
+    "sv": "Stora stabilitetsförbättringar: betydligt färre krascher av TV:ns interna API-tjänst (som tidigare krävde en omstart av TV:n för att återställa), och enheter förblir markerade som 'tillgängliga' mer konsekvent i Homey.",
+    "no": "Store stabilitetsforbedringer: betydelig færre krasj av TV-ens interne API-tjeneste (som tidligere krevde en omstart av TV-en for å gjenopprette), og enheter forblir merket som 'tilgjengelig' mer konsekvent i Homey.",
+    "es": "Mejoras importantes de estabilidad: bastantes menos fallos del servicio API interno del TV (que antes requerían reiniciar el TV para recuperarse) y los dispositivos permanecen marcados como 'disponibles' de forma más consistente en Homey.",
+    "da": "Store stabilitetsforbedringer: betydeligt færre nedbrud af tv'ets interne API-tjeneste (som tidligere krævede en genstart af tv'et for at komme sig), og enheder forbliver markeret som 'tilgængelig' mere konsekvent i Homey.",
+    "pl": "Duże ulepszenia stabilności: znacznie mniej awarii wewnętrznej usługi API telewizora (które wcześniej wymagały zrestartowania telewizora przez odłączenie zasilania) oraz urządzenia pozostają oznaczone jako 'dostępne' w Homey bardziej konsekwentnie."
+  },
+  "3.4.0": {
+    "en": "Adds Repair to re-link an existing device when the TV's IP changes, automatic transport recovery when the TV's HTTPS service goes down mid-session, and a 'By IP address' tab in the diagnostic report for issues that block normal pairing.",
+    "nl": "Voegt Repareren toe om een bestaand apparaat opnieuw te koppelen als het IP-adres van de tv verandert, automatisch herstel van transport als de tv-HTTPS-service uitvalt tijdens een sessie, en een 'Op IP-adres'-tab in het diagnoserapport voor problemen die normaal koppelen blokkeren.",
+    "de": "Fügt Reparieren hinzu, um ein bestehendes Gerät neu zu verknüpfen, wenn sich die IP-Adresse des TVs ändert, automatische Transport-Wiederherstellung wenn der HTTPS-Dienst des TVs während einer Sitzung ausfällt, und einen 'Nach IP-Adresse'-Tab im Diagnosebericht für Probleme die normales Koppeln blockieren.",
+    "fr": "Ajoute Réparer pour relier un appareil existant lorsque l'IP de la TV change, une récupération automatique du transport lorsque le service HTTPS de la TV tombe en cours de session, et un onglet 'Par adresse IP' dans le rapport de diagnostic pour les problèmes qui bloquent le couplage normal.",
+    "it": "Aggiunge Ripara per ricollegare un dispositivo esistente quando l'IP del TV cambia, ripristino automatico del trasporto quando il servizio HTTPS del TV si interrompe durante una sessione, e una scheda 'Per indirizzo IP' nel rapporto diagnostico per problemi che bloccano l'accoppiamento normale.",
+    "sv": "Lägger till Reparera för att återansluta en befintlig enhet när TV:ns IP ändras, automatisk transportåterställning när TV:ns HTTPS-tjänst går ner mitt i en session, och en 'Med IP-adress'-flik i diagnosrapporten för problem som blockerar normal parning.",
+    "no": "Legger til Reparer for å koble en eksisterende enhet på nytt når TV-ens IP endres, automatisk transportgjenoppretting når TV-ens HTTPS-tjeneste går ned midt i en økt, og en 'Etter IP-adresse'-fane i diagnoserapporten for problemer som blokkerer normal paring.",
+    "es": "Añade Reparar para volver a vincular un dispositivo existente cuando cambia la IP del TV, recuperación automática del transporte cuando el servicio HTTPS del TV cae a mitad de sesión, y una pestaña 'Por dirección IP' en el informe de diagnóstico para problemas que bloquean el emparejamiento normal.",
+    "da": "Tilføjer Reparér til at gentilkoble en eksisterende enhed, når tv'ets IP ændres, automatisk transportgendannelse når tv'ets HTTPS-tjeneste falder ud midt i en session, og en 'Efter IP-adresse'-fane i diagnoserapporten for problemer der blokerer normal parring.",
+    "pl": "Dodaje Naprawę, aby ponownie połączyć istniejące urządzenie, gdy zmienia się IP telewizora, automatyczne przywracanie transportu, gdy usługa HTTPS telewizora przestaje działać w trakcie sesji, oraz zakładkę 'Wg adresu IP' w raporcie diagnostycznym dla problemów blokujących normalne parowanie."
+  },
   "3.3.0": {
     "en": "Adds a diagnostic report page in app settings to make reporting issues easier.",
     "nl": "Voegt een diagnose-rapportpagina toe aan de app-instellingen zodat issues makkelijker te melden zijn.",

@@ -22,6 +22,13 @@
       "title": "Lägg till enhet"
     }
   },
+  "repair": {
+    "done": {
+      "title": "Reparation slutförd",
+      "body": "Din enhet har återanslutits till TV:n. Alla dina befintliga flow fortsätter att fungera.",
+      "close": "Klar"
+    }
+  },
   "error": {
     "generic": "Ett oväntat fel har uppstått",
     "pairing_timeout": "Parringsessionen har löpt ut, försök igen.",
@@ -34,6 +41,9 @@
     "concurrent_pairing": "En parningsbegäran har redan startats, vänta 60 sekunder och försök igen.",
     "provide_the_ip_address": "Ange IP-adressen",
     "device_not_found": "Enheten hittades inte",
-    "something_went_wrong": "Något gick fel"
+    "something_went_wrong": "Något gick fel",
+    "invalid_response": "TV:n svarade, men datan kunde inte tolkas. Din TV-modell stöds kanske inte, eller så kör den en ovanlig firmware. Kontrollera IP-adressen och försök igen.",
+    "protocol_error": "Anslutningen till TV:n återställdes. Försök igen. Om problemet kvarstår starta om TV:n helt.",
+    "https_unavailable_for_pair": "Din TV kräver parning via HTTPS, men dess HTTPS-tjänst svarar inte. Detta är ett känt problem på vissa Philips-firmware. Dra ur TV:ns kontakt i 30 sekunder, sätt i den igen och försök igen."
   }
 }

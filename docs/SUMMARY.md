@@ -11,3 +11,7 @@
 ## Guides
 
 * [Pairing](guides/pairing.md)
+
+## Development
+
+* [Philips Restlet HTTPS quirks](development/restlet-quirks.md)

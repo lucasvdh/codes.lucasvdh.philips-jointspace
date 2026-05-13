@@ -6,7 +6,7 @@ import * as wol from "wol";
 import { JointspaceApi } from "./jointspace-api";
 import { StatePoller, StateChangeListener, StateChangeSource } from "./state-poller";
 import { AmbilightConfigurations, ambilightModeFromConfiguration, AmbilightModeKey } from "./enums";
-import { extractSystemMetadata, extractTransportConfig, osHasAmbilightModeQuirk } from "./quirks";
+import { extractSystemMetadata, extractTransportConfig, osHasAmbilightModeQuirk, osPollIntervalMs, osRequiresHttpsForAuthenticatedEndpoints } from "./quirks";
 import {
   AmbiHueState,
   AmbilightConfiguration,
@@ -14,11 +14,13 @@ import {
   ApplicationIntent,
   AudioData,
   CurrentActivity,
+  CurrentSource,
   JointspaceConfig,
   JointspaceCredentials,
   PowerState,
   ScreenState,
 } from "./types";
+import { NotFoundError } from "./errors";
 
 const CAPABILITY_DEBOUNCE_MS = 100;
 const INIT_OFF_FALLBACK_MS = 3_000;
@@ -114,10 +116,14 @@ const REMOVED_CAPABILITIES = ["speaker_playing"] as const;
 
 const STORE_OS_TYPE = "osType";
 const STORE_NOTIFY_CHANGE_SUPPORTED = "notifyChangeSupported";
+const STORE_PAIRING_TYPE = "pairingType";
 const STORE_LAST_AMBILIGHT_MODE = "lastSetAmbilightMode";
 const STORE_SCREEN_STATE_SUPPORTED = "screenStateSupported";
+const STORE_CURRENT_SOURCE_SUPPORTED = "currentSourceSupported";
+const STORE_CREDENTIALS = "credentials";
 
 const CAPABILITY_SCREEN_ON = "screen_on";
+const CAPABILITY_CURRENT_SOURCE = "current_source";
 
 class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   private api!: JointspaceApi;
@@ -129,6 +135,10 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   private deviceSettings!: DeviceSettings;
   private initOffFallback?: NodeJS.Timeout;
   private systemReprobeTimer?: NodeJS.Timeout;
+  private wolRetryTimer?: NodeJS.Timeout;
+  private consecutivePollFailures = 0;
+  private failureTriggeredRefresh = false;
+  private screenOnListenerRegistered = false;
 
   async onInit(): Promise<void> {
     this.deviceData = this.getData() as DeviceData;
@@ -136,6 +146,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     this.applications = null;
 
     await this.migrateCapabilities();
+    await this.migrateCredentialsToStore();
 
     this.api = new JointspaceApi(this.buildApiConfig(), {
       log: (...args) => this.log(`[api]`, ...args),
@@ -143,31 +154,68 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
 
     this.registerCapabilityListeners();
     await this.applyScreenStateCapability();
+    await this.applyCurrentSourceCapability();
     await this.setVolumeSliderBounds();
 
     // If we don't hear from the TV within INIT_OFF_FALLBACK_MS, assume it's
     // off. Cleared by the first powerstate notification.
-    this.initOffFallback = setTimeout(() => {
+    this.initOffFallback = this.homey.setTimeout(() => {
       this.setCapabilityValue("onoff", false).catch(this.error.bind(this));
     }, INIT_OFF_FALLBACK_MS);
 
+    // Wait for the transport-verify to complete before constructing the
+    // poller — refreshSystemMetadata writes osType to store, which decides
+    // whether the poller runs in notify-only mode (MSAF) or full polling.
+    // Without this, notifyChange returns fast, triggers handleActivityChange,
+    // which fires getApplications on HTTPS/1926 in parallel with the verify
+    // probe. On TVs with flaky HTTPS that second concurrent connection hangs
+    // until the axios timeout. Capped at 8s so a fully offline TV doesn't
+    // block startup either.
+    await Promise.race([
+      this.refreshSystemMetadata(),
+      new Promise<void>((resolve) => this.homey.setTimeout(resolve, 8000)),
+    ]);
+
+    // Re-apply optional capabilities now that refreshSystemMetadata has had
+    // a chance to write fresh probe results. The earlier calls (before the
+    // race) catch existing devices on the stale flag; this second pass
+    // covers freshly-paired devices whose flag was null at first apply.
+    // Both calls are idempotent.
+    await this.applyScreenStateCapability();
+    await this.applyCurrentSourceCapability();
+
     const notifyChangeSupported = (this.getStoreValue(STORE_NOTIFY_CHANGE_SUPPORTED) as boolean | null) ?? true;
+    const osType = this.getStoreValue(STORE_OS_TYPE) as string | null;
+    const pollIntervalMs = osPollIntervalMs(osType);
     this.poller = new StatePoller(
       this.api,
       this,
       (...args) => this.log(`[poller]`, ...args),
-      { notifyChangeSupported },
+      this.homey,
+      { notifyChangeSupported, pollIntervalMs },
     );
-    void this.refreshSystemMetadata();
+
     this.scheduleSystemReprobe();
     this.poller.start();
     this.log("Initialised");
   }
 
   async onDeleted(): Promise<void> {
+    this.teardown();
+  }
+
+  async onUninit(): Promise<void> {
+    this.teardown();
+  }
+
+  private teardown(): void {
     this.poller?.stop();
-    if (this.initOffFallback) clearTimeout(this.initOffFallback);
-    if (this.systemReprobeTimer) clearTimeout(this.systemReprobeTimer);
+    if (this.initOffFallback) this.homey.clearTimeout(this.initOffFallback);
+    if (this.systemReprobeTimer) this.homey.clearTimeout(this.systemReprobeTimer);
+    if (this.wolRetryTimer) this.homey.clearTimeout(this.wolRetryTimer);
+    this.initOffFallback = undefined;
+    this.systemReprobeTimer = undefined;
+    this.wolRetryTimer = undefined;
   }
 
   async onSettings({
@@ -184,6 +232,11 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     }
     if (changedKeys.some((k) => k === "ipAddress" || k === "port" || k === "secure" || k === "apiVersion")) {
       this.api.updateConfig(this.buildApiConfig());
+      // Settings just changed (likely from a Repair, or a manual edit).
+      // Re-run the transport verify against the new target so we self-correct
+      // if the advertised transport turns out to be flaky on this TV.
+      // Without this, a wrong transport sits broken until the hourly probe.
+      void this.refreshSystemMetadata();
     }
   }
 
@@ -358,7 +411,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
 
   handlePowerStateChange(source: StateChangeSource, state: PowerState): void {
     if (this.initOffFallback) {
-      clearTimeout(this.initOffFallback);
+      this.homey.clearTimeout(this.initOffFallback);
       this.initOffFallback = undefined;
     }
     const on = state.powerstate === "On";
@@ -387,9 +440,11 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
 
     // When muted, the TV reports volume 0. We need the pre-mute level to
     // restore it on unmute, so skip volume updates while muted. We also skip
-    // updates when the TV is off - speaker switches (TV / audio system)
-    // change the reported volume independently.
-    if (!muted && powerOn && currentVolume !== state.current) {
+    // updates when the TV is *known* off — speaker switches (TV / audio
+    // system) change the reported volume independently. powerOn === null
+    // means "not yet observed" (first poll before notify lands), so we
+    // accept the update there instead of dropping it.
+    if (!muted && powerOn !== false && currentVolume !== state.current) {
       this.log(`Volume ${currentVolume} -> ${state.current} (${source})`);
       this.setCapabilityValue("volume_set", state.current).catch(this.error.bind(this));
     }
@@ -486,20 +541,69 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     }
   }
 
+  handleCurrentSourceChange(source: StateChangeSource, state: CurrentSource): void {
+    if (!this.hasCapability("current_source")) return;
+    const id = state?.id ?? null;
+    const previous = this.getCapabilityValue("current_source") as string | null;
+    if (previous === id) return;
+    this.log(`Source ${previous ?? "?"} -> ${id ?? "unknown"} (${source})`);
+    this.setCapabilityValue("current_source", id).catch(this.error.bind(this));
+  }
+
   onPollFailure(error: Error): void {
+    this.consecutivePollFailures += 1;
     if (this.getCapabilityValue("onoff")) {
       this.log("Poll failed; marking TV off:", error.message);
       this.setCapabilityValue("onoff", false).catch(this.error.bind(this));
     }
+    // After 3 consecutive failures, mark the device unavailable in Homey
+    // so the UI shows a clear "TV unreachable" state. Without this, Homey's
+    // own heuristic may silently mark the device unavailable based on
+    // capability-update timing — confusing because we don't know why.
+    if (this.consecutivePollFailures === 3) {
+      this.log("3 consecutive poll failures; setting device unavailable");
+      this.setUnavailable(`TV unreachable: ${error.message}`).catch(this.error.bind(this));
+    }
+    // If polls keep failing while we think the advertised transport is fine,
+    // the TV's HTTPS service may have died mid-session. Trigger one
+    // refreshSystemMetadata so verifyAdvertisedTransport can flip us back to
+    // HTTP/1925 quickly instead of waiting for the hourly probe. Gate this
+    // with a flag so we only fire once per failure run.
+    if (this.consecutivePollFailures === 5 && !this.failureTriggeredRefresh) {
+      this.failureTriggeredRefresh = true;
+      this.log(`${this.consecutivePollFailures} consecutive poll failures; re-verifying transport`);
+      void this.refreshSystemMetadata();
+    }
+  }
+
+  onPollSuccess(): void {
+    if (this.consecutivePollFailures > 0) {
+      this.log(`Poll recovered after ${this.consecutivePollFailures} failure(s)`);
+      this.consecutivePollFailures = 0;
+      this.failureTriggeredRefresh = false;
+    }
+    // Reaffirm availability on every successful poll. Cheap to call when
+    // already available; restores availability if Homey's own heuristic
+    // marked the device unavailable (e.g. after a notifyChange ProtocolError
+    // long-hang that Homey treats as a disconnect signal).
+    this.setAvailable().catch(this.error.bind(this));
+  }
+
+  onNotifyReachable(): void {
+    // Notify long-poll succeeded — TV is responding on HTTP/1925. Reaffirm
+    // availability so a slow poll interval (60s on MSAF) doesn't leave
+    // Homey thinking the device is gone between polls.
+    this.setAvailable().catch(this.error.bind(this));
+  }
+
+  isCapabilityPresent(capabilityId: string): boolean {
+    return this.hasCapability(capabilityId);
   }
 
   // --- internals --------------------------------------------------------
 
   private buildApiConfig(): JointspaceConfig {
-    const credentials =
-      this.deviceData.credentials?.user && this.deviceData.credentials?.pass
-        ? { user: this.deviceData.credentials.user, pass: this.deviceData.credentials.pass }
-        : undefined;
+    const credentials = this.readCredentials();
     const apiVersion = Number(this.deviceSettings.apiVersion) || 1;
     return {
       host: this.deviceSettings.ipAddress,
@@ -508,6 +612,70 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       port: this.deviceSettings.port ?? JointspaceApi.portForApiVersion(apiVersion),
       credentials,
     };
+  }
+
+  /**
+   * Prefer credentials from store (writable, can be replaced via Repair).
+   * Fall back to data (immutable, set at pair time) for devices that
+   * haven't been through the data→store migration yet.
+   */
+  private readCredentials(): JointspaceCredentials | undefined {
+    const stored = this.getStoreValue(STORE_CREDENTIALS) as Partial<JointspaceCredentials> | null;
+    if (stored?.user && stored?.pass) return { user: stored.user, pass: stored.pass };
+    const fromData = this.deviceData.credentials;
+    if (fromData?.user && fromData?.pass) return { user: fromData.user, pass: fromData.pass };
+    return undefined;
+  }
+
+  /**
+   * One-time migration: copy credentials from immutable data into the
+   * mutable store, so the Repair flow can replace them later.
+   */
+  /**
+   * Mirror of driver.ts verifyAdvertisedTransport: when the TV advertises
+   * secured_transport=true, confirm HTTPS/1926 actually answers. If it
+   * doesn't, downgrade settings to HTTP/1925 so all subsequent authenticated
+   * calls go to the working transport. Without this, devices on TVs whose
+   * HTTPS is dead (e.g. only one network interface serves it) keep timing
+   * out on every poll cycle even though HTTP/1925 works fine.
+   *
+   * Fast-path: if getSystem just succeeded via HTTPS we don't probe again —
+   * a second concurrent HTTPS request to a fragile TV often hangs even
+   * when the first one worked.
+   *
+   * MSAF exception: on Android-XTV firmware HTTP/1925 only serves /system
+   * (everything else 404s), so falling back there is worse than useless.
+   * Keep the broken HTTPS setting; subsequent calls will fail with a
+   * connection-timed-out error which at least matches reality and prompts
+   * the user to power-cycle the TV.
+   */
+  private async verifyAdvertisedTransport(
+    transport: { apiVersion: number; secured: boolean; port: number },
+    osType: string | null,
+  ): Promise<{ apiVersion: number; secured: boolean; port: number }> {
+    if (!transport.secured) return transport;
+    const lastSystemTransport = this.api.getLastSystemTransport();
+    if (lastSystemTransport?.protocol === "https" && lastSystemTransport.port === transport.port) {
+      return transport;
+    }
+    if (await this.api.verifyHttpsResponds()) return transport;
+    if (osRequiresHttpsForAuthenticatedEndpoints(osType)) {
+      this.log(`HTTPS/${transport.port} doesn't respond and osType=${osType} only serves authenticated endpoints over HTTPS; keeping current transport so failures surface clearly instead of as misleading 404s.`);
+      return transport;
+    }
+    this.log(`HTTPS/${transport.port} doesn't respond despite advertised secured_transport=true; falling back to HTTP/1925`);
+    return { apiVersion: transport.apiVersion, secured: false, port: 1925 };
+  }
+
+  private async migrateCredentialsToStore(): Promise<void> {
+    if (this.getStoreValue(STORE_CREDENTIALS)) return;
+    const dc = this.deviceData.credentials;
+    if (!dc?.user || !dc?.pass) return;
+    try {
+      await this.setStoreValue(STORE_CREDENTIALS, { user: dc.user, pass: dc.pass });
+    } catch (err) {
+      this.error("Failed to migrate credentials to store:", err);
+    }
   }
 
   private driverApi(): PhilipsTvDriverLike {
@@ -526,13 +694,16 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   private async refreshSystemMetadata(): Promise<void> {
     try {
       const system = await this.api.getSystem();
-      const { osType, notifyChangeSupported } = extractSystemMetadata(system);
+      const { osType, notifyChangeSupported, pairingType } = extractSystemMetadata(system);
       await this.setStoreValue(STORE_OS_TYPE, osType);
       await this.setStoreValue(STORE_NOTIFY_CHANGE_SUPPORTED, notifyChangeSupported);
+      await this.setStoreValue(STORE_PAIRING_TYPE, pairingType);
 
       await this.probeScreenStateSupport();
+      await this.probeCurrentSourceSupport();
 
-      const transport = extractTransportConfig(system);
+      const advertised = extractTransportConfig(system);
+      const transport = await this.verifyAdvertisedTransport(advertised, osType);
       const settingsUpdate: Partial<DeviceSettings> = {};
       if (transport.apiVersion !== this.deviceSettings.apiVersion) settingsUpdate.apiVersion = transport.apiVersion;
       if (transport.secured !== this.deviceSettings.secure) settingsUpdate.secure = transport.secured;
@@ -549,9 +720,10 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   }
 
   private scheduleSystemReprobe(): void {
-    this.systemReprobeTimer = setTimeout(() => {
+    this.systemReprobeTimer = this.homey.setTimeout(() => {
       void this.refreshSystemMetadata()
         .then(() => this.applyScreenStateCapability())
+        .then(() => this.applyCurrentSourceCapability())
         .finally(() => this.scheduleSystemReprobe());
     }, SYSTEM_REPROBE_INTERVAL_MS);
   }
@@ -564,6 +736,10 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
    * notifyChange support.
    */
   private async probeScreenStateSupport(): Promise<void> {
+    // Always probe — we don't have an official endpoints-per-firmware matrix,
+    // and a firmware update could add the endpoint later. A failure here is
+    // cheap (single HTTPS call, ~10s timeout worst case) and recorded so
+    // the hourly reprobe doesn't waste effort.
     try {
       const state = await this.api.getScreenState();
       const supported = typeof state?.screenstate === "string" && state.screenstate.length > 0;
@@ -583,8 +759,10 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
 
   /**
    * Add or remove the screen_on capability based on the cached probe
-   * result. Adding also wires the capability listener. Removal happens
-   * silently. Called at onInit (from the cached flag) and after every
+   * result, and ensure the listener is registered while the capability
+   * is present. Capability listeners are per-instance and don't survive
+   * an app restart, so we must register once per onInit. The flag guards
+   * against double-registration when this is also called from the hourly
    * probe.
    */
   private async applyScreenStateCapability(): Promise<void> {
@@ -594,18 +772,18 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       await this.addCapability(CAPABILITY_SCREEN_ON).catch((err: Error) =>
         this.error(`addCapability(${CAPABILITY_SCREEN_ON}) failed:`, err),
       );
-      this.registerCapabilityListener(CAPABILITY_SCREEN_ON, (value: boolean) =>
-        this.onCapabilityScreenOnSet(value),
-      );
     } else if (!supported && present) {
       await this.removeCapability(CAPABILITY_SCREEN_ON).catch((err: Error) =>
         this.error(`removeCapability(${CAPABILITY_SCREEN_ON}) failed:`, err),
       );
-    } else if (present) {
-      // Capability was added in a previous run; listener was registered
-      // there and persists across restarts via Homey's internal state, so
-      // we don't re-register here. Re-registering is a no-op or throws on
-      // some SDK versions, which is why we gate it on the !present branch.
+      this.screenOnListenerRegistered = false;
+      return;
+    }
+    if (this.hasCapability(CAPABILITY_SCREEN_ON) && !this.screenOnListenerRegistered) {
+      this.registerCapabilityListener(CAPABILITY_SCREEN_ON, (value: boolean) =>
+        this.onCapabilityScreenOnSet(value),
+      );
+      this.screenOnListenerRegistered = true;
     }
   }
 
@@ -615,6 +793,48 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     } catch (err) {
       this.error(`setScreenState(${value}) failed`, err);
       throw err;
+    }
+  }
+
+  /**
+   * Mirror of probeScreenStateSupport for /sources/current. Some firmwares
+   * (notably MSAF_*) 404 on this endpoint — no point adding a capability the
+   * TV can never fill. The probe runs at every refreshSystemMetadata so a
+   * firmware update that adds the endpoint is picked up within the hourly
+   * reprobe window.
+   */
+  private async probeCurrentSourceSupport(): Promise<void> {
+    try {
+      const value = await this.api.getCurrentSource();
+      const supported = typeof value?.id === "string" && value.id.length > 0;
+      await this.setStoreValue(STORE_CURRENT_SOURCE_SUPPORTED, supported);
+    } catch (err) {
+      // 404 = endpoint genuinely not on this firmware — record as
+      // unsupported. Any other error (offline, parse error, timeout) is
+      // transient or unrelated; keep the previous flag so we don't tear
+      // down a working capability because the TV happened to be off.
+      if (err instanceof NotFoundError) {
+        await this.setStoreValue(STORE_CURRENT_SOURCE_SUPPORTED, false);
+      }
+    }
+  }
+
+  /**
+   * Add or remove the current_source capability based on the cached probe
+   * result. No listener (read-only state capability) so simpler than
+   * applyScreenStateCapability.
+   */
+  private async applyCurrentSourceCapability(): Promise<void> {
+    const supported = (this.getStoreValue(STORE_CURRENT_SOURCE_SUPPORTED) as boolean | null) ?? false;
+    const present = this.hasCapability(CAPABILITY_CURRENT_SOURCE);
+    if (supported && !present) {
+      await this.addCapability(CAPABILITY_CURRENT_SOURCE).catch((err: Error) =>
+        this.error(`addCapability(${CAPABILITY_CURRENT_SOURCE}) failed:`, err),
+      );
+    } else if (!supported && present) {
+      await this.removeCapability(CAPABILITY_CURRENT_SOURCE).catch((err: Error) =>
+        this.error(`removeCapability(${CAPABILITY_CURRENT_SOURCE}) failed:`, err),
+      );
     }
   }
 
@@ -691,7 +911,8 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       const mac = this.deviceData.mac;
       wol.wake(mac).catch((err: Error) => this.log("WOL failed:", err.message));
       // Second magic packet in case the first dropped on the wire.
-      setTimeout(() => {
+      if (this.wolRetryTimer) this.homey.clearTimeout(this.wolRetryTimer);
+      this.wolRetryTimer = this.homey.setTimeout(() => {
         wol.wake(mac).catch((err: Error) => this.log("WOL retry failed:", err.message));
       }, WOL_RETRY_DELAY_MS);
     }

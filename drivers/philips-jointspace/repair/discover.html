@@ -1,0 +1,18 @@
+<script type="application/javascript">
+  Homey.on('alert', function (message) {
+    Homey.alert(message)
+  })
+
+  Homey.getOptions(Homey.getCurrentView()).then((options) => {
+    let text
+
+    if (options.text) {
+      text = options.text
+    } else if (options.text === null) {
+      // Don't show any text below the loading indicator
+      text = undefined
+    }
+
+    Homey.showLoadingOverlay(Homey.__(text))
+  })
+</script>

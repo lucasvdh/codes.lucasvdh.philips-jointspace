@@ -52,7 +52,7 @@ const PAIR_SHARED_KEY = Buffer.from(
 const HTTP_PORT = 1925;
 const HTTPS_PORT = 1926;
 
-const DEFAULT_TIMEOUT_MS = 20_000;
+const DEFAULT_TIMEOUT_MS = 10_000;
 const CONNECT_TIMEOUT_MS = 5_000;
 const NOTIFY_CHANGE_TIMEOUT_MS = 130_000;
 
@@ -88,12 +88,32 @@ export class JointspaceApi {
   private readonly httpsAgent: https.Agent;
   private anonClient: AxiosInstance;
   private digestClient: CachedDigestAuth | null = null;
+  // Tracks the protocol+port that last successfully answered GET /system.
+  // Lets refreshSystemMetadata skip the redundant verifyHttpsResponds probe
+  // when getSystem already proved HTTPS works (and vice versa).
+  private lastSystemTransport: { protocol: Protocol; port: number } | null = null;
+  // Serializes outgoing HTTPS calls. Philips' Restlet HTTPS server force-closes
+  // connections under load ("Restlet CPU Consumption bug" in the TV's own
+  // logs); concurrent HTTPS requests fill the TV's accept-queue with sockets
+  // it never releases, until the HTTPS server is functionally dead. HTTP/1925
+  // (notifychange long-poll) is unaffected and stays unserialized.
+  private httpsCallChain: Promise<unknown> = Promise.resolve();
 
   constructor(config: JointspaceConfig, options: JointspaceApiOptions = {}) {
     this.config = config;
     this.log = options.log ?? (() => undefined);
     this.debug = options.debug ?? false;
-    this.httpsAgent = new https.Agent({ rejectUnauthorized: false });
+    // TVs use a self-signed cert; skip CA verification. No legacy-TLS
+    // tweaks needed — the TLS handshake script confirms modern Philips
+    // firmware negotiates TLS 1.2 with ECDHE-CHACHA20 just fine on Node's
+    // default cipher set.
+    // keepAlive + maxSockets: 1 makes axios reuse the same TCP/TLS connection
+    // across requests. Critical for digest auth on this TV: needle (used by the
+    // old JS app) did the 401-challenge + auth-retry over a single socket,
+    // because Restlet appears to bind the digest nonce to the TCP session.
+    // Two separate sockets => second request RSTs within 64ms. The HTTPS
+    // mutex serializes outgoing calls so maxSockets: 1 is fine.
+    this.httpsAgent = new https.Agent({ rejectUnauthorized: false, keepAlive: true, maxSockets: 1 });
     this.anonClient = this.buildAnonClient();
     this.rebuildDigestClient();
   }
@@ -140,7 +160,35 @@ export class JointspaceApi {
    * presence of an api version.
    */
   async getSystem(): Promise<SystemInfo> {
-    const primary = await this.request<SystemInfo>({
+    const primary = await this.probeSystemHttp();
+    if (primary?.api_version?.Major) {
+      this.lastSystemTransport = { protocol: "http", port: HTTP_PORT };
+      return primary;
+    }
+
+    this.log("HTTP/1925/system returned empty body, falling back to HTTPS/1926");
+    const fallback = await this.probeSystemHttps();
+    if (fallback?.api_version?.Major) {
+      this.lastSystemTransport = { protocol: "https", port: HTTPS_PORT };
+      return fallback;
+    }
+
+    throw new InvalidResponseError("System endpoint returned no api_version on either HTTP/1925 or HTTPS/1926");
+  }
+
+  /**
+   * Returns the protocol+port that last successfully served GET /system,
+   * or null if no successful system probe has happened yet. Callers can use
+   * this to skip a redundant HTTPS verify probe when getSystem just proved
+   * which transport works.
+   */
+  getLastSystemTransport(): { protocol: Protocol; port: number } | null {
+    return this.lastSystemTransport;
+  }
+
+  /** Raw GET /system on HTTP/1925, unauthenticated. Exposed for diagnostics. */
+  async probeSystemHttp(): Promise<SystemInfo> {
+    return this.request<SystemInfo>({
       method: "GET",
       path: "system",
       port: HTTP_PORT,
@@ -148,10 +196,11 @@ export class JointspaceApi {
       prefixApiVersion: false,
       requireAuth: false,
     });
-    if (primary?.api_version?.Major) return primary;
+  }
 
-    if (this.debug) this.log("HTTP/1925/system returned empty body, falling back to HTTPS/1926");
-    const fallback = await this.request<SystemInfo>({
+  /** Raw GET /system on HTTPS/1926, unauthenticated. Exposed for diagnostics. */
+  async probeSystemHttps(): Promise<SystemInfo> {
+    return this.request<SystemInfo>({
       method: "GET",
       path: "system",
       port: HTTPS_PORT,
@@ -159,9 +208,27 @@ export class JointspaceApi {
       prefixApiVersion: false,
       requireAuth: false,
     });
-    if (fallback?.api_version?.Major) return fallback;
+  }
 
-    throw new InvalidResponseError("System endpoint returned no api_version on either HTTP/1925 or HTTPS/1926");
+  /**
+   * Probe whether HTTPS/1926 actually responds with a valid system payload.
+   * Some Philips firmwares advertise secured_transport=true but leave the
+   * HTTPS server unresponsive on the active network interface; the rest of
+   * our API then hangs forever waiting on it. Callers use this to confirm
+   * the advertised transport before trusting it.
+   */
+  async verifyHttpsResponds(timeoutMs = 6000): Promise<boolean> {
+    try {
+      const response = await Promise.race([
+        this.probeSystemHttps(),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error(`HTTPS verification timed out after ${timeoutMs}ms`)), timeoutMs),
+        ),
+      ]);
+      return Boolean(response?.api_version?.Major);
+    } catch {
+      return false;
+    }
   }
 
   async startPair(device: PairDevice): Promise<PairingState> {
@@ -453,14 +520,50 @@ export class JointspaceApi {
       data: opts.data,
       timeout: opts.timeoutMs ?? DEFAULT_TIMEOUT_MS,
       httpsAgent: this.httpsAgent,
+      // No explicit Connection header. Letting keep-alive run means axios
+      // can recycle the same socket for the digest auth 401-challenge +
+      // auth-retry handshake. Forcing Connection: close (as a previous
+      // attempt at the Restlet "CPU consumption bug" workaround) made the
+      // TV RST every second digest request within 64ms.
       headers: { Accept: "application/json" },
       validateStatus: () => true,
     };
 
-    if (this.debug) this.log("→", opts.method, url);
+    const startedAt = Date.now();
+    this.log("→", opts.method, url);
 
-    const response = await this.sendWithRetry(requestConfig, opts, credentials);
-    return this.parseResponse<T>(response);
+    const exec = async (): Promise<T> => {
+      try {
+        const response = await this.sendWithRetry(requestConfig, opts, credentials);
+        this.log("←", response.status, opts.method, url, `(${Date.now() - startedAt}ms)`);
+        return this.parseResponse<T>(response);
+      } catch (err) {
+        const code = (err as AxiosError | NodeJS.ErrnoException).code ?? (err as Error).name;
+        this.log("✗", code, opts.method, url, `(${Date.now() - startedAt}ms)`);
+        throw err;
+      }
+    };
+
+    if (protocol === "https") return this.serializeHttps(exec);
+    return exec();
+  }
+
+  private serializeHttps<T>(fn: () => Promise<T>): Promise<T> {
+    const previous = this.httpsCallChain;
+    let release!: () => void;
+    const slot = new Promise<void>((resolve) => { release = resolve; });
+    this.httpsCallChain = slot;
+    const run = async (): Promise<T> => {
+      // Swallow upstream rejection so one HTTPS failure doesn't poison
+      // every subsequent call in the chain.
+      await previous.catch(() => undefined);
+      try {
+        return await fn();
+      } finally {
+        release();
+      }
+    };
+    return run();
   }
 
   private async sendWithRetry(
@@ -473,8 +576,12 @@ export class JointspaceApi {
       return await send();
     } catch (err) {
       if (this.isRetryableProtocolError(err)) {
-        if (this.debug) this.log("Retrying once after protocol error:", (err as Error).message);
-        return send();
+        this.log(`Retrying after ${(err as Error).message} on ${opts.method} ${requestConfig.url}`);
+        try {
+          return await send();
+        } catch (retryErr) {
+          throw this.wrapTransportError(retryErr);
+        }
       }
       throw this.wrapTransportError(err);
     }

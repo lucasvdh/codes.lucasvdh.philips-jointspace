@@ -3,6 +3,7 @@ import type { SystemInfo } from "./types";
 export interface SystemMetadata {
   osType: string | null;
   notifyChangeSupported: boolean;
+  pairingType: string | null;
 }
 
 /**
@@ -17,6 +18,37 @@ export function osHasAmbilightModeQuirk(osType: string | null): boolean {
   if (osType.startsWith("MSAF_")) return true;
   if (osType === "Linux") return true;
   return false;
+}
+
+/**
+ * On Android-XTV firmware (MSAF_*) authenticated endpoints only exist on
+ * HTTPS/1926. HTTP/1925 serves /system unauthenticated and returns 404 for
+ * anything else. So when HTTPS/1926 dies (Restlet "CPU consumption bug"
+ * force-closes connections until the FD pool is exhausted) we must NOT
+ * silently fall back to HTTP/1925 — that just turns 20s timeouts into 404s.
+ * Better to surface a clear error so the user knows to power-cycle the TV.
+ */
+export function osRequiresHttpsForAuthenticatedEndpoints(osType: string | null): boolean {
+  if (!osType) return false;
+  return osType.startsWith("MSAF_");
+}
+
+/**
+ * How often the state poller should run a full HTTPS poll cycle.
+ *
+ * Polling acts as a sync fallback for state changes notifyChange might miss
+ * (we've seen ambilight changes not come through notify on MSAF). Default
+ * is 10s for any firmware we don't have specific knowledge about. On MSAF
+ * we slow it down to 60s — the Restlet HTTPS server tolerates load poorly
+ * (see docs/development/restlet-quirks.md), so we minimise the call rate
+ * while keeping a sync safety net.
+ */
+export function osPollIntervalMs(osType: string | null): number {
+  // TODO: revisit. Keeping 10s everywhere temporarily while we debug
+  // notifyChange reliability. Once notify is proven sufficient we can
+  // lengthen the MSAF interval (60s tested stable previously).
+  if (osType?.startsWith("MSAF_")) return 10_000;
+  return 10_000;
 }
 
 /**
@@ -40,10 +72,16 @@ export function extractNotifyChangeSupport(system: SystemInfo): boolean {
   return system.notifyChange === "http";
 }
 
+export function extractPairingType(system: SystemInfo): string | null {
+  const value = system.featuring?.systemfeatures?.pairing_type;
+  return typeof value === "string" && value.length > 0 ? value : null;
+}
+
 export function extractSystemMetadata(system: SystemInfo): SystemMetadata {
   return {
     osType: extractOsType(system),
     notifyChangeSupported: extractNotifyChangeSupport(system),
+    pairingType: extractPairingType(system),
   };
 }
 

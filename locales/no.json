@@ -22,6 +22,13 @@
       "title": "Legg til enhet"
     }
   },
+  "repair": {
+    "done": {
+      "title": "Reparasjon fullført",
+      "body": "Enheten din har blitt koblet til TV-en på nytt. Alle dine eksisterende flyter fortsetter å fungere.",
+      "close": "Ferdig"
+    }
+  },
   "error": {
     "generic": "Det oppstod en uventet feil",
     "pairing_timeout": "Paringssesjonen har utløpt, prøv igjen.",
@@ -34,6 +41,9 @@
     "concurrent_pairing": "En paringsforespørsel er allerede startet. Vent i 60 sekunder og prøv igjen.",
     "provide_the_ip_address": "Oppgi IP-adressen",
     "device_not_found": "Enhet ikke funnet",
-    "something_went_wrong": "Noe gikk galt"
+    "something_went_wrong": "Noe gikk galt",
+    "invalid_response": "TV-en svarte, men dataene kunne ikke tolkes. TV-modellen din støttes kanskje ikke, eller den kjører uvanlig fastvare. Sjekk IP-adressen, og prøv igjen.",
+    "protocol_error": "Tilkoblingen til TV-en ble tilbakestilt. Prøv igjen. Hvis dette fortsetter, start TV-en helt på nytt.",
+    "https_unavailable_for_pair": "TV-en din krever paring over HTTPS, men HTTPS-tjenesten svarer ikke. Dette er et kjent problem på enkelte Philips-fastvarer. Ta ut støpselet i 30 sekunder, sett det inn igjen, og prøv igjen."
   }
 }

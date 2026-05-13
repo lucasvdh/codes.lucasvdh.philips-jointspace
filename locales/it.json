@@ -22,6 +22,13 @@
       "title": "Aggiungi dispositivo"
     }
   },
+  "repair": {
+    "done": {
+      "title": "Riparazione completata",
+      "body": "Il tuo dispositivo è stato ricollegato al televisore. Tutti i tuoi flow esistenti continuano a funzionare.",
+      "close": "Fatto"
+    }
+  },
   "error": {
     "generic": "Si è verificato un errore imprevisto",
     "pairing_timeout": "La sessione di abbinamento è scaduta, riprova.",
@@ -34,6 +41,9 @@
     "concurrent_pairing": "È già stata avviata una richiesta di abbinamento. Attendi 60 secondi e riprova.",
     "provide_the_ip_address": "Inserisci l'indirizzo IP",
     "device_not_found": "Dispositivo non trovato",
-    "something_went_wrong": "Si è verificato un errore"
+    "something_went_wrong": "Si è verificato un errore",
+    "invalid_response": "La TV ha risposto ma i dati non sono stati interpretabili. Il modello di TV potrebbe non essere supportato, o esegue un firmware insolito. Controlla l'indirizzo IP e riprova.",
+    "protocol_error": "La connessione alla TV è stata ripristinata. Riprova. Se il problema persiste, riavvia completamente la TV.",
+    "https_unavailable_for_pair": "La tua TV richiede l'abbinamento tramite HTTPS, ma il servizio HTTPS non risponde. È un problema noto su alcuni firmware Philips. Stacca la TV dalla corrente per 30 secondi, ricollegala e riprova."
   }
 }

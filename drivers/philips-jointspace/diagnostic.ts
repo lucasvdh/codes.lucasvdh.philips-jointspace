@@ -1,6 +1,9 @@
 import type Homey from "homey";
 import type { JointspaceApi } from "./jointspace-api";
 
+// Store keys whose value must never appear in a diagnostic report.
+const SECRET_STORE_KEYS = new Set<string>(["credentials"]);
+
 export interface ProbeResult {
   label: string;
   method: "GET" | "POST";
@@ -123,6 +126,10 @@ function snapshotDevice(device: Homey.Device): DeviceSnapshot {
   const settings = device.getSettings() as Record<string, unknown>;
   const store: Record<string, unknown> = {};
   for (const key of device.getStoreKeys() ?? []) {
+    if (SECRET_STORE_KEYS.has(key)) {
+      store[key] = "<redacted>";
+      continue;
+    }
     store[key] = device.getStoreValue(key);
   }
   const capabilities = device.getCapabilities().map((cap) => ({
@@ -222,12 +229,22 @@ async function runProbes(api: JointspaceApi): Promise<ProbeResult[]> {
 }
 
 async function runUnauthenticatedProbes(api: JointspaceApi): Promise<ProbeResult[]> {
+  // Probe both transports separately so the report shows which one the TV
+  // actually serves. Important when the TV advertises secured_transport=true
+  // but only responds on HTTP/1925 (or vice versa); pair/request will hang
+  // on the wrong transport even though /system works on the other.
   const probes: Array<{ label: string; method: "GET" | "POST"; endpoint: string; runner: ProbeRunner }> = [
     {
-      label: "System info",
+      label: "System info (HTTP/1925)",
       method: "GET",
-      endpoint: "/system (HTTP/1925 → HTTPS/1926 fallback)",
-      runner: async () => ({ result: await api.getSystem() }),
+      endpoint: "http://<ip>:1925/system",
+      runner: async () => ({ result: await api.probeSystemHttp() }),
+    },
+    {
+      label: "System info (HTTPS/1926)",
+      method: "GET",
+      endpoint: "https://<ip>:1926/system",
+      runner: async () => ({ result: await api.probeSystemHttps() }),
     },
   ];
   return Promise.all(

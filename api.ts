@@ -83,10 +83,14 @@ module.exports = {
 
 async function collectNetworkForIp(homey: any, ip: string): Promise<NetworkSnapshot> {
   try {
+    // Homey's arp.getMAC pings the host internally; on a host that isn't
+    // already in the kernel ARP cache that ping can take 5s. Probes run in
+    // parallel, so this 8s cap doesn't blow the 10s settings-api ceiling
+    // as long as the probes themselves stay under ~4s each (they do).
     const mac = await Promise.race([
       homey.arp.getMAC(ip),
       new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("ARP lookup timed out after 2s")), 2000),
+        setTimeout(() => reject(new Error("ARP lookup timed out after 8s")), 8000),
       ),
     ]);
     return { ip, arpMac: typeof mac === "string" && mac.length > 0 ? mac : undefined };

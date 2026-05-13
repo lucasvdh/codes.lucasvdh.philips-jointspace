@@ -22,6 +22,13 @@
       "title": "Dodaj urządzenie"
     }
   },
+  "repair": {
+    "done": {
+      "title": "Naprawa zakończona",
+      "body": "Twoje urządzenie zostało ponownie połączone z telewizorem. Wszystkie istniejące flowy nadal działają.",
+      "close": "Gotowe"
+    }
+  },
   "error": {
     "generic": "Wystąpił nieoczekiwany błąd",
     "pairing_timeout": "Sesja parowania wygasła, spróbuj ponownie.",
@@ -31,8 +38,12 @@
     "unknown_pairing_type": "Nieznany rodzaj żądania parowania: __pairingType__.",
     "could_not_start_pairing": "Coś poszło nie tak podczas uruchamiania żądania parowania.",
     "pairing_not_found": "Nie można uruchomić żądania parowania, ponieważ telewizor wskazuje, że nie istnieje. Twój telewizor może nie wymagać uwierzytelniania lub nie być obsługiwany przez tę aplikację.\n\nSpróbuj dodać swój telewizor ręcznie bez uwierzytelniania.",
+    "concurrent_pairing": "Żądanie parowania zostało już rozpoczęte, poczekaj 60 sekund i spróbuj ponownie.",
     "provide_the_ip_address": "Podaj adres IP",
     "device_not_found": "Urządzenie nie znalezione",
-    "something_went_wrong": "Coś poszło nie tak"
+    "something_went_wrong": "Coś poszło nie tak",
+    "invalid_response": "Telewizor odpowiedział, ale danych nie można było odczytać. Twój model telewizora może nie być obsługiwany lub działa nietypowe oprogramowanie. Sprawdź adres IP i spróbuj ponownie.",
+    "protocol_error": "Połączenie z telewizorem zostało zresetowane. Spróbuj ponownie. Jeśli problem się powtarza, uruchom telewizor ponownie.",
+    "https_unavailable_for_pair": "Twój telewizor wymaga parowania przez HTTPS, ale usługa HTTPS nie odpowiada. To znany problem na niektórych wersjach oprogramowania Philips. Odłącz telewizor od prądu na 30 sekund, podłącz ponownie i spróbuj jeszcze raz."
   }
 }
