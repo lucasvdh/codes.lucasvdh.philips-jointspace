@@ -1,13 +1,28 @@
+import { randomUUID } from "crypto";
 import {
+  DiagnosticReport,
+  DiscoverySnapshot,
+  NetworkSnapshot,
+  ProgressCallback,
   generateDeviceReport,
   generateIpReport,
   renderMarkdown,
-  DiscoverySnapshot,
-  NetworkSnapshot,
 } from "./drivers/philips-jointspace/diagnostic";
 import { JointspaceApi } from "./drivers/philips-jointspace/jointspace-api";
 
 const DRIVER_ID = "philips-jointspace";
+
+/**
+ * Event names used to push report progress/completion back to the settings
+ * page. The settings page subscribes via `Homey.on(name, handler)` and filters
+ * payloads by `runId`. Using one fixed event name per kind (rather than
+ * embedding the runId in the name) means the page can subscribe once at page
+ * load and stays resilient against the small race between starting a run and
+ * registering its listeners.
+ */
+const EVENT_PROGRESS = "philips-tv:report:progress";
+const EVENT_COMPLETE = "philips-tv:report:complete";
+const EVENT_ERROR = "philips-tv:report:error";
 
 interface ApiArgs {
   homey: any;
@@ -24,7 +39,7 @@ interface ProbeIpArgs extends ApiArgs {
 interface DeviceLite {
   getName(): string;
   getData(): { id?: string } & Record<string, unknown>;
-  getJointspaceClient?: () => unknown;
+  getJointspaceClient?: () => JointspaceApi;
 }
 
 module.exports = {
@@ -36,7 +51,15 @@ module.exports = {
     }));
   },
 
-  async generateReport({ homey, body }: ReportArgs): Promise<{ markdown: string }> {
+  /**
+   * Kick off a report for a paired device. Returns immediately with a runId
+   * so the settings page isn't held hostage by Homey's settings-API timeout
+   * (undocumented, observed to abort long-running probes around 10s). The
+   * markdown is delivered via the `philips-tv:report:complete` realtime
+   * event; progress messages stream over `:progress`; failure surfaces over
+   * `:error`. The runId is the correlation token for all three.
+   */
+  async generateReport({ homey, body }: ReportArgs): Promise<{ runId: string }> {
     const driver = homey.drivers.getDriver(DRIVER_ID);
     const device = driver
       .getDevices()
@@ -48,45 +71,88 @@ module.exports = {
       throw new Error(`Device ${body.deviceId} does not expose getJointspaceClient`);
     }
 
-    const report = await generateDeviceReport({
-      device,
-      api: device.getJointspaceClient(),
-      appVersion: String(homey.manifest?.version ?? "unknown"),
-      homeyFirmwareVersion: typeof homey.version === "string" ? homey.version : undefined,
-      homeyPlatform: typeof homey.platform === "string" ? homey.platform : undefined,
-      discovery: collectDiscovery(homey),
-      network: await collectNetwork(homey, device),
+    const runId = randomUUID();
+    runInBackground(homey, runId, async (onProgress) => {
+      onProgress("Looking up MAC via ARP…");
+      const network = await collectNetwork(homey, device);
+      onProgress("Collecting discovery cache…");
+      const discovery = collectDiscovery(homey);
+      return generateDeviceReport({
+        device,
+        api: device.getJointspaceClient!(),
+        appVersion: String(homey.manifest?.version ?? "unknown"),
+        homeyFirmwareVersion: typeof homey.version === "string" ? homey.version : undefined,
+        homeyPlatform: typeof homey.platform === "string" ? homey.platform : undefined,
+        discovery,
+        network,
+        onProgress,
+      });
     });
 
-    return { markdown: renderMarkdown(report) };
+    return { runId };
   },
 
-  async probeByIp({ homey, body }: ProbeIpArgs): Promise<{ markdown: string }> {
+  async probeByIp({ homey, body }: ProbeIpArgs): Promise<{ runId: string }> {
     const ip = String(body?.ip ?? "").trim();
     if (!ip) throw new Error("ip is required");
     if (!/^\d{1,3}(\.\d{1,3}){3}$/.test(ip)) throw new Error(`"${ip}" doesn't look like an IPv4 address`);
 
-    const api = new JointspaceApi({ host: ip, apiVersion: 1, secured: false, port: 1925 });
-    const report = await generateIpReport({
-      ip,
-      api,
-      appVersion: String(homey.manifest?.version ?? "unknown"),
-      homeyFirmwareVersion: typeof homey.version === "string" ? homey.version : undefined,
-      homeyPlatform: typeof homey.platform === "string" ? homey.platform : undefined,
-      network: await collectNetworkForIp(homey, ip),
-      discovery: collectDiscovery(homey),
+    const runId = randomUUID();
+    runInBackground(homey, runId, async (onProgress) => {
+      onProgress(`Looking up MAC for ${ip} via ARP…`);
+      const network = await collectNetworkForIp(homey, ip);
+      onProgress("Collecting discovery cache…");
+      const discovery = collectDiscovery(homey);
+      const api = new JointspaceApi({ host: ip, apiVersion: 1, secured: false, port: 1925 });
+      return generateIpReport({
+        ip,
+        api,
+        appVersion: String(homey.manifest?.version ?? "unknown"),
+        homeyFirmwareVersion: typeof homey.version === "string" ? homey.version : undefined,
+        homeyPlatform: typeof homey.platform === "string" ? homey.platform : undefined,
+        network,
+        discovery,
+        onProgress,
+      });
     });
 
-    return { markdown: renderMarkdown(report) };
+    return { runId };
   },
 };
 
+function runInBackground(
+  homey: any,
+  runId: string,
+  work: (onProgress: ProgressCallback) => Promise<DiagnosticReport>,
+): void {
+  const emit = (event: string, payload: Record<string, unknown>) => {
+    Promise.resolve()
+      .then(() => homey.api.realtime(event, { runId, ...payload }))
+      .catch((err: unknown) => {
+        // Realtime emit is best-effort; if it fails the settings page hits its
+        // watchdog and surfaces an error. Log so we can correlate.
+        try {
+          homey.app?.error?.(`realtime emit ${event} failed: ${(err as Error).message}`);
+        } catch {
+          // ignore
+        }
+      });
+  };
+
+  const onProgress: ProgressCallback = (message) => emit(EVENT_PROGRESS, { message });
+
+  void (async () => {
+    try {
+      const report = await work(onProgress);
+      emit(EVENT_COMPLETE, { markdown: renderMarkdown(report) });
+    } catch (err) {
+      emit(EVENT_ERROR, { message: (err as Error).message ?? String(err) });
+    }
+  })();
+}
+
 async function collectNetworkForIp(homey: any, ip: string): Promise<NetworkSnapshot> {
   try {
-    // Homey's arp.getMAC pings the host internally; on a host that isn't
-    // already in the kernel ARP cache that ping can take 5s. Probes run in
-    // parallel, so this 8s cap doesn't blow the 10s settings-api ceiling
-    // as long as the probes themselves stay under ~4s each (they do).
     const mac = await Promise.race([
       homey.arp.getMAC(ip),
       new Promise<never>((_, reject) =>

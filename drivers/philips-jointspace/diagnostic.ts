@@ -58,12 +58,16 @@ interface ProbeRunner {
 }
 
 const RESPONSE_PREVIEW_LENGTH = 600;
-// Homey settings API call has a 10s ceiling, and we run all probes inside a
-// single request, so each individual probe gets capped well below that.
-// `notifyChange` is the only legitimately slow one (it's a long-poll); we
-// shorten it to enough time to confirm the endpoint exists.
-const PER_PROBE_TIMEOUT_MS = 4_000;
-const NOTIFY_PROBE_TIMEOUT_MS = 4_000;
+// The report no longer runs inside a settings-API request — it's kicked off
+// in the background and progress streams back over realtime events. That
+// lifts the old 10s ceiling, so individual probes can take as long as a
+// genuinely slow Philips TV needs. notifyChange is a long-poll: a 30s
+// timeout gives the TV a real chance to stream at least one state change
+// while still bounding the worst case.
+const PER_PROBE_TIMEOUT_MS = 15_000;
+const NOTIFY_PROBE_TIMEOUT_MS = 30_000;
+
+export type ProgressCallback = (message: string) => void;
 
 export async function generateDeviceReport(opts: {
   device: Homey.Device;
@@ -73,8 +77,9 @@ export async function generateDeviceReport(opts: {
   homeyPlatform?: string;
   discovery?: DiscoverySnapshot;
   network?: NetworkSnapshot;
+  onProgress?: ProgressCallback;
 }): Promise<DiagnosticReport> {
-  const { device, api, appVersion, homeyFirmwareVersion, homeyPlatform, discovery, network } = opts;
+  const { device, api, appVersion, homeyFirmwareVersion, homeyPlatform, discovery, network, onProgress } = opts;
 
   return {
     generatedAt: new Date().toISOString(),
@@ -86,7 +91,7 @@ export async function generateDeviceReport(opts: {
     device: snapshotDevice(device),
     network,
     discovery,
-    probes: await runProbes(api),
+    probes: await runProbes(api, onProgress),
   };
 }
 
@@ -105,8 +110,9 @@ export async function generateIpReport(opts: {
   homeyPlatform?: string;
   discovery?: DiscoverySnapshot;
   network?: NetworkSnapshot;
+  onProgress?: ProgressCallback;
 }): Promise<DiagnosticReport> {
-  const { ip, api, appVersion, homeyFirmwareVersion, homeyPlatform, discovery, network } = opts;
+  const { ip, api, appVersion, homeyFirmwareVersion, homeyPlatform, discovery, network, onProgress } = opts;
 
   return {
     generatedAt: new Date().toISOString(),
@@ -117,7 +123,7 @@ export async function generateIpReport(opts: {
     scopeTarget: ip,
     network,
     discovery,
-    probes: await runUnauthenticatedProbes(api),
+    probes: await runUnauthenticatedProbes(api, onProgress),
   };
 }
 
@@ -148,14 +154,32 @@ function snapshotDevice(device: Homey.Device): DeviceSnapshot {
   };
 }
 
-async function runProbes(api: JointspaceApi): Promise<ProbeResult[]> {
-  const probes: Array<{ label: string; method: "GET" | "POST"; endpoint: string; runner: ProbeRunner }> = [
-    {
-      label: "System info",
-      method: "GET",
-      endpoint: "/system (HTTP/1925 → HTTPS/1926 fallback)",
-      runner: async () => ({ result: await api.getSystem() }),
-    },
+interface ProbeSpec {
+  label: string;
+  method: "GET" | "POST";
+  endpoint: string;
+  runner: ProbeRunner;
+}
+
+async function runProbes(api: JointspaceApi, onProgress?: ProgressCallback): Promise<ProbeResult[]> {
+  const progress = (msg: string) => onProgress?.(msg);
+
+  // Phase 1: /system first, on its own. Most failures are auth/transport
+  // problems that this probe surfaces; running it standalone makes its
+  // result easy to spot in progress logs and avoids racing it against ten
+  // other concurrent connections on TVs with fragile HTTPS servers.
+  progress("Probing /system…");
+  const systemProbe = await runProbe(
+    "System info",
+    "GET",
+    "/system (HTTP/1925 → HTTPS/1926 fallback)",
+    async () => ({ result: await api.getSystem() }),
+  );
+
+  // Phase 2: live-state endpoints. Each is small, independent, and we want
+  // them in parallel since the bottleneck is round-trip latency.
+  progress("Probing live state (power, audio, ambilight, ambihue, screen)…");
+  const stateSpecs: ProbeSpec[] = [
     {
       label: "Power state",
       method: "GET",
@@ -186,6 +210,16 @@ async function runProbes(api: JointspaceApi): Promise<ProbeResult[]> {
       endpoint: "screenstate",
       runner: async () => ({ result: await api.getScreenState() }),
     },
+  ];
+  const stateProbes = await Promise.all(
+    stateSpecs.map((p) => runProbe(p.label, p.method, p.endpoint, p.runner)),
+  );
+
+  // Phase 3: list/lookup endpoints. Same parallel pattern, but separated
+  // from live state because they trigger heavier work on the TV (channel db
+  // can be slow) and benefit from not competing with the state probes.
+  progress("Probing applications, channels, sources…");
+  const listSpecs: ProbeSpec[] = [
     {
       label: "Applications",
       method: "GET",
@@ -204,36 +238,41 @@ async function runProbes(api: JointspaceApi): Promise<ProbeResult[]> {
       endpoint: "sources",
       runner: async () => ({ result: await api.getSources() }),
     },
-    {
-      label: `notifyChange (long-poll probe, ${NOTIFY_PROBE_TIMEOUT_MS / 1000}s timeout)`,
-      method: "POST",
-      endpoint: "notifychange",
-      runner: async () => {
-        const racePromise = Promise.race([
-          api.notifyChange(),
-          new Promise<{ timedOut: true }>((resolve) =>
-            setTimeout(() => resolve({ timedOut: true }), NOTIFY_PROBE_TIMEOUT_MS),
-          ),
-        ]);
-        return { result: await racePromise };
-      },
-    },
   ];
-
-  // Run all probes in parallel so the total time is bounded by the slowest
-  // single probe, not the sum. Each probe carries its own timeout so a fully
-  // offline TV doesn't lock the report-generation up.
-  return Promise.all(
-    probes.map((p) => runProbe(p.label, p.method, p.endpoint, p.runner)),
+  const listProbes = await Promise.all(
+    listSpecs.map((p) => runProbe(p.label, p.method, p.endpoint, p.runner)),
   );
+
+  // Phase 4: long-poll notifyChange. We deliberately leave room for the TV
+  // to either push a real state update or close the connection — both
+  // outcomes are diagnostically useful.
+  progress(`Long-polling notifyChange (up to ${NOTIFY_PROBE_TIMEOUT_MS / 1000}s)…`);
+  const notifyProbe = await runProbe(
+    `notifyChange (long-poll probe, ${NOTIFY_PROBE_TIMEOUT_MS / 1000}s timeout)`,
+    "POST",
+    "notifychange",
+    async () => {
+      const racePromise = Promise.race([
+        api.notifyChange(),
+        new Promise<{ timedOut: true }>((resolve) =>
+          setTimeout(() => resolve({ timedOut: true }), NOTIFY_PROBE_TIMEOUT_MS),
+        ),
+      ]);
+      return { result: await racePromise };
+    },
+    NOTIFY_PROBE_TIMEOUT_MS + 1_000,
+  );
+
+  return [systemProbe, ...stateProbes, ...listProbes, notifyProbe];
 }
 
-async function runUnauthenticatedProbes(api: JointspaceApi): Promise<ProbeResult[]> {
+async function runUnauthenticatedProbes(api: JointspaceApi, onProgress?: ProgressCallback): Promise<ProbeResult[]> {
   // Probe both transports separately so the report shows which one the TV
   // actually serves. Important when the TV advertises secured_transport=true
   // but only responds on HTTP/1925 (or vice versa); pair/request will hang
   // on the wrong transport even though /system works on the other.
-  const probes: Array<{ label: string; method: "GET" | "POST"; endpoint: string; runner: ProbeRunner }> = [
+  onProgress?.("Probing /system on HTTP/1925 and HTTPS/1926…");
+  const specs: ProbeSpec[] = [
     {
       label: "System info (HTTP/1925)",
       method: "GET",
@@ -248,7 +287,7 @@ async function runUnauthenticatedProbes(api: JointspaceApi): Promise<ProbeResult
     },
   ];
   return Promise.all(
-    probes.map((p) => runProbe(p.label, p.method, p.endpoint, p.runner)),
+    specs.map((p) => runProbe(p.label, p.method, p.endpoint, p.runner)),
   );
 }
 
@@ -257,10 +296,11 @@ async function runProbe(
   method: "GET" | "POST",
   endpoint: string,
   runner: ProbeRunner,
+  timeoutMs: number = PER_PROBE_TIMEOUT_MS,
 ): Promise<ProbeResult> {
   const started = Date.now();
   try {
-    const { result } = await withTimeout(runner(), PER_PROBE_TIMEOUT_MS);
+    const { result } = (await withTimeout(runner(), timeoutMs)) as { result: unknown };
     return {
       label,
       method,

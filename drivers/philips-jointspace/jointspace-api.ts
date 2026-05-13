@@ -102,7 +102,7 @@ export class JointspaceApi {
   constructor(config: JointspaceConfig, options: JointspaceApiOptions = {}) {
     this.config = config;
     this.log = options.log ?? (() => undefined);
-    this.debug = true;// options.debug ?? false;
+    this.debug = options.debug ?? false;
     // TVs use a self-signed cert; skip CA verification. No legacy-TLS
     // tweaks needed — the TLS handshake script confirms modern Philips
     // firmware negotiates TLS 1.2 with ECDHE-CHACHA20 just fine on Node's
