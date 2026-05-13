@@ -102,7 +102,7 @@ export class JointspaceApi {
   constructor(config: JointspaceConfig, options: JointspaceApiOptions = {}) {
     this.config = config;
     this.log = options.log ?? (() => undefined);
-    this.debug = options.debug ?? false;
+    this.debug = true;// options.debug ?? false;
     // TVs use a self-signed cert; skip CA verification. No legacy-TLS
     // tweaks needed — the TLS handshake script confirms modern Philips
     // firmware negotiates TLS 1.2 with ECDHE-CHACHA20 just fine on Node's
@@ -295,6 +295,28 @@ export class JointspaceApi {
   async getApplications(): Promise<Application[]> {
     const response = await this.request<ApplicationsResponse>({ method: "GET", path: "applications" });
     return response.applications ?? [];
+  }
+
+  /**
+   * Fetch the binary icon for a single app. Returns null on 404 (some
+   * apps have no icon registered, and some firmwares don't expose this
+   * endpoint at all). Other failures throw — caller decides how to
+   * handle them.
+   */
+  async getApplicationIcon(appId: string): Promise<{ contentType: string; body: Buffer } | null> {
+    const response = await this.dispatch(
+      { method: "GET", path: `applications/${appId}/icon` },
+      this.config.credentials,
+      { responseType: "arraybuffer", headers: { Accept: "image/*" } },
+    );
+    if (response.status === 404) return null;
+    if (response.status >= 400) {
+      throw new JointspaceError(`HTTP ${response.status} fetching icon for ${appId}`, response.status);
+    }
+    return {
+      contentType: String(response.headers["content-type"] ?? "image/png"),
+      body: Buffer.from(response.data as ArrayBuffer),
+    };
   }
 
   async sendKey(key: string): Promise<void> {
@@ -510,6 +532,22 @@ export class JointspaceApi {
     opts: RequestOptions,
     credentials?: JointspaceCredentials,
   ): Promise<T> {
+    const response = await this.dispatch(opts, credentials);
+    return this.parseResponse<T>(response);
+  }
+
+  /**
+   * Full request pipeline (URL build, digest auth, retry, mutex, logging)
+   * returning the raw AxiosResponse. JSON requests go through
+   * `requestWithCredentials` which adds JSON parsing on top. Binary
+   * responses (e.g. app icons) skip parseResponse and read response.data
+   * directly via `responseType: "arraybuffer"`.
+   */
+  private async dispatch(
+    opts: RequestOptions,
+    credentials?: JointspaceCredentials,
+    extraConfig?: Partial<AxiosRequestConfig>,
+  ): Promise<AxiosResponse> {
     const protocol = opts.protocol ?? (this.config.secured ? "https" : "http");
     const port = opts.port ?? this.config.port ?? JointspaceApi.portForApiVersion(this.config.apiVersion);
     const url = this.buildUrl(opts.path, port, protocol, opts.prefixApiVersion ?? true);
@@ -527,16 +565,17 @@ export class JointspaceApi {
       // TV RST every second digest request within 64ms.
       headers: { Accept: "application/json" },
       validateStatus: () => true,
+      ...extraConfig,
     };
 
     const startedAt = Date.now();
     if (this.debug) this.log("→", opts.method, url);
 
-    const exec = async (): Promise<T> => {
+    const exec = async (): Promise<AxiosResponse> => {
       try {
         const response = await this.sendWithRetry(requestConfig, opts, credentials);
         if (this.debug) this.log("←", response.status, opts.method, url, `(${Date.now() - startedAt}ms)`);
-        return this.parseResponse<T>(response);
+        return response;
       } catch (err) {
         const code = (err as AxiosError | NodeJS.ErrnoException).code ?? (err as Error).name;
         // Errors always logged — the failure code is genuinely useful and

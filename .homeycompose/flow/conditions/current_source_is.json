@@ -1,0 +1,56 @@
+{
+  "id": "current_source_is",
+  "title": {
+    "en": "The source !{{is|isn't}} active",
+    "nl": "De bron !{{is|is niet}} actief",
+    "de": "Die Quelle !{{ist|ist nicht}} aktiv",
+    "fr": "La source !{{est|n'est pas}} active",
+    "it": "La sorgente !{{è|non è}} attiva",
+    "sv": "Källan !{{är|är inte}} aktiv",
+    "no": "Kilden !{{er|er ikke}} aktiv",
+    "es": "La fuente !{{está|no está}} activa",
+    "da": "Kilden !{{er|er ikke}} aktiv",
+    "pl": "Źródło !{{jest|nie jest}} aktywne"
+  },
+  "titleFormatted": {
+    "en": "Source [[source]] !{{is|isn't}} active",
+    "nl": "Bron [[source]] !{{is|is niet}} actief",
+    "de": "Quelle [[source]] !{{ist|ist nicht}} aktiv",
+    "fr": "La source [[source]] !{{est|n'est pas}} active",
+    "it": "La sorgente [[source]] !{{è|non è}} attiva",
+    "sv": "Källan [[source]] !{{är|är inte}} aktiv",
+    "no": "Kilden [[source]] !{{er|er ikke}} aktiv",
+    "es": "La fuente [[source]] !{{está|no está}} activa",
+    "da": "Kilden [[source]] !{{er|er ikke}} aktiv",
+    "pl": "Źródło [[source]] !{{jest|nie jest}} aktywne"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=philips-jointspace"
+    },
+    {
+      "name": "source",
+      "type": "dropdown",
+      "title": {
+        "en": "Source",
+        "nl": "Bron",
+        "de": "Quelle",
+        "fr": "Source",
+        "it": "Sorgente",
+        "sv": "Källa",
+        "no": "Kilde",
+        "es": "Fuente",
+        "da": "Kilde",
+        "pl": "Źródło"
+      },
+      "values": [
+        { "id": "HDMI 1", "title": { "en": "HDMI 1" } },
+        { "id": "HDMI 2", "title": { "en": "HDMI 2" } },
+        { "id": "HDMI 3", "title": { "en": "HDMI 3" } },
+        { "id": "HDMI 4", "title": { "en": "HDMI 4" } }
+      ]
+    }
+  ]
+}

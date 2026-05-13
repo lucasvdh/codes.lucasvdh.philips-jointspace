@@ -1,0 +1,22 @@
+{
+  "id": "screen_turn_on",
+  "title": {
+    "en": "Turn the screen on",
+    "nl": "Zet het scherm aan",
+    "de": "Bildschirm einschalten",
+    "fr": "Allumer l'écran",
+    "it": "Accendere lo schermo",
+    "sv": "Slå på skärmen",
+    "no": "Slå på skjermen",
+    "es": "Encender la pantalla",
+    "da": "Tænd skærmen",
+    "pl": "Włącz ekran"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=philips-jointspace"
+    }
+  ]
+}

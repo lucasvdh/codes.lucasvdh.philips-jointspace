@@ -1,0 +1,41 @@
+{
+  "id": "current_source_changed",
+  "title": {
+    "en": "Source changed",
+    "nl": "Bron gewijzigd",
+    "de": "Quelle geändert",
+    "fr": "Source modifiée",
+    "it": "Sorgente cambiata",
+    "sv": "Källa ändrad",
+    "no": "Kilde endret",
+    "es": "Fuente cambiada",
+    "da": "Kilde ændret",
+    "pl": "Źródło zmienione"
+  },
+  "tokens": [
+    {
+      "name": "source",
+      "type": "string",
+      "title": {
+        "en": "Source",
+        "nl": "Bron",
+        "de": "Quelle",
+        "fr": "Source",
+        "it": "Sorgente",
+        "sv": "Källa",
+        "no": "Kilde",
+        "es": "Fuente",
+        "da": "Kilde",
+        "pl": "Źródło"
+      },
+      "example": "HDMI 1"
+    }
+  ],
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=philips-jointspace"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "id": "current_application_is",
+  "title": {
+    "en": "The app !{{is|isn't}} open",
+    "nl": "De app !{{is|is niet}} geopend",
+    "de": "Die App !{{ist|ist nicht}} geöffnet",
+    "fr": "L'application !{{est|n'est pas}} ouverte",
+    "it": "L'app !{{è|non è}} aperta",
+    "sv": "Appen !{{är|är inte}} öppen",
+    "no": "Appen !{{er|er ikke}} åpen",
+    "es": "La aplicación !{{está|no está}} abierta",
+    "da": "Appen !{{er|er ikke}} åben",
+    "pl": "Aplikacja !{{jest|nie jest}} otwarta"
+  },
+  "titleFormatted": {
+    "en": "[[app]] !{{is|isn't}} open",
+    "nl": "[[app]] !{{is|is niet}} geopend",
+    "de": "[[app]] !{{ist|ist nicht}} geöffnet",
+    "fr": "[[app]] !{{est|n'est pas}} ouverte",
+    "it": "[[app]] !{{è|non è}} aperta",
+    "sv": "[[app]] !{{är|är inte}} öppen",
+    "no": "[[app]] !{{er|er ikke}} åpen",
+    "es": "[[app]] !{{está|no está}} abierta",
+    "da": "[[app]] !{{er|er ikke}} åben",
+    "pl": "[[app]] !{{jest|nie jest}} otwarta"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=philips-jointspace"
+    },
+    {
+      "name": "app",
+      "type": "autocomplete",
+      "title": {
+        "en": "App",
+        "nl": "App",
+        "de": "App",
+        "fr": "Application",
+        "it": "App",
+        "sv": "App",
+        "no": "App",
+        "es": "Aplicación",
+        "da": "App",
+        "pl": "Aplikacja"
+      }
+    }
+  ]
+}

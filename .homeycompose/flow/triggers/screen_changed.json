@@ -1,0 +1,41 @@
+{
+  "id": "screen_changed",
+  "title": {
+    "en": "Screen turned on or off",
+    "nl": "Scherm aan- of uitgezet",
+    "de": "Bildschirm ein- oder ausgeschaltet",
+    "fr": "Écran allumé ou éteint",
+    "it": "Schermo acceso o spento",
+    "sv": "Skärmen slogs på eller av",
+    "no": "Skjermen ble slått på eller av",
+    "es": "Pantalla encendida o apagada",
+    "da": "Skærmen blev tændt eller slukket",
+    "pl": "Ekran włączony lub wyłączony"
+  },
+  "tokens": [
+    {
+      "name": "enabled",
+      "type": "boolean",
+      "title": {
+        "en": "Screen on",
+        "nl": "Scherm aan",
+        "de": "Bildschirm an",
+        "fr": "Écran allumé",
+        "it": "Schermo acceso",
+        "sv": "Skärmen på",
+        "no": "Skjermen på",
+        "es": "Pantalla encendida",
+        "da": "Skærm tændt",
+        "pl": "Ekran włączony"
+      },
+      "example": true
+    }
+  ],
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=philips-jointspace"
+    }
+  ]
+}

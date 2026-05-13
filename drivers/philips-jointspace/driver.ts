@@ -69,15 +69,21 @@ const PAIR_DEVICE_INFO: PairDevice = {
 
 class PhilipsTvDriver extends Homey.Driver {
   private applicationOpenedTrigger!: Homey.FlowCardTriggerDevice;
+  private specificApplicationOpenedTrigger!: Homey.FlowCardTriggerDevice;
   private ambiHueChangedTrigger!: Homey.FlowCardTriggerDevice;
   private ambilightChangedTrigger!: Homey.FlowCardTriggerDevice;
   private ambilightModeChangedTrigger!: Homey.FlowCardTriggerDevice;
+  private screenChangedTrigger!: Homey.FlowCardTriggerDevice;
+  private currentSourceChangedTrigger!: Homey.FlowCardTriggerDevice;
 
   async onInit(): Promise<void> {
     this.applicationOpenedTrigger = this.homey.flow.getDeviceTriggerCard("application_opened");
+    this.specificApplicationOpenedTrigger = this.homey.flow.getDeviceTriggerCard("specific_application_opened");
     this.ambiHueChangedTrigger = this.homey.flow.getDeviceTriggerCard("ambihue_changed");
     this.ambilightChangedTrigger = this.homey.flow.getDeviceTriggerCard("ambilight_changed");
     this.ambilightModeChangedTrigger = this.homey.flow.getDeviceTriggerCard("ambilight_mode_changed");
+    this.screenChangedTrigger = this.homey.flow.getDeviceTriggerCard("screen_changed");
+    this.currentSourceChangedTrigger = this.homey.flow.getDeviceTriggerCard("current_source_changed");
     this.log("Philips Jointspace driver initialised");
   }
 
@@ -85,6 +91,19 @@ class PhilipsTvDriver extends Homey.Driver {
 
   triggerApplicationOpenedTrigger(device: Homey.Device, args: { app: string }): Promise<void> {
     return this.applicationOpenedTrigger.trigger(device, args);
+  }
+
+  /**
+   * Fires whenever an app is opened. The Flow editor's runListener filters
+   * on the user-selected `app` arg so only flows targeting this specific
+   * app actually trigger. State carries `{ id, name }` of the app that
+   * just opened.
+   */
+  triggerSpecificApplicationOpenedTrigger(
+    device: Homey.Device,
+    state: { id: string; name: string },
+  ): Promise<void> {
+    return this.specificApplicationOpenedTrigger.trigger(device, {}, state);
   }
 
   triggerAmbiHueChangedTrigger(device: Homey.Device, args: { enabled: boolean }): Promise<void> {
@@ -97,6 +116,14 @@ class PhilipsTvDriver extends Homey.Driver {
 
   triggerAmbilightModeChangedTrigger(device: Homey.Device, args: { mode: string }): Promise<void> {
     return this.ambilightModeChangedTrigger.trigger(device, args);
+  }
+
+  triggerScreenChangedTrigger(device: Homey.Device, args: { enabled: boolean }): Promise<void> {
+    return this.screenChangedTrigger.trigger(device, args);
+  }
+
+  triggerCurrentSourceChangedTrigger(device: Homey.Device, args: { source: string }): Promise<void> {
+    return this.currentSourceChangedTrigger.trigger(device, args);
   }
 
   // --- pairing ----------------------------------------------------------

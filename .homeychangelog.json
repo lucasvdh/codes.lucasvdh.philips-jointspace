@@ -1,4 +1,16 @@
 {
+  "3.6.0": {
+    "en": "Adds app icons in the Flow editor app pickers, new Flow cards for screen on/off, current app and current source, and a more reliable 'specific app was opened' trigger.",
+    "nl": "Voegt app-iconen toe in de Flow-editor app-keuzelijsten, nieuwe Flow-kaarten voor scherm aan/uit, huidige app en huidige bron, en een betrouwbaardere trigger 'specifieke app werd geopend'.",
+    "de": "Fügt App-Symbole in den App-Auswahllisten des Flow-Editors hinzu, neue Flow-Karten für Bildschirm an/aus, aktuelle App und aktuelle Quelle, sowie einen zuverlässigeren Auslöser 'Eine bestimmte App wurde geöffnet'.",
+    "fr": "Ajoute les icônes des applications dans les sélecteurs d'app de l'éditeur de Flow, de nouvelles cartes Flow pour l'écran allumé/éteint, l'application actuelle et la source actuelle, ainsi qu'un déclencheur 'Une application spécifique a été ouverte' plus fiable.",
+    "it": "Aggiunge le icone delle app nei selettori del Flow editor, nuove Flow card per schermo acceso/spento, app corrente e sorgente corrente, e un trigger 'è stata aperta un'app specifica' più affidabile.",
+    "sv": "Lägger till app-ikoner i Flow-redigerarens app-väljare, nya Flow-kort för skärm på/av, aktuell app och aktuell källa, samt en mer tillförlitlig utlösare 'en specifik app öppnades'.",
+    "no": "Legger til app-ikoner i Flow-editorens app-velgere, nye Flow-kort for skjerm på/av, gjeldende app og gjeldende kilde, samt en mer pålitelig utløser 'en spesifikk app ble åpnet'.",
+    "es": "Añade los iconos de las aplicaciones en los selectores de app del editor de Flow, nuevas tarjetas de Flow para pantalla encendida/apagada, app actual y fuente actual, y un disparador 'Se abrió una aplicación específica' más fiable.",
+    "da": "Tilføjer app-ikoner i Flow-editorens app-vælgere, nye Flow-kort til skærm tændt/slukket, aktuel app og aktuel kilde, samt en mere pålidelig udløser 'En specifik app blev åbnet'.",
+    "pl": "Dodaje ikony aplikacji w wyborach aplikacji w edytorze Flow, nowe karty Flow dla ekranu wł./wył., bieżącej aplikacji i bieżącego źródła oraz bardziej niezawodny wyzwalacz „Otwarto określoną aplikację”."
+  },
   "3.5.2": {
     "en": "Adds missing labels to Flow action fields, so each argument now shows a translated name in the Flow editor (App, Source, Channel, …) instead of its internal field name.",
     "nl": "Voegt ontbrekende labels toe aan velden van Flow-acties, zodat elk argument in de Flow-editor nu een vertaalde naam toont (App, Bron, Kanaal, …) in plaats van de interne veldnaam.",

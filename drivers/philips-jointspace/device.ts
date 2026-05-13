@@ -47,6 +47,10 @@ interface SimplifiedApplication {
   id: string;
   name: string;
   intent: ApplicationIntent;
+  // Populated lazily once the per-app icon fetch completes; absent on
+  // firmwares that don't expose `/applications/{id}/icon` or while the
+  // background preload is still running.
+  image?: string;
 }
 
 interface SimplifiedChannel {
@@ -58,6 +62,9 @@ interface SimplifiedChannel {
 
 interface PhilipsTvDriverLike {
   triggerApplicationOpenedTrigger(device: Homey.Device, args: { app: string }): Promise<unknown>;
+  triggerSpecificApplicationOpenedTrigger(device: Homey.Device, state: { id: string; name: string }): Promise<unknown>;
+  triggerScreenChangedTrigger(device: Homey.Device, args: { enabled: boolean }): Promise<unknown>;
+  triggerCurrentSourceChangedTrigger(device: Homey.Device, args: { source: string }): Promise<unknown>;
   triggerAmbiHueChangedTrigger(device: Homey.Device, args: { enabled: boolean }): Promise<unknown>;
   triggerAmbilightChangedTrigger(device: Homey.Device, args: { enabled: boolean }): Promise<unknown>;
   triggerAmbilightModeChangedTrigger(device: Homey.Device, args: { mode: string }): Promise<unknown>;
@@ -130,6 +137,18 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   private api!: JointspaceApi;
   private poller?: StatePoller;
   private applications: SimplifiedApplication[] | null = null;
+  // Icons fetched in background after the first getApplications() — each
+  // value is a data URI ready for Homey's autocomplete `image` field.
+  // Apps without a registered icon (or 404) stay absent.
+  private applicationIcons = new Map<string, string>();
+  private applicationIconsPreloadStarted = false;
+  // Tracks the last Homey-initiated app launch so handleActivityChange can
+  // suppress the notify-driven trigger for the brief window where the TV
+  // reports a parent activity (e.g. SettingsMenuActivity) instead of the
+  // child we actually launched (e.g. WirelessAndNetworkSettingsActivity).
+  // Without this the specific_application_opened trigger fires for the
+  // wrong app on Settings sub-pages.
+  private lastLaunchedApp: { app: SimplifiedApplication; expiresAt: number } | null = null;
   private channels: SimplifiedChannel[] | null = null;
   private channelListId: string = "alltv";
   private deviceData!: DeviceData;
@@ -250,18 +269,90 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   }
 
   async getApplications(): Promise<SimplifiedApplication[]> {
-    if (this.applications) return this.applications;
-    try {
-      const raw = await this.api.getApplications();
-      this.applications = raw.map((app: Application) => ({
-        id: app.id,
-        name: app.label,
-        intent: app.intent,
-      }));
-      return this.applications;
-    } catch (err) {
-      this.error("getApplications failed", err);
-      throw err;
+    if (!this.applications) {
+      try {
+        const raw = await this.api.getApplications();
+        this.applications = raw.map((app: Application) => ({
+          id: app.id,
+          name: app.label,
+          intent: app.intent,
+        }));
+      } catch (err) {
+        this.error("getApplications failed", err);
+        throw err;
+      }
+    }
+    // Trigger the icon preload exactly once per device lifetime. Runs in
+    // the background; new icons land as they arrive and surface on the
+    // next call below.
+    if (!this.applicationIconsPreloadStarted) {
+      this.applicationIconsPreloadStarted = true;
+      void this.preloadApplicationIcons();
+    }
+    // Build a fresh array each call so the caller sees icons populated
+    // since the last lookup. Map is cheap; the underlying `applications`
+    // is not mutated.
+    return this.applications.map((app) => {
+      const image = this.applicationIcons.get(app.id);
+      return image ? { ...app, image } : app;
+    });
+  }
+
+  /**
+   * Fetch per-app icons in the background with low concurrency. The TV's
+   * HTTPS server is fragile (see docs/development/restlet-quirks.md); two
+   * parallel digest-authed binary fetches is the sweet spot — fast enough
+   * that icons are populated within a few seconds for ~50 apps, slow
+   * enough that the Restlet accept-queue doesn't saturate.
+   */
+  private async preloadApplicationIcons(): Promise<void> {
+    if (!this.applications) return;
+    const queue = this.applications
+      .map((a) => a.id)
+      .filter((id) => !this.applicationIcons.has(id));
+    if (queue.length === 0) return;
+    const startedAt = Date.now();
+    const CONCURRENCY = 2;
+    let succeeded = 0;
+    let missing = 0; // 404 — app has no icon registered, expected
+    const failures: Array<{ id: string; reason: string }> = [];
+    const worker = async (): Promise<void> => {
+      while (queue.length > 0) {
+        const id = queue.shift();
+        if (!id) return;
+        try {
+          const icon = await this.api.getApplicationIcon(id);
+          if (icon) {
+            this.applicationIcons.set(id, `data:${icon.contentType};base64,${icon.body.toString("base64")}`);
+            succeeded += 1;
+          } else {
+            missing += 1;
+          }
+        } catch (err) {
+          // Per-app failure shouldn't block siblings or surface as user
+          // error — autocomplete just shows that app without an icon.
+          const e = err as Error & { code?: string };
+          failures.push({ id, reason: e.code ?? e.name ?? e.message });
+        }
+      }
+    };
+    await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
+    const elapsed = Date.now() - startedAt;
+    if (failures.length === 0) {
+      this.log(`Application icons preloaded: ${succeeded} fetched, ${missing} without icon (${elapsed}ms)`);
+    } else {
+      this.log(`Application icons preloaded: ${succeeded} fetched, ${missing} without icon, ${failures.length} failed (${elapsed}ms)`);
+      // Group failures by reason so a sweep of socket-hangups doesn't
+      // spam the log with one line per app.
+      const byReason = new Map<string, string[]>();
+      for (const f of failures) {
+        const list = byReason.get(f.reason) ?? [];
+        list.push(f.id);
+        byReason.set(f.reason, list);
+      }
+      for (const [reason, ids] of byReason) {
+        this.log(`  icon failure [${reason}]: ${ids.join(", ")}`);
+      }
     }
   }
 
@@ -272,8 +363,23 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       this.error(`openApplication(${app.name}) failed`, err);
       throw err;
     }
+    // Lock in the launch context so handleActivityChange knows to suppress
+    // the about-to-arrive notify event for this package (the TV often
+    // reports a parent activity instead of the child we actually launched).
+    this.lastLaunchedApp = { app, expiresAt: Date.now() + 5000 };
+    // Optimistically reflect the launch — capability + both triggers fire
+    // here with the exact app the user picked, not whatever the TV decides
+    // to report as foreground.
+    const previous = (this.getCapabilityValue("current_application") as string | null) ?? null;
+    if (previous !== app.name) {
+      this.log(`App ${previous ?? "?"} -> ${app.name} (action)`);
+      this.setCapabilityValue("current_application", app.name).catch(this.error.bind(this));
+    }
     await this.driverApi()
       .triggerApplicationOpenedTrigger(this, { app: app.name })
+      .catch(this.error.bind(this));
+    await this.driverApi()
+      .triggerSpecificApplicationOpenedTrigger(this, { id: app.id, name: app.name })
       .catch(this.error.bind(this));
   }
 
@@ -326,6 +432,17 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     await this.driverApi()
       .triggerAmbiHueChangedTrigger(this, { enabled: state })
       .catch(this.error.bind(this));
+  }
+
+  async setScreen(state: boolean): Promise<void> {
+    try {
+      await this.api.setScreenState(state ? "On" : "Off");
+    } catch (err) {
+      this.error(`setScreen(${state}) failed`, err);
+      throw err;
+    }
+    // Capability + screen_changed trigger fire via handleScreenStateChange
+    // once the next notify/poll round picks up the new value.
   }
 
   async setAmbilight(state: boolean): Promise<void> {
@@ -508,24 +625,61 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   }
 
   handleActivityChange(source: StateChangeSource, state: CurrentActivity): void {
+    // Recent-launch suppression: if Homey just fired openApplication for an
+    // app in the same package the TV now reports as active, that notify is
+    // (almost certainly) the TV confirming our launch — typically with a
+    // parent activity. We already updated state and fired triggers
+    // optimistically in openApplication; firing again here with the
+    // TV-resolved match would double-fire and tag the wrong sub-app.
+    const recent = this.lastLaunchedApp;
+    if (
+      recent &&
+      Date.now() < recent.expiresAt &&
+      recent.app.intent.component.packageName === state.component.packageName
+    ) {
+      this.log(
+        `Activity notify suppressed: matches recent launch of ${recent.app.name} ` +
+        `(reported component=${state.component.packageName}/${state.component.className})`,
+      );
+      return;
+    }
     void this.getApplications()
       .then((apps) => {
-        const current = apps.find(
+        // Try exact match (package + class) first; fall back to package-only.
+        // The TV often reports a running activity with a className that
+        // differs from what the apps list registers (e.g. ...HomeActivity
+        // vs ...MainActivity) — same app, different entry point. Requiring
+        // both fields strictly used to make notify show "unknown" on every
+        // app switch.
+        const exact = apps.find(
           (a) =>
             a.intent.component.packageName === state.component.packageName &&
             a.intent.component.className === state.component.className,
         );
+        const byPackage = exact
+          ?? apps.find((a) => a.intent.component.packageName === state.component.packageName);
         const currentName = (this.getCapabilityValue("current_application") as string | null) ?? null;
-        if (current) {
-          if (currentName !== current.name) {
-            this.log(`App ${currentName ?? "?"} -> ${current.name} (${source})`);
-            this.setCapabilityValue("current_application", current.name).catch(this.error.bind(this));
+        if (byPackage) {
+          if (currentName !== byPackage.name) {
+            this.log(`App ${currentName ?? "?"} -> ${byPackage.name} (${source}${exact ? "" : ", package-match"})`);
+            this.setCapabilityValue("current_application", byPackage.name).catch(this.error.bind(this));
             void this.driverApi()
-              .triggerApplicationOpenedTrigger(this, { app: current.name })
+              .triggerApplicationOpenedTrigger(this, { app: byPackage.name })
+              .catch(this.error.bind(this));
+            // Per-app trigger: the runListener filters on user-selected app.
+            void this.driverApi()
+              .triggerSpecificApplicationOpenedTrigger(this, { id: byPackage.id, name: byPackage.name })
               .catch(this.error.bind(this));
           }
         } else if (currentName !== null) {
-          this.log(`App ${currentName} -> unknown (${source})`);
+          // Activity isn't in the launchable apps list — typically a system
+          // surface (Settings, EPG, TV-tuner on some firmwares). Log the
+          // exact component so we can tell whether the apps list is
+          // genuinely missing it or whether this is a system-only activity.
+          this.log(
+            `App ${currentName} -> unknown (${source}, ` +
+            `component=${state.component.packageName}/${state.component.className})`,
+          );
           this.setCapabilityValue("current_application", null).catch(this.error.bind(this));
           void this.driverApi()
             .triggerApplicationOpenedTrigger(this, { app: "" })
@@ -544,6 +698,9 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     if (this.getCapabilityValue(CAPABILITY_SCREEN_ON) !== on) {
       this.log(`Screen state -> ${on ? "on" : "off"} (${source})`);
       this.setCapabilityValue(CAPABILITY_SCREEN_ON, on).catch(this.error.bind(this));
+      void this.driverApi()
+        .triggerScreenChangedTrigger(this, { enabled: on })
+        .catch(this.error.bind(this));
     }
   }
 
@@ -554,6 +711,11 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     if (previous === id) return;
     this.log(`Source ${previous ?? "?"} -> ${id ?? "unknown"} (${source})`);
     this.setCapabilityValue("current_source", id).catch(this.error.bind(this));
+    if (id) {
+      void this.driverApi()
+        .triggerCurrentSourceChangedTrigger(this, { source: id })
+        .catch(this.error.bind(this));
+    }
   }
 
   onPollFailure(error: Error): void {

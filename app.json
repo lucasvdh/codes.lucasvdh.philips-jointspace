@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "codes.lucasvdh.philips-jointspace",
-  "version": "3.5.2",
+  "version": "3.6.0",
   "compatibility": ">=12.9.0",
   "sdk": 3,
   "platforms": [
@@ -251,6 +251,301 @@
             "filter": "driver_id=philips-jointspace"
           }
         ]
+      },
+      {
+        "id": "current_source_changed",
+        "title": {
+          "en": "Source changed",
+          "nl": "Bron gewijzigd",
+          "de": "Quelle geändert",
+          "fr": "Source modifiée",
+          "it": "Sorgente cambiata",
+          "sv": "Källa ändrad",
+          "no": "Kilde endret",
+          "es": "Fuente cambiada",
+          "da": "Kilde ændret",
+          "pl": "Źródło zmienione"
+        },
+        "tokens": [
+          {
+            "name": "source",
+            "type": "string",
+            "title": {
+              "en": "Source",
+              "nl": "Bron",
+              "de": "Quelle",
+              "fr": "Source",
+              "it": "Sorgente",
+              "sv": "Källa",
+              "no": "Kilde",
+              "es": "Fuente",
+              "da": "Kilde",
+              "pl": "Źródło"
+            },
+            "example": "HDMI 1"
+          }
+        ],
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=philips-jointspace"
+          }
+        ]
+      },
+      {
+        "id": "screen_changed",
+        "title": {
+          "en": "Screen turned on or off",
+          "nl": "Scherm aan- of uitgezet",
+          "de": "Bildschirm ein- oder ausgeschaltet",
+          "fr": "Écran allumé ou éteint",
+          "it": "Schermo acceso o spento",
+          "sv": "Skärmen slogs på eller av",
+          "no": "Skjermen ble slått på eller av",
+          "es": "Pantalla encendida o apagada",
+          "da": "Skærmen blev tændt eller slukket",
+          "pl": "Ekran włączony lub wyłączony"
+        },
+        "tokens": [
+          {
+            "name": "enabled",
+            "type": "boolean",
+            "title": {
+              "en": "Screen on",
+              "nl": "Scherm aan",
+              "de": "Bildschirm an",
+              "fr": "Écran allumé",
+              "it": "Schermo acceso",
+              "sv": "Skärmen på",
+              "no": "Skjermen på",
+              "es": "Pantalla encendida",
+              "da": "Skærm tændt",
+              "pl": "Ekran włączony"
+            },
+            "example": true
+          }
+        ],
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=philips-jointspace"
+          }
+        ]
+      },
+      {
+        "highlight": true,
+        "id": "specific_application_opened",
+        "title": {
+          "en": "A specific app was opened",
+          "nl": "Een specifieke app werd geopend",
+          "de": "Eine bestimmte App wurde geöffnet",
+          "fr": "Une application spécifique a été ouverte",
+          "it": "È stata aperta un'app specifica",
+          "sv": "En specifik app har öppnats",
+          "no": "En spesifikk app ble åpnet",
+          "es": "Se abrió una aplicación específica",
+          "da": "En specifik app blev åbnet",
+          "pl": "Otwarto określoną aplikację"
+        },
+        "titleFormatted": {
+          "en": "The app [[app]] was opened",
+          "nl": "De app [[app]] werd geopend",
+          "de": "Die App [[app]] wurde geöffnet",
+          "fr": "L'application [[app]] a été ouverte",
+          "it": "È stata aperta l'app [[app]]",
+          "sv": "Appen [[app]] öppnades",
+          "no": "Appen [[app]] ble åpnet",
+          "es": "Se abrió la aplicación [[app]]",
+          "da": "Appen [[app]] blev åbnet",
+          "pl": "Otwarto aplikację [[app]]"
+        },
+        "hint": {
+          "en": "Works well when you open the app via Homey. Can be less reliable when the TV has to detect the app switch itself.",
+          "nl": "Werkt goed wanneer je de app opent met Homey. Soms minder betrouwbaar als de detectie van de tv moet komen.",
+          "de": "Funktioniert zuverlässig, wenn du die App über Homey öffnest. Manchmal weniger zuverlässig, wenn der Wechsel vom TV erkannt werden muss.",
+          "fr": "Fonctionne bien quand vous ouvrez l'application via Homey. Parfois moins fiable lorsque la TV doit détecter le changement elle-même.",
+          "it": "Funziona bene quando apri l'app tramite Homey. A volte meno affidabile quando il rilevamento deve venire dal TV.",
+          "sv": "Fungerar bra när du öppnar appen via Homey. Kan vara mindre tillförlitlig när TV:n själv ska upptäcka bytet.",
+          "no": "Fungerer godt når du åpner appen via Homey. Kan være mindre pålitelig når TV-en selv må oppdage byttet.",
+          "es": "Funciona bien cuando abres la aplicación desde Homey. A veces menos fiable cuando la detección debe venir del TV.",
+          "da": "Fungerer godt, når du åbner appen via Homey. Kan være mindre pålidelig, når tv'et selv skal registrere skiftet.",
+          "pl": "Działa dobrze, gdy otwierasz aplikację z Homey. Czasem mniej niezawodne, gdy wykrycie musi pochodzić z telewizora."
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=philips-jointspace"
+          },
+          {
+            "name": "app",
+            "type": "autocomplete",
+            "title": {
+              "en": "App",
+              "nl": "App",
+              "de": "App",
+              "fr": "Application",
+              "it": "App",
+              "sv": "App",
+              "no": "App",
+              "es": "Aplicación",
+              "da": "App",
+              "pl": "Aplikacja"
+            }
+          }
+        ]
+      }
+    ],
+    "conditions": [
+      {
+        "id": "current_application_is",
+        "title": {
+          "en": "The app !{{is|isn't}} open",
+          "nl": "De app !{{is|is niet}} geopend",
+          "de": "Die App !{{ist|ist nicht}} geöffnet",
+          "fr": "L'application !{{est|n'est pas}} ouverte",
+          "it": "L'app !{{è|non è}} aperta",
+          "sv": "Appen !{{är|är inte}} öppen",
+          "no": "Appen !{{er|er ikke}} åpen",
+          "es": "La aplicación !{{está|no está}} abierta",
+          "da": "Appen !{{er|er ikke}} åben",
+          "pl": "Aplikacja !{{jest|nie jest}} otwarta"
+        },
+        "titleFormatted": {
+          "en": "[[app]] !{{is|isn't}} open",
+          "nl": "[[app]] !{{is|is niet}} geopend",
+          "de": "[[app]] !{{ist|ist nicht}} geöffnet",
+          "fr": "[[app]] !{{est|n'est pas}} ouverte",
+          "it": "[[app]] !{{è|non è}} aperta",
+          "sv": "[[app]] !{{är|är inte}} öppen",
+          "no": "[[app]] !{{er|er ikke}} åpen",
+          "es": "[[app]] !{{está|no está}} abierta",
+          "da": "[[app]] !{{er|er ikke}} åben",
+          "pl": "[[app]] !{{jest|nie jest}} otwarta"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=philips-jointspace"
+          },
+          {
+            "name": "app",
+            "type": "autocomplete",
+            "title": {
+              "en": "App",
+              "nl": "App",
+              "de": "App",
+              "fr": "Application",
+              "it": "App",
+              "sv": "App",
+              "no": "App",
+              "es": "Aplicación",
+              "da": "App",
+              "pl": "Aplikacja"
+            }
+          }
+        ]
+      },
+      {
+        "id": "current_source_is",
+        "title": {
+          "en": "The source !{{is|isn't}} active",
+          "nl": "De bron !{{is|is niet}} actief",
+          "de": "Die Quelle !{{ist|ist nicht}} aktiv",
+          "fr": "La source !{{est|n'est pas}} active",
+          "it": "La sorgente !{{è|non è}} attiva",
+          "sv": "Källan !{{är|är inte}} aktiv",
+          "no": "Kilden !{{er|er ikke}} aktiv",
+          "es": "La fuente !{{está|no está}} activa",
+          "da": "Kilden !{{er|er ikke}} aktiv",
+          "pl": "Źródło !{{jest|nie jest}} aktywne"
+        },
+        "titleFormatted": {
+          "en": "Source [[source]] !{{is|isn't}} active",
+          "nl": "Bron [[source]] !{{is|is niet}} actief",
+          "de": "Quelle [[source]] !{{ist|ist nicht}} aktiv",
+          "fr": "La source [[source]] !{{est|n'est pas}} active",
+          "it": "La sorgente [[source]] !{{è|non è}} attiva",
+          "sv": "Källan [[source]] !{{är|är inte}} aktiv",
+          "no": "Kilden [[source]] !{{er|er ikke}} aktiv",
+          "es": "La fuente [[source]] !{{está|no está}} activa",
+          "da": "Kilden [[source]] !{{er|er ikke}} aktiv",
+          "pl": "Źródło [[source]] !{{jest|nie jest}} aktywne"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=philips-jointspace"
+          },
+          {
+            "name": "source",
+            "type": "dropdown",
+            "title": {
+              "en": "Source",
+              "nl": "Bron",
+              "de": "Quelle",
+              "fr": "Source",
+              "it": "Sorgente",
+              "sv": "Källa",
+              "no": "Kilde",
+              "es": "Fuente",
+              "da": "Kilde",
+              "pl": "Źródło"
+            },
+            "values": [
+              {
+                "id": "HDMI 1",
+                "title": {
+                  "en": "HDMI 1"
+                }
+              },
+              {
+                "id": "HDMI 2",
+                "title": {
+                  "en": "HDMI 2"
+                }
+              },
+              {
+                "id": "HDMI 3",
+                "title": {
+                  "en": "HDMI 3"
+                }
+              },
+              {
+                "id": "HDMI 4",
+                "title": {
+                  "en": "HDMI 4"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "screen_is_on",
+        "title": {
+          "en": "Screen !{{is|isn't}} on",
+          "nl": "Scherm !{{is|is niet}} aan",
+          "de": "Bildschirm !{{ist|ist nicht}} an",
+          "fr": "L'écran !{{est|n'est pas}} allumé",
+          "it": "Lo schermo !{{è|non è}} acceso",
+          "sv": "Skärmen !{{är|är inte}} på",
+          "no": "Skjermen !{{er|er ikke}} på",
+          "es": "La pantalla !{{está|no está}} encendida",
+          "da": "Skærmen !{{er|er ikke}} tændt",
+          "pl": "Ekran !{{jest|nie jest}} włączony"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=philips-jointspace"
+          }
+        ]
       }
     ],
     "actions": [
@@ -306,7 +601,6 @@
         ]
       },
       {
-        "highlight": true,
         "id": "open_google_assistant",
         "title": {
           "en": "Open Google Assistant",
@@ -353,6 +647,62 @@
               "da": "Indtastning",
               "pl": "Wprowadź"
             }
+          }
+        ]
+      },
+      {
+        "id": "screen_turn_off",
+        "title": {
+          "en": "Turn the screen off",
+          "nl": "Zet het scherm uit",
+          "de": "Bildschirm ausschalten",
+          "fr": "Éteindre l'écran",
+          "it": "Spegnere lo schermo",
+          "sv": "Stäng av skärmen",
+          "no": "Slå av skjermen",
+          "es": "Apagar la pantalla",
+          "da": "Sluk skærmen",
+          "pl": "Wyłącz ekran"
+        },
+        "hint": {
+          "en": "Turns only the screen off, not the TV itself — audio keeps playing. Not supported on every Philips TV.",
+          "nl": "Zet alleen het scherm uit, niet de tv zelf — het geluid blijft aan. Werkt niet op elke Philips tv.",
+          "de": "Schaltet nur den Bildschirm aus, nicht den TV selbst — der Ton bleibt aktiv. Nicht von jedem Philips-TV unterstützt.",
+          "fr": "Éteint uniquement l'écran, pas la TV elle-même — l'audio reste actif. Non pris en charge sur toutes les TV Philips.",
+          "it": "Spegne solo lo schermo, non il TV stesso — l'audio continua. Non supportato su tutti i TV Philips.",
+          "sv": "Stänger bara av skärmen, inte själva TV:n — ljudet fortsätter. Stöds inte på alla Philips-TV.",
+          "no": "Slår bare av skjermen, ikke selve TV-en — lyden fortsetter. Støttes ikke på alle Philips-TV-er.",
+          "es": "Apaga solo la pantalla, no el TV en sí — el audio sigue reproduciéndose. No compatible con todos los TV Philips.",
+          "da": "Slukker kun skærmen, ikke selve tv'et — lyden fortsætter. Understøttes ikke på alle Philips-tv'er.",
+          "pl": "Wyłącza tylko ekran, a nie sam telewizor — dźwięk pozostaje. Nieobsługiwane na każdym telewizorze Philips."
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=philips-jointspace"
+          }
+        ]
+      },
+      {
+        "id": "screen_turn_on",
+        "title": {
+          "en": "Turn the screen on",
+          "nl": "Zet het scherm aan",
+          "de": "Bildschirm einschalten",
+          "fr": "Allumer l'écran",
+          "it": "Accendere lo schermo",
+          "sv": "Slå på skärmen",
+          "no": "Slå på skjermen",
+          "es": "Encender la pantalla",
+          "da": "Tænd skærmen",
+          "pl": "Włącz ekran"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=philips-jointspace"
           }
         ]
       },
@@ -433,6 +783,7 @@
         ]
       },
       {
+        "highlight": true,
         "id": "send_key",
         "title": {
           "en": "Send a key",
@@ -647,6 +998,7 @@
         ]
       },
       {
+        "highlight": true,
         "id": "set_ambilight_mode",
         "title": {
           "en": "Set Ambilight mode",
@@ -2418,16 +2770,16 @@
         "pl": "Ekran"
       },
       "desc": {
-        "en": "Turn the TV's screen off while keeping audio playing.",
-        "nl": "Zet het scherm van de tv uit zonder de audio te stoppen.",
-        "de": "Schalte den Bildschirm aus, ohne den Ton zu unterbrechen.",
-        "fr": "Éteindre l'écran du TV tout en gardant l'audio.",
-        "it": "Spegne lo schermo del TV mantenendo l'audio.",
-        "sv": "Stäng av skärmen utan att avbryta ljudet.",
-        "no": "Slå av skjermen uten å stoppe lyden.",
-        "es": "Apagar la pantalla del TV manteniendo el audio.",
-        "da": "Sluk skærmen uden at afbryde lyden.",
-        "pl": "Wyłącz ekran telewizora, zachowując dźwięk."
+        "en": "Turn the screen off while keeping audio playing. Not the same as turning the TV off. Not supported on every Philips TV.",
+        "nl": "Zet alleen het scherm uit, het geluid blijft aan. Niet hetzelfde als de tv uitzetten. Werkt niet op elke Philips tv.",
+        "de": "Bildschirm ausschalten, der Ton bleibt aktiv. Nicht dasselbe wie den TV ausschalten. Nicht von jedem Philips-TV unterstützt.",
+        "fr": "Éteindre l'écran tout en gardant l'audio. Pas la même chose qu'éteindre la TV. Non pris en charge sur toutes les TV Philips.",
+        "it": "Spegne lo schermo mantenendo l'audio. Non equivale a spegnere il TV. Non supportato su tutti i TV Philips.",
+        "sv": "Stäng av skärmen utan att avbryta ljudet. Inte detsamma som att stänga av TV:n. Stöds inte på alla Philips-TV.",
+        "no": "Slå av skjermen uten å stoppe lyden. Ikke det samme som å slå av TV-en. Støttes ikke på alle Philips-TV-er.",
+        "es": "Apagar la pantalla manteniendo el audio. No es lo mismo que apagar el TV. No compatible con todos los TV Philips.",
+        "da": "Sluk skærmen uden at afbryde lyden. Ikke det samme som at slukke tv'et. Understøttes ikke på alle Philips-tv'er.",
+        "pl": "Wyłącz ekran, dźwięk pozostaje. To nie to samo co wyłączenie telewizora. Nieobsługiwane na każdym telewizorze Philips."
       },
       "getable": true,
       "setable": true,

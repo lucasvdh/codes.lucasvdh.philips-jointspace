@@ -1,0 +1,22 @@
+{
+  "id": "screen_is_on",
+  "title": {
+    "en": "Screen !{{is|isn't}} on",
+    "nl": "Scherm !{{is|is niet}} aan",
+    "de": "Bildschirm !{{ist|ist nicht}} an",
+    "fr": "L'écran !{{est|n'est pas}} allumé",
+    "it": "Lo schermo !{{è|non è}} acceso",
+    "sv": "Skärmen !{{är|är inte}} på",
+    "no": "Skjermen !{{er|er ikke}} på",
+    "es": "La pantalla !{{está|no está}} encendida",
+    "da": "Skærmen !{{er|er ikke}} tændt",
+    "pl": "Ekran !{{jest|nie jest}} włączony"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=philips-jointspace"
+    }
+  ]
+}

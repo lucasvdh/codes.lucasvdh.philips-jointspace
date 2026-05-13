@@ -13,16 +13,16 @@
     "pl": "Ekran"
   },
   "desc": {
-    "en": "Turn the TV's screen off while keeping audio playing.",
-    "nl": "Zet het scherm van de tv uit zonder de audio te stoppen.",
-    "de": "Schalte den Bildschirm aus, ohne den Ton zu unterbrechen.",
-    "fr": "Éteindre l'écran du TV tout en gardant l'audio.",
-    "it": "Spegne lo schermo del TV mantenendo l'audio.",
-    "sv": "Stäng av skärmen utan att avbryta ljudet.",
-    "no": "Slå av skjermen uten å stoppe lyden.",
-    "es": "Apagar la pantalla del TV manteniendo el audio.",
-    "da": "Sluk skærmen uden at afbryde lyden.",
-    "pl": "Wyłącz ekran telewizora, zachowując dźwięk."
+    "en": "Turn the screen off while keeping audio playing. Not the same as turning the TV off. Not supported on every Philips TV.",
+    "nl": "Zet alleen het scherm uit, het geluid blijft aan. Niet hetzelfde als de tv uitzetten. Werkt niet op elke Philips tv.",
+    "de": "Bildschirm ausschalten, der Ton bleibt aktiv. Nicht dasselbe wie den TV ausschalten. Nicht von jedem Philips-TV unterstützt.",
+    "fr": "Éteindre l'écran tout en gardant l'audio. Pas la même chose qu'éteindre la TV. Non pris en charge sur toutes les TV Philips.",
+    "it": "Spegne lo schermo mantenendo l'audio. Non equivale a spegnere il TV. Non supportato su tutti i TV Philips.",
+    "sv": "Stäng av skärmen utan att avbryta ljudet. Inte detsamma som att stänga av TV:n. Stöds inte på alla Philips-TV.",
+    "no": "Slå av skjermen uten å stoppe lyden. Ikke det samme som å slå av TV-en. Støttes ikke på alle Philips-TV-er.",
+    "es": "Apagar la pantalla manteniendo el audio. No es lo mismo que apagar el TV. No compatible con todos los TV Philips.",
+    "da": "Sluk skærmen uden at afbryde lyden. Ikke det samme som at slukke tv'et. Understøttes ikke på alle Philips-tv'er.",
+    "pl": "Wyłącz ekran, dźwięk pozostaje. To nie to samo co wyłączenie telewizora. Nieobsługiwane na każdym telewizorze Philips."
   },
   "getable": true,
   "setable": true,
