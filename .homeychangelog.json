@@ -1,4 +1,16 @@
 {
+  "3.7.0": {
+    "en": "More reliable diagnostic reports: progress updates stream while the report runs, slow TVs no longer cause it to time out, and the notifyChange long-poll now gets a fair chance to confirm whether your TV supports it.",
+    "nl": "Betrouwbaardere diagnose-rapporten: voortgangsupdates verschijnen terwijl het rapport draait, trage tv's veroorzaken geen time-out meer, en de notifyChange long-poll krijgt nu echt de kans om te bevestigen of jouw tv 'm ondersteunt.",
+    "de": "Zuverlässigere Diagnoseberichte: Fortschrittsaktualisierungen werden während des Laufs angezeigt, langsame TVs verursachen keine Zeitüberschreitung mehr, und der notifyChange-Long-Poll erhält jetzt eine faire Chance zu bestätigen, ob Ihr TV ihn unterstützt.",
+    "fr": "Rapports de diagnostic plus fiables : les mises à jour de progression apparaissent pendant l'exécution, les TV lentes ne provoquent plus de délai d'attente dépassé, et le long-poll notifyChange a désormais une réelle chance de confirmer si votre TV le prend en charge.",
+    "it": "Rapporti diagnostici più affidabili: gli aggiornamenti di avanzamento appaiono durante l'esecuzione, i TV lenti non causano più un timeout e il long-poll notifyChange ha ora una reale possibilità di confermare se il tuo TV lo supporta.",
+    "sv": "Mer tillförlitliga diagnosrapporter: förloppsuppdateringar visas medan rapporten körs, långsamma TV-apparater orsakar inte längre timeout, och notifyChange long-poll får nu en rättvis chans att bekräfta om din TV stöder det.",
+    "no": "Mer pålitelige diagnoserapporter: fremdriftsoppdateringer vises mens rapporten kjører, trege TV-er forårsaker ikke lenger tidsavbrudd, og notifyChange long-poll får nå en reell sjanse til å bekrefte om TV-en din støtter det.",
+    "es": "Informes de diagnóstico más fiables: las actualizaciones de progreso aparecen mientras se ejecuta el informe, los TVs lentos ya no causan caducidad, y el long-poll de notifyChange tiene ahora una oportunidad real de confirmar si tu TV lo admite.",
+    "da": "Mere pålidelige diagnoserapporter: fremskridtsopdateringer vises, mens rapporten kører, langsomme tv'er forårsager ikke længere timeout, og notifyChange long-poll får nu en reel chance for at bekræfte, om dit tv understøtter det.",
+    "pl": "Bardziej niezawodne raporty diagnostyczne: aktualizacje postępu pojawiają się w trakcie działania, wolne telewizory nie powodują już przekroczenia limitu czasu, a długie odpytywanie notifyChange ma teraz realną szansę potwierdzić, czy twój telewizor je obsługuje."
+  },
   "3.6.0": {
     "en": "Adds app icons in the Flow editor app pickers, new Flow cards for screen on/off, current app and current source, and a more reliable 'specific app was opened' trigger.",
     "nl": "Voegt app-iconen toe in de Flow-editor app-keuzelijsten, nieuwe Flow-kaarten voor scherm aan/uit, huidige app en huidige bron, en een betrouwbaardere trigger 'specifieke app werd geopend'.",

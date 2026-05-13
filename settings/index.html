@@ -113,23 +113,74 @@
       });
     });
 
-    function runReport(button, runningLabel, restoreLabel, call) {
+    // The server kicks off the report in the background and streams progress
+    // back over realtime events. The POST only returns a runId — listeners
+    // filter on that to ignore stale events from a previous run.
+    // Watchdog covers the worst case (4 probe phases × up to 30s for the
+    // notifyChange long-poll + ARP + discovery).
+    const WATCHDOG_MS = 120000;
+    let activeRun = null;
+
+    function finishRun(kind, msg, markdown) {
+      if (!activeRun) return;
+      const run = activeRun;
+      activeRun = null;
+      clearTimeout(run.watchdog);
+      run.button.disabled = false;
+      run.button.textContent = run.restoreLabel;
+      if (markdown != null) {
+        output.value = markdown;
+        copyBtn.disabled = false;
+      }
+      showStatus(kind, msg);
+    }
+
+    Homey.on('philips-tv:report:progress', function (data) {
+      if (!activeRun || data.runId !== activeRun.runId) return;
+      showStatus('ok', data.message || 'Running…');
+    });
+    Homey.on('philips-tv:report:complete', function (data) {
+      if (!activeRun || data.runId !== activeRun.runId) return;
+      finishRun('ok', 'Report ready. Copy it and paste into a new GitHub issue.', data.markdown || '');
+    });
+    Homey.on('philips-tv:report:error', function (data) {
+      if (!activeRun || data.runId !== activeRun.runId) return;
+      finishRun('err', 'Report failed: ' + (data.message || 'unknown error'));
+    });
+
+    function startRun(button, runningLabel, restoreLabel, call) {
+      if (activeRun) {
+        showStatus('err', 'A report is already running — please wait for it to finish.');
+        return;
+      }
       clearStatus();
-      const originalLabel = button.textContent;
       button.disabled = true;
       button.textContent = runningLabel;
       output.value = '';
       copyBtn.disabled = true;
+      showStatus('ok', 'Starting…');
       call(function (err, result) {
-        button.disabled = false;
-        button.textContent = restoreLabel || originalLabel;
         if (err) {
-          showStatus('err', 'Report failed: ' + (err.message || err));
+          button.disabled = false;
+          button.textContent = restoreLabel;
+          showStatus('err', 'Failed to start report: ' + (err.message || err));
           return;
         }
-        output.value = (result && result.markdown) || '';
-        copyBtn.disabled = false;
-        showStatus('ok', 'Report ready. Copy it and paste into a new GitHub issue.');
+        const runId = result && result.runId;
+        if (!runId) {
+          button.disabled = false;
+          button.textContent = restoreLabel;
+          showStatus('err', 'Failed to start report: server did not return a runId.');
+          return;
+        }
+        activeRun = {
+          runId: runId,
+          button: button,
+          restoreLabel: restoreLabel,
+          watchdog: setTimeout(function () {
+            finishRun('err', 'Report timed out (no response within ' + (WATCHDOG_MS / 1000) + 's). The TV may be unreachable.');
+          }, WATCHDOG_MS),
+        };
       });
     }
 
@@ -139,7 +190,7 @@
         showStatus('err', 'Pick a device first.');
         return;
       }
-      runReport(generateBtn, 'Running probes…', 'Generate report', function (cb) {
+      startRun(generateBtn, 'Running probes…', 'Generate report', function (cb) {
         Homey.api('POST', '/report', { deviceId: deviceId }, cb);
       });
     });
@@ -150,7 +201,7 @@
         showStatus('err', 'Enter an IP address first.');
         return;
       }
-      runReport(generateIpBtn, 'Probing…', 'Probe IP', function (cb) {
+      startRun(generateIpBtn, 'Probing…', 'Probe IP', function (cb) {
         Homey.api('POST', '/probe-ip', { ip: ip }, cb);
       });
     });
