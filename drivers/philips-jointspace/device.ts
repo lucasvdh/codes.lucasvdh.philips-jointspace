@@ -6,7 +6,7 @@ import * as wol from "wol";
 import { JointspaceApi } from "./jointspace-api";
 import { StatePoller, StateChangeListener, StateChangeSource } from "./state-poller";
 import { AmbilightConfigurations, ambilightModeFromConfiguration, AmbilightModeKey } from "./enums";
-import { extractSystemMetadata, extractTransportConfig, osHasAmbilightModeQuirk, osPollIntervalMs, osRequiresHttpsForAuthenticatedEndpoints } from "./quirks";
+import { extractCanonicalId, extractSystemMetadata, extractTransportConfig, osHasAmbilightModeQuirk, osPollIntervalMs, osRequiresHttpsForAuthenticatedEndpoints } from "./quirks";
 import {
   AmbiHueState,
   AmbilightConfiguration,
@@ -121,6 +121,7 @@ const STORE_LAST_AMBILIGHT_MODE = "lastSetAmbilightMode";
 const STORE_SCREEN_STATE_SUPPORTED = "screenStateSupported";
 const STORE_CURRENT_SOURCE_SUPPORTED = "currentSourceSupported";
 const STORE_CREDENTIALS = "credentials";
+const STORE_CANONICAL_ID = "canonicalId";
 
 const CAPABILITY_SCREEN_ON = "screen_on";
 const CAPABILITY_CURRENT_SOURCE = "current_source";
@@ -148,8 +149,10 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     await this.migrateCapabilities();
     await this.migrateCredentialsToStore();
 
+    const debug = this.homey.env?.DEBUG === "true";
     this.api = new JointspaceApi(this.buildApiConfig(), {
       log: (...args) => this.log(`[api]`, ...args),
+      debug,
     });
 
     this.registerCapabilityListeners();
@@ -192,7 +195,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       this,
       (...args) => this.log(`[poller]`, ...args),
       this.homey,
-      { notifyChangeSupported, pollIntervalMs },
+      { notifyChangeSupported, pollIntervalMs, debug },
     );
 
     this.scheduleSystemReprobe();
@@ -534,7 +537,10 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
 
   handleScreenStateChange(source: StateChangeSource, state: ScreenState): void {
     if (!this.hasCapability(CAPABILITY_SCREEN_ON)) return;
-    const on = state.screenstate === "screenOn";
+    // Accept both "On" (every live firmware we've tested) and "screenOn"
+    // (defensive — we've never seen it in the wild but the value-format
+    // for this endpoint isn't officially documented).
+    const on = state.screenstate === "On" || state.screenstate === "screenOn";
     if (this.getCapabilityValue(CAPABILITY_SCREEN_ON) !== on) {
       this.log(`Screen state -> ${on ? "on" : "off"} (${source})`);
       this.setCapabilityValue(CAPABILITY_SCREEN_ON, on).catch(this.error.bind(this));
@@ -678,6 +684,29 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     }
   }
 
+  /**
+   * One-time backfill: compute and persist this TV's canonical id (serial-X,
+   * uuid-X, mdns-X, ip-X — see extractCanonicalId for ordering) into the
+   * store. data.id is immutable, so devices paired before the canonical-id
+   * scheme keep their legacy id in data.id but gain a canonical id here.
+   * The driver's pair-time dedup reads both, so future pair attempts
+   * recognise this TV regardless of which legacy id was originally stored.
+   */
+  private async backfillCanonicalId(system: import("./types").SystemInfo): Promise<void> {
+    if (this.getStoreValue(STORE_CANONICAL_ID)) return;
+    const legacyId = this.deviceData.id;
+    const canonical = extractCanonicalId(system, {
+      usn: legacyId.startsWith("uuid:") ? legacyId : undefined,
+      ip: this.deviceSettings.ipAddress,
+    });
+    try {
+      await this.setStoreValue(STORE_CANONICAL_ID, canonical);
+      this.log(`Backfilled canonicalId=${canonical} (legacy data.id=${legacyId})`);
+    } catch (err) {
+      this.error("Failed to backfill canonicalId:", err);
+    }
+  }
+
   private driverApi(): PhilipsTvDriverLike {
     return this.driver as unknown as PhilipsTvDriverLike;
   }
@@ -698,6 +727,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       await this.setStoreValue(STORE_OS_TYPE, osType);
       await this.setStoreValue(STORE_NOTIFY_CHANGE_SUPPORTED, notifyChangeSupported);
       await this.setStoreValue(STORE_PAIRING_TYPE, pairingType);
+      await this.backfillCanonicalId(system);
 
       await this.probeScreenStateSupport();
       await this.probeCurrentSourceSupport();
@@ -736,24 +766,26 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
    * notifyChange support.
    */
   private async probeScreenStateSupport(): Promise<void> {
-    // Always probe — we don't have an official endpoints-per-firmware matrix,
-    // and a firmware update could add the endpoint later. A failure here is
-    // cheap (single HTTPS call, ~10s timeout worst case) and recorded so
-    // the hourly reprobe doesn't waste effort.
+    // Always probe — no official endpoints-per-firmware matrix and a
+    // firmware update could add the endpoint later. A failure is cheap
+    // (single HTTPS call, ~10s timeout worst case) and recorded so the
+    // hourly reprobe doesn't waste effort.
     try {
       const state = await this.api.getScreenState();
       const supported = typeof state?.screenstate === "string" && state.screenstate.length > 0;
       await this.setStoreValue(STORE_SCREEN_STATE_SUPPORTED, supported);
       if (supported && this.hasCapability(CAPABILITY_SCREEN_ON)) {
-        const on = state.screenstate === "screenOn";
+        const on = state.screenstate === "On" || state.screenstate === "screenOn";
         if (this.getCapabilityValue(CAPABILITY_SCREEN_ON) !== on) {
           await this.setCapabilityValue(CAPABILITY_SCREEN_ON, on);
         }
       }
-    } catch {
-      // 404 / 503 here is the normal "screen state not supported" signal.
-      // Stay silent; hourly probe would otherwise spam logs.
-      await this.setStoreValue(STORE_SCREEN_STATE_SUPPORTED, false);
+    } catch (err) {
+      if (err instanceof NotFoundError) {
+        await this.setStoreValue(STORE_SCREEN_STATE_SUPPORTED, false);
+      }
+      // Other errors (transient offline / timeout): leave flag alone so
+      // a working capability survives a TV-was-briefly-offline window.
     }
   }
 
@@ -789,7 +821,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
 
   private async onCapabilityScreenOnSet(value: boolean): Promise<void> {
     try {
-      await this.api.setScreenState(value ? "screenOn" : "screenOff");
+      await this.api.setScreenState(value ? "On" : "Off");
     } catch (err) {
       this.error(`setScreenState(${value}) failed`, err);
       throw err;

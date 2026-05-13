@@ -24,7 +24,7 @@ export interface StateChangeListener {
   onPollFailure(error: Error): void;
   onPollSuccess?(): void;
   // Optional hook called whenever notifyChange succeeds. Use it to assert
-  // device availability — without it the device can sit on idle notify
+  // device availability - without it the device can sit on idle notify
   // long-polls between poll cycles with no signal back to Homey.
   onNotifyReachable?(): void;
   // Gate for runtime-optional capabilities: state-poller skips polling
@@ -45,9 +45,12 @@ interface NotifyHandler {
 export interface StatePollerOptions {
   notifyChangeSupported: boolean;
   // Interval between full poll cycles. Default 10s. Set higher on
-  // firmwares where HTTPS load needs to stay low — polling still runs as
+  // firmwares where HTTPS load needs to stay low - polling still runs as
   // a sync fallback for state notifyChange may miss, just less often.
   pollIntervalMs?: number;
+  // When true, every notify and poll cycle dumps the full payload value
+  // per key. Off by default - only the concise summary line is logged.
+  debug?: boolean;
 }
 
 export interface TimerHost {
@@ -63,6 +66,7 @@ export class StatePoller {
   private stopped = false;
   private readonly notifyChangeSupported: boolean;
   private readonly pollIntervalMs: number;
+  private readonly debug: boolean;
   private offlineLogged = false;
 
   constructor(
@@ -74,6 +78,7 @@ export class StatePoller {
   ) {
     this.notifyChangeSupported = options.notifyChangeSupported;
     this.pollIntervalMs = options.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS;
+    this.debug = options.debug ?? false;
     this.notifyHandlers = {
       "powerstate": (s, v) => this.listener.handlePowerStateChange(s, v as PowerState),
       "audio/volume": (s, v) => this.listener.handleAudioChange(s, v as AudioData),
@@ -156,14 +161,18 @@ export class StatePoller {
       }
     }
     this.log(`notifyChange returned: handled=[${handled.join(",")}] unhandled=[${unhandled.join(",")}]`);
-    // Per-key value dump — lets us see *what* the TV is reporting, not just
+    // Per-key value dump - lets us see *what* the TV is reporting, not just
     // that something was reported. Critical for diagnosing missing-update
-    // bugs (e.g. ambilight changes that never come through notify).
-    for (const path of handled) {
-      this.log(`  notify[${path}] = ${this.summarise(state[path])}`);
-    }
-    for (const path of unhandled) {
-      this.log(`  notify[${path}] (unhandled) = ${this.summarise(state[path])}`);
+    // bugs (e.g. ambilight changes that never come through notify). Behind
+    // the debug flag because for normal operation the summary above is
+    // enough; switching DEBUG=true in env.json surfaces the values.
+    if (this.debug) {
+      for (const path of handled) {
+        this.log(`  notify[${path}] = ${this.summarise(state[path])}`);
+      }
+      for (const path of unhandled) {
+        this.log(`  notify[${path}] (unhandled) = ${this.summarise(state[path])}`);
+      }
     }
     for (const path of handled) {
       this.notifyHandlers[path]("notify", state[path]);
@@ -205,17 +214,17 @@ export class StatePoller {
       const step = steps[i];
       if (step.gateCapability && this.listener.isCapabilityPresent?.(step.gateCapability) === false) {
         // Capability isn't on this device (probe said unsupported). Skip
-        // the API call entirely — no useful state can land here.
+        // the API call entirely - no useful state can land here.
         continue;
       }
       try {
         const value = await step.run();
-        this.log(`  poll[${step.name}] = ${this.summarise(value)}`);
+        if (this.debug) this.log(`  poll[${step.name}] = ${this.summarise(value)}`);
         step.apply(value);
         anySucceeded = true;
       } catch (err) {
         if (err instanceof OfflineError) {
-          // Connectivity error — bail; no point hammering an unreachable TV.
+          // Connectivity error - bail; no point hammering an unreachable TV.
           transportError = err;
           break;
         }

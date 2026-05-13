@@ -25,7 +25,7 @@ export function osHasAmbilightModeQuirk(osType: string | null): boolean {
  * HTTPS/1926. HTTP/1925 serves /system unauthenticated and returns 404 for
  * anything else. So when HTTPS/1926 dies (Restlet "CPU consumption bug"
  * force-closes connections until the FD pool is exhausted) we must NOT
- * silently fall back to HTTP/1925 — that just turns 20s timeouts into 404s.
+ * silently fall back to HTTP/1925 - that just turns 20s timeouts into 404s.
  * Better to surface a clear error so the user knows to power-cycle the TV.
  */
 export function osRequiresHttpsForAuthenticatedEndpoints(osType: string | null): boolean {
@@ -39,7 +39,7 @@ export function osRequiresHttpsForAuthenticatedEndpoints(osType: string | null):
  * Polling acts as a sync fallback for state changes notifyChange might miss
  * (we've seen ambilight changes not come through notify on MSAF). Default
  * is 10s for any firmware we don't have specific knowledge about. On MSAF
- * we slow it down to 60s — the Restlet HTTPS server tolerates load poorly
+ * we slow it down to 60s - the Restlet HTTPS server tolerates load poorly
  * (see docs/development/restlet-quirks.md), so we minimise the call rate
  * while keeping a sync safety net.
  */
@@ -101,4 +101,47 @@ export function extractTransportConfig(system: SystemInfo): TransportConfig {
   const secured = extractSecuredTransport(system);
   const port = apiVersion < 6 ? 1925 : 1926;
   return { apiVersion, secured, port };
+}
+
+/**
+ * Build the canonical, immutable identifier used as Homey's `data.id`.
+ * Preference order is most-stable first: hardware serial, then the UUID
+ * embedded in the SSDP USN, then the mDNS service name. IP is a last
+ * resort because DHCP leases rotate.
+ *
+ * The prefixes (`serial-`, `uuid-`, `mdns-`, `ip-`) keep schemes from
+ * colliding when one TV is reachable via multiple fallbacks.
+ */
+export function extractCanonicalId(
+  system: SystemInfo,
+  fallback: { usn?: string; mdnsName?: string; ip: string },
+): string {
+  if (system.serialnumber) return `serial-${system.serialnumber}`;
+  // Android-XTV (MSAF) firmware doesn't expose serialnumber in plaintext;
+  // it wraps it in a deterministic base64 ciphertext that's per-TV stable,
+  // so we can use it as an identifier without ever decrypting. The trailing
+  // newline that Philips emits on these fields is stripped to keep the id
+  // tidy.
+  const encSerial = system.serialnumber_encrypted?.trim();
+  if (encSerial) return `enc-serial-${encSerial}`;
+  const encDeviceId = system.deviceid_encrypted?.trim();
+  if (encDeviceId) return `enc-device-${encDeviceId}`;
+  if (fallback.usn) {
+    const m = fallback.usn.match(/uuid:([0-9a-f-]+)/i);
+    if (m) return `uuid-${m[1]}`;
+  }
+  if (fallback.mdnsName) return `mdns-${fallback.mdnsName}`;
+  return `ip-${fallback.ip}`;
+}
+
+/**
+ * Extract the uuid-form canonical id from a legacy SSDP-USN-shaped
+ * `data.id` (e.g. `uuid:1c-aa-bb::urn:schemas-upnp-org:device:MediaRenderer:3`).
+ * Returns null if the input isn't a USN. Used during pairing to dedupe a
+ * freshly probed candidate against already-paired devices whose data.id
+ * predates the canonical-id scheme.
+ */
+export function legacyUsnToCanonicalId(usn: string): string | null {
+  const m = usn.match(/uuid:([0-9a-f-]+)/i);
+  return m ? `uuid-${m[1]}` : null;
 }

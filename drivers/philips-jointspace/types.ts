@@ -50,7 +50,11 @@ export interface SystemInfo {
   name?: string;
   model?: string;
   serialnumber?: string;
+  serialnumber_encrypted?: string;
+  deviceid_encrypted?: string;
   softwareversion?: string;
+  softwareversion_encrypted?: string;
+  model_encrypted?: string;
   menulanguage?: string;
   country?: string;
   api_version: ApiVersion;
@@ -116,7 +120,11 @@ export interface PowerState {
 }
 
 export interface ScreenState {
-  screenstate: "screenOn" | "screenOff" | string;
+  // The TV reports and accepts plain "On"/"Off". An older Philips doc
+  // dump used "screenOn"/"screenOff" but no live firmware we've tested
+  // actually uses those — sending them gets you a 200 with no state
+  // change. Confirmed via scripts/debug-screenstate.mjs.
+  screenstate: "On" | "Off" | string;
 }
 
 export interface AudioData {

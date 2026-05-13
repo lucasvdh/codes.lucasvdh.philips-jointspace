@@ -169,6 +169,26 @@ speculation either: each addresses a documented symptom from real TV logs.
 
 ## Diagnostic tools
 
+### Verbose request / poll logging
+
+The per-request URL log (`→ METHOD url` / `← status (Nms)`) and the
+per-key payload dumps (`notify[<path>] = …`, `poll[<path>] = …`) are
+behind a debug flag because they're noisy in normal operation. The
+concise lines stay on always: error logs (`✗ errcode`), notify summary
+(`notifyChange returned: handled=[…] unhandled=[…]`), capability
+transitions (`Volume X -> Y`), and retry signals.
+
+Flip the flag in `env.json`:
+
+```json
+{
+  "DEBUG": "true"
+}
+```
+
+Restart the app (`npx homey app run`). Set back to `"false"` after the
+diagnosis session - leaving it on burns log volume for every request.
+
 ### `scripts/xtv-status.sh`
 
 Requires `adb connect <tv-ip>:5555` first. Reports:

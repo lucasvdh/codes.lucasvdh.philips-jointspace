@@ -18,7 +18,19 @@ import {
   PairDevice,
   PairingState,
 } from "./types";
-import { extractOsType, extractPairingType, extractTransportConfig, osRequiresHttpsForAuthenticatedEndpoints } from "./quirks";
+import {
+  extractCanonicalId,
+  extractOsType,
+  extractPairingType,
+  extractTransportConfig,
+  legacyUsnToCanonicalId,
+  osRequiresHttpsForAuthenticatedEndpoints,
+} from "./quirks";
+
+interface DiscoveryHint {
+  usn?: string;
+  mdnsName?: string;
+}
 
 interface DeviceDescriptor {
   name: string;
@@ -192,6 +204,10 @@ class PhilipsTvDriver extends Homey.Driver {
     await device.setStoreValue("pairingType", descriptor.pairingType ?? null);
     await device.setStoreValue("screenStateSupported", null);
     await device.setStoreValue("lastSetAmbilightMode", null);
+    // Reset so refreshSystemMetadata re-probes against the (possibly new) TV
+    // and stores its canonical id. Avoids dedup carrying over from the old TV
+    // when Repair re-points the device.
+    await device.setStoreValue("canonicalId", null);
 
     await device.setSettings({
       ipAddress: settings.ipAddress,
@@ -205,16 +221,18 @@ class PhilipsTvDriver extends Homey.Driver {
   // --- pair view handlers ----------------------------------------------
 
   private async handleDiscoverView(session: Homey.Driver.PairSession, ctx: PairContext): Promise<void> {
-    const ssdpResults = Object.values(this.getDiscoveryStrategy().getDiscoveryResults()) as Array<{
-      id: string;
-      address: string;
-    }>;
-    const mdnsResults = Object.values(this.homey.discovery.getStrategy("philips-tv-mdns").getDiscoveryResults()) as Array<{
-      id: string;
-      address: string;
-    }>;
+    type Tagged = { id: string; address: string; source: "ssdp" | "mdns" };
+    const ssdpResults: Tagged[] = (Object.values(
+      this.getDiscoveryStrategy().getDiscoveryResults(),
+    ) as Array<{ id: string; address: string }>).map((r) => ({ ...r, source: "ssdp" }));
+    const mdnsResults: Tagged[] = (Object.values(
+      this.homey.discovery.getStrategy("philips-tv-mdns").getDiscoveryResults(),
+    ) as Array<{ id: string; address: string }>).map((r) => ({ ...r, source: "mdns" }));
+    // SSDP first: when the same TV appears in both, the IP-based dedup keeps
+    // the SSDP entry, which gives us a real USN (and thus a uuid fallback)
+    // versus mDNS's name-only id.
     const merged = this.mergeDiscoveryResults([...ssdpResults, ...mdnsResults]);
-    const existingDeviceIds = new Set(this.getDevices().map((d) => d.getData().id as string));
+    const existingIds = this.collectExistingCanonicalIds();
 
     const probed = await Promise.allSettled(merged.map((r) => this.deviceFromDiscoveryResult(r)));
     ctx.candidates = probed
@@ -223,7 +241,7 @@ class PhilipsTvDriver extends Homey.Driver {
           p.status === "fulfilled" && p.value !== null,
       )
       .map((p) => p.value)
-      .filter((d) => !existingDeviceIds.has(d.data.id));
+      .filter((d) => !existingIds.has(d.data.id));
 
     const hadDiscoveryResults = merged.length > 0;
 
@@ -250,6 +268,29 @@ class PhilipsTvDriver extends Homey.Driver {
     return out;
   }
 
+  /**
+   * Build the set of canonical ids we consider "already paired", for
+   * deduplication during pair. We include three layers per existing device:
+   *   1. store.canonicalId (set on first onInit after upgrade)
+   *   2. data.id verbatim (matches new-style canonical ids directly, and
+   *      catches legacy USN/IP strings)
+   *   3. uuid- form derived from a legacy USN data.id (so a re-pair of a
+   *      device that was added pre-canonical via SSDP still dedupes against
+   *      a fresh probe that lands on the uuid fallback)
+   */
+  private collectExistingCanonicalIds(): Set<string> {
+    const ids = new Set<string>();
+    for (const d of this.getDevices()) {
+      const stored = d.getStoreValue("canonicalId") as string | null;
+      if (stored) ids.add(stored);
+      const dataId = d.getData().id as string;
+      ids.add(dataId);
+      const fromUsn = legacyUsnToCanonicalId(dataId);
+      if (fromUsn) ids.add(fromUsn);
+    }
+    return ids;
+  }
+
   private async handleCheckIpView(session: Homey.Driver.PairSession, ctx: PairContext): Promise<void> {
     ctx.candidates = [];
     if (!ctx.ip) {
@@ -260,8 +301,8 @@ class PhilipsTvDriver extends Homey.Driver {
 
     try {
       const candidate = await this.deviceFromIp(ctx.ip);
-      const isDuplicate = this.getDevices().some((d) => d.getData().id === candidate.data.id);
-      if (isDuplicate) {
+      const existingIds = this.collectExistingCanonicalIds();
+      if (existingIds.has(candidate.data.id)) {
         await session.showView("add_by_ip");
         await session.emit("alert", this.homey.__("error.device_not_found"));
         return;
@@ -371,18 +412,17 @@ class PhilipsTvDriver extends Homey.Driver {
 
   // --- discovery / probing ---------------------------------------------
 
-  private async deviceFromDiscoveryResult(result: { id: string; address: string }): Promise<DeviceDescriptor | null> {
-    const base: DeviceDescriptor = {
-      name: "Philips TV",
-      data: { id: result.id, mac: null, credentials: {} },
-      settings: { ipAddress: result.address, apiVersion: 1, secure: false, port: 1925 },
-    };
-    return this.deviceFromIp(result.address, base);
+  private async deviceFromDiscoveryResult(result: { id: string; address: string; source: "ssdp" | "mdns" }): Promise<DeviceDescriptor | null> {
+    const hint: DiscoveryHint =
+      result.source === "ssdp" ? { usn: result.id } : { mdnsName: result.id };
+    return this.deviceFromIp(result.address, hint);
   }
 
-  private async deviceFromIp(ip: string, base?: DeviceDescriptor): Promise<DeviceDescriptor> {
-    const descriptor: DeviceDescriptor = base ?? {
+  private async deviceFromIp(ip: string, hint?: DiscoveryHint): Promise<DeviceDescriptor> {
+    const descriptor: DeviceDescriptor = {
       name: "Philips TV",
+      // Placeholder; replaced with the canonical id after we've called
+      // getSystem() and know the serial / can fall back to USN.
       data: { id: ip, mac: null, credentials: {} },
       settings: { ipAddress: ip, apiVersion: 1, secure: false, port: 1925 },
     };
@@ -406,6 +446,11 @@ class PhilipsTvDriver extends Homey.Driver {
     descriptor.settings.apiVersion = verified.apiVersion;
     descriptor.settings.secure = verified.secured;
     descriptor.settings.port = verified.port;
+    descriptor.data.id = extractCanonicalId(system, {
+      usn: hint?.usn,
+      mdnsName: hint?.mdnsName,
+      ip,
+    });
     return descriptor;
   }
 

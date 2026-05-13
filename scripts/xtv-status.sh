@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# xtv-status.sh — check Philips jointspace daemon (org.droidtv.xtv)
+# xtv-status.sh - check Philips jointspace daemon (org.droidtv.xtv)
 #
 # Gebruik:  ./xtv-status.sh
 #           TV_IP=192.168.1.130 ./xtv-status.sh
@@ -18,7 +18,7 @@ if [[ -z "${TV_IP:-}" ]]; then
   TV_IP=$(adb devices | awk '/\t(device|emulator)/{print $1}' | head -1 | cut -d: -f1)
 fi
 if [[ -z "$TV_IP" ]]; then
-  echo "geen ADB device gevonden — connect eerst met 'adb connect <ip>:5555'" >&2
+  echo "geen ADB device gevonden - connect eerst met 'adb connect <ip>:5555'" >&2
   exit 1
 fi
 

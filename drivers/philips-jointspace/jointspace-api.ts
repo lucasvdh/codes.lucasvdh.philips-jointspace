@@ -339,7 +339,7 @@ export class JointspaceApi {
     return this.request<ScreenState>({ method: "GET", path: "screenstate" });
   }
 
-  async setScreenState(state: "screenOn" | "screenOff"): Promise<void> {
+  async setScreenState(state: "On" | "Off"): Promise<void> {
     await this.request<unknown>({ method: "POST", path: "screenstate", data: { screenstate: state } });
   }
 
@@ -530,15 +530,17 @@ export class JointspaceApi {
     };
 
     const startedAt = Date.now();
-    this.log("→", opts.method, url);
+    if (this.debug) this.log("→", opts.method, url);
 
     const exec = async (): Promise<T> => {
       try {
         const response = await this.sendWithRetry(requestConfig, opts, credentials);
-        this.log("←", response.status, opts.method, url, `(${Date.now() - startedAt}ms)`);
+        if (this.debug) this.log("←", response.status, opts.method, url, `(${Date.now() - startedAt}ms)`);
         return this.parseResponse<T>(response);
       } catch (err) {
         const code = (err as AxiosError | NodeJS.ErrnoException).code ?? (err as Error).name;
+        // Errors always logged — the failure code is genuinely useful and
+        // not noisy. Successful requests are gated behind `debug`.
         this.log("✗", code, opts.method, url, `(${Date.now() - startedAt}ms)`);
         throw err;
       }
