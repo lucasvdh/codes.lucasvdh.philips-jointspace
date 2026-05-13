@@ -137,7 +137,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   private api!: JointspaceApi;
   private poller?: StatePoller;
   private applications: SimplifiedApplication[] | null = null;
-  // Icons fetched in background after the first getApplications() — each
+  // Icons fetched in background after the first getApplications() - each
   // value is a data URI ready for Homey's autocomplete `image` field.
   // Apps without a registered icon (or 404) stay absent.
   private applicationIcons = new Map<string, string>();
@@ -186,7 +186,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     }, INIT_OFF_FALLBACK_MS);
 
     // Wait for the transport-verify to complete before constructing the
-    // poller — refreshSystemMetadata writes osType to store, which decides
+    // poller - refreshSystemMetadata writes osType to store, which decides
     // whether the poller runs in notify-only mode (MSAF) or full polling.
     // Without this, notifyChange returns fast, triggers handleActivityChange,
     // which fires getApplications on HTTPS/1926 in parallel with the verify
@@ -301,7 +301,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   /**
    * Fetch per-app icons in the background with low concurrency. The TV's
    * HTTPS server is fragile (see docs/development/restlet-quirks.md); two
-   * parallel digest-authed binary fetches is the sweet spot — fast enough
+   * parallel digest-authed binary fetches is the sweet spot - fast enough
    * that icons are populated within a few seconds for ~50 apps, slow
    * enough that the Restlet accept-queue doesn't saturate.
    */
@@ -314,7 +314,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     const startedAt = Date.now();
     const CONCURRENCY = 2;
     let succeeded = 0;
-    let missing = 0; // 404 — app has no icon registered, expected
+    let missing = 0; // 404 - app has no icon registered, expected
     const failures: Array<{ id: string; reason: string }> = [];
     const worker = async (): Promise<void> => {
       while (queue.length > 0) {
@@ -330,7 +330,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
           }
         } catch (err) {
           // Per-app failure shouldn't block siblings or surface as user
-          // error — autocomplete just shows that app without an icon.
+          // error - autocomplete just shows that app without an icon.
           const e = err as Error & { code?: string };
           failures.push({ id, reason: e.code ?? e.name ?? e.message });
         }
@@ -367,7 +367,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     // the about-to-arrive notify event for this package (the TV often
     // reports a parent activity instead of the child we actually launched).
     this.lastLaunchedApp = { app, expiresAt: Date.now() + 5000 };
-    // Optimistically reflect the launch — capability + both triggers fire
+    // Optimistically reflect the launch - capability + both triggers fire
     // here with the exact app the user picked, not whatever the TV decides
     // to report as foreground.
     const previous = (this.getCapabilityValue("current_application") as string | null) ?? null;
@@ -560,7 +560,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
 
     // When muted, the TV reports volume 0. We need the pre-mute level to
     // restore it on unmute, so skip volume updates while muted. We also skip
-    // updates when the TV is *known* off — speaker switches (TV / audio
+    // updates when the TV is *known* off - speaker switches (TV / audio
     // system) change the reported volume independently. powerOn === null
     // means "not yet observed" (first poll before notify lands), so we
     // accept the update there instead of dropping it.
@@ -627,7 +627,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   handleActivityChange(source: StateChangeSource, state: CurrentActivity): void {
     // Recent-launch suppression: if Homey just fired openApplication for an
     // app in the same package the TV now reports as active, that notify is
-    // (almost certainly) the TV confirming our launch — typically with a
+    // (almost certainly) the TV confirming our launch - typically with a
     // parent activity. We already updated state and fired triggers
     // optimistically in openApplication; firing again here with the
     // TV-resolved match would double-fire and tag the wrong sub-app.
@@ -648,7 +648,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
         // Try exact match (package + class) first; fall back to package-only.
         // The TV often reports a running activity with a className that
         // differs from what the apps list registers (e.g. ...HomeActivity
-        // vs ...MainActivity) — same app, different entry point. Requiring
+        // vs ...MainActivity) - same app, different entry point. Requiring
         // both fields strictly used to make notify show "unknown" on every
         // app switch.
         const exact = apps.find(
@@ -672,7 +672,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
               .catch(this.error.bind(this));
           }
         } else if (currentName !== null) {
-          // Activity isn't in the launchable apps list — typically a system
+          // Activity isn't in the launchable apps list - typically a system
           // surface (Settings, EPG, TV-tuner on some firmwares). Log the
           // exact component so we can tell whether the apps list is
           // genuinely missing it or whether this is a system-only activity.
@@ -692,7 +692,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   handleScreenStateChange(source: StateChangeSource, state: ScreenState): void {
     if (!this.hasCapability(CAPABILITY_SCREEN_ON)) return;
     // Accept both "On" (every live firmware we've tested) and "screenOn"
-    // (defensive — we've never seen it in the wild but the value-format
+    // (defensive - we've never seen it in the wild but the value-format
     // for this endpoint isn't officially documented).
     const on = state.screenstate === "On" || state.screenstate === "screenOn";
     if (this.getCapabilityValue(CAPABILITY_SCREEN_ON) !== on) {
@@ -727,7 +727,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     // After 3 consecutive failures, mark the device unavailable in Homey
     // so the UI shows a clear "TV unreachable" state. Without this, Homey's
     // own heuristic may silently mark the device unavailable based on
-    // capability-update timing — confusing because we don't know why.
+    // capability-update timing - confusing because we don't know why.
     if (this.consecutivePollFailures === 3) {
       this.log("3 consecutive poll failures; setting device unavailable");
       this.setUnavailable(`TV unreachable: ${error.message}`).catch(this.error.bind(this));
@@ -758,7 +758,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   }
 
   onNotifyReachable(): void {
-    // Notify long-poll succeeded — TV is responding on HTTP/1925. Reaffirm
+    // Notify long-poll succeeded - TV is responding on HTTP/1925. Reaffirm
     // availability so a slow poll interval (60s on MSAF) doesn't leave
     // Homey thinking the device is gone between polls.
     this.setAvailable().catch(this.error.bind(this));
@@ -807,7 +807,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
    * HTTPS is dead (e.g. only one network interface serves it) keep timing
    * out on every poll cycle even though HTTP/1925 works fine.
    *
-   * Fast-path: if getSystem just succeeded via HTTPS we don't probe again —
+   * Fast-path: if getSystem just succeeded via HTTPS we don't probe again -
    * a second concurrent HTTPS request to a fragile TV often hangs even
    * when the first one worked.
    *
@@ -848,7 +848,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
 
   /**
    * One-time backfill: compute and persist this TV's canonical id (serial-X,
-   * uuid-X, mdns-X, ip-X — see extractCanonicalId for ordering) into the
+   * uuid-X, mdns-X, ip-X - see extractCanonicalId for ordering) into the
    * store. data.id is immutable, so devices paired before the canonical-id
    * scheme keep their legacy id in data.id but gain a canonical id here.
    * The driver's pair-time dedup reads both, so future pair attempts
@@ -928,7 +928,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
    * notifyChange support.
    */
   private async probeScreenStateSupport(): Promise<void> {
-    // Always probe — no official endpoints-per-firmware matrix and a
+    // Always probe - no official endpoints-per-firmware matrix and a
     // firmware update could add the endpoint later. A failure is cheap
     // (single HTTPS call, ~10s timeout worst case) and recorded so the
     // hourly reprobe doesn't waste effort.
@@ -992,7 +992,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
 
   /**
    * Mirror of probeScreenStateSupport for /sources/current. Some firmwares
-   * (notably MSAF_*) 404 on this endpoint — no point adding a capability the
+   * (notably MSAF_*) 404 on this endpoint - no point adding a capability the
    * TV can never fill. The probe runs at every refreshSystemMetadata so a
    * firmware update that adds the endpoint is picked up within the hourly
    * reprobe window.
@@ -1003,7 +1003,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       const supported = typeof value?.id === "string" && value.id.length > 0;
       await this.setStoreValue(STORE_CURRENT_SOURCE_SUPPORTED, supported);
     } catch (err) {
-      // 404 = endpoint genuinely not on this firmware — record as
+      // 404 = endpoint genuinely not on this firmware - record as
       // unsupported. Any other error (offline, parse error, timeout) is
       // transient or unrelated; keep the previous flag so we don't tear
       // down a working capability because the TV happened to be off.

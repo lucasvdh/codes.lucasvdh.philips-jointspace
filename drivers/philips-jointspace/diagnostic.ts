@@ -58,7 +58,7 @@ interface ProbeRunner {
 }
 
 const RESPONSE_PREVIEW_LENGTH = 600;
-// The report no longer runs inside a settings-API request — it's kicked off
+// The report no longer runs inside a settings-API request - it's kicked off
 // in the background and progress streams back over realtime events. That
 // lifts the old 10s ceiling, so individual probes can take as long as a
 // genuinely slow Philips TV needs. notifyChange is a long-poll: a 30s
@@ -244,7 +244,7 @@ async function runProbes(api: JointspaceApi, onProgress?: ProgressCallback): Pro
   );
 
   // Phase 4: long-poll notifyChange. We deliberately leave room for the TV
-  // to either push a real state update or close the connection — both
+  // to either push a real state update or close the connection - both
   // outcomes are diagnostically useful.
   progress(`Long-polling notifyChange (up to ${NOTIFY_PROBE_TIMEOUT_MS / 1000}s)…`);
   const notifyProbe = await runProbe(

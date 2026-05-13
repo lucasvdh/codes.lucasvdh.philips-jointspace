@@ -1,7 +1,7 @@
-De Philips TV-app stelt u in staat om uw Philips TV aan te sluiten op uw slimme thuis, waardoor u de mogelijkheid krijgt om uw TV te integreren met uw Homey flows.
+De Philips TV-app koppelt je Philips-tv aan Homey, zodat je hem net als de rest van je slimme huis in je flows kunt gebruiken.
 
-Met deze app kunt u flows uitvoeren op basis van veranderingen op uw TV, zoals het aanzetten ervan of het dempen van het geluid. U kunt ook conditionele kaarten gebruiken om de staat van uw TV te controleren, zoals of ambilight ingeschakeld is. Tot slot kun u er ook acties mee uitvoeren om de staat van uw TV te veranderen, zoals het uitzetten ervan, het instellen van de ambilight-modus of het openen van een app.
+Activeer flows wanneer de tv aangaat, een app wordt geopend, de bron verandert of de Ambilight-modus wijzigt. Controleer in flows de staat van de tv - aan/uit, huidige app, Ambilight, volume. Voer acties uit zoals aan- of uitzetten, kanaal of bron wisselen, Ambilight-modus instellen, een app openen of een willekeurige afstandsbedieningstoets versturen. Op ondersteunde modellen kun je ook het scherm uitzetten terwijl het geluid blijft spelen, en de tv aanzetten met Wake-on-LAN.
 
-Deze app is geen officiële app en is op geen enkele manier geaffilieerd met Philips of TP Vision. Het is mogelijk gemaakt door de inspanningen van een groep mensen die de Jointspace API hebben doorgrond. Let erop dat deze app erop gericht is om een hoogwaardige en functionele oplossing te bieden, maar dat deze wellicht niet zo betrouwbaar is als een door Philips ondersteunde app. Het gebruik ervan is op eigen risico.
+Deze app is geen officiële app en heeft op geen enkele manier banden met Philips of TP Vision.
 
-Voor vragen verwijzen wij u naar https://homey-philips-tv.gitbook.io/homey-philips-tv/.
+Vragen? Kijk op https://homey-philips-tv.gitbook.io/ of op de GitHub-pagina.

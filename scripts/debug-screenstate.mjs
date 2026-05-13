@@ -163,7 +163,7 @@ async function main() {
   console.log(`initial GET    = ${await readScreenstate(url, creds)}\n`);
 
   for (const { label, body } of VARIANTS) {
-    stdout.write(`POST ${JSON.stringify(body).padEnd(48)} — `);
+    stdout.write(`POST ${JSON.stringify(body).padEnd(48)} - `);
     const post = await digestRequest({ url, method: "POST", body, creds });
     if (!post.ok) {
       console.log(`error: ${post.error}`);
@@ -181,7 +181,7 @@ async function main() {
 
   console.log(`\nfinal GET     = ${await readScreenstate(url, creds)}`);
   console.log(`\nWatch the TV: a variant is "working" if you saw the screen turn off`);
-  console.log(`(briefly — the script flips it back on after each probe). Match the`);
+  console.log(`(briefly - the script flips it back on after each probe). Match the`);
   console.log(`visible behaviour with the labels above.`);
 }
 

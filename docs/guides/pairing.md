@@ -14,6 +14,7 @@ We'll cover everything from device discovery to successful pairing, and provide 
 * [Pincode authentication](pairing.md#pincode-authentication)
   * [Pincode errors](pairing.md#pincode-errors)
 * [Device successfully added](pairing.md#device-successfully-added)
+* [Repairing an existing device](pairing.md#repairing-an-existing-device)
 
 Start the pairing process.
 
@@ -21,7 +22,12 @@ Start the pairing process.
 
 ## Device discovery
 
-If your Philips TV device is compatible and available on your network, it can be automatically discovered by the Homey Philips TV app using Simple Service Discovery Protocol (SSDP). In this case, the Homey app will display all devices that are found and prompt you to select one to add.
+If your Philips TV is compatible and reachable on your network, it can be automatically discovered. The app uses two protocols in parallel:
+
+* **SSDP** - for older models that announce themselves as a UPnP `MediaRenderer:3` service.
+* **mDNS** (`_philipstv_s_rpc._tcp`) - for modern Android-based Philips TVs.
+
+Results from both are merged and deduplicated by IP, then shown in a single list. Pick the device you want to add.
 
 ![](../.gitbook/assets/select\_device.png)
 
@@ -41,7 +47,7 @@ To manually add your device, please refer to the next section of this guide.
 
 ## Manually add your device
 
-If your device cannot be automatically found via SSDP, don't worry, you still have the option to manually add your device by its IP address.
+If your device cannot be automatically discovered (neither via SSDP nor mDNS), you still have the option to manually add it by its IP address.
 
 <img src="../.gitbook/assets/manually_add.png" alt="" data-size="original">
 
@@ -95,4 +101,10 @@ We hope that this guide has been helpful in assisting you with pairing your devi
 
 <table data-card-size="large" data-view="cards"><thead><tr><th></th><th data-type="content-ref"></th><th data-hidden data-card-target data-type="content-ref"></th><th data-hidden data-card-cover data-type="files"></th></tr></thead><tbody><tr><td>Open support ticket on Github</td><td><a href="https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues">https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues</a></td><td><a href="https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues">https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues</a></td><td><a href="../.gitbook/assets/github.png">github.png</a></td></tr></tbody></table>
 
-##
+## Repairing an existing device
+
+If your TV's IP changes (a fresh DHCP lease, a router restart) or you re-pair the TV with a different Homey, you don't need to remove the device and pair it again - that would orphan every Flow that references it.
+
+Use **Repair** instead. From the device's overflow menu (three dots) in the Homey app, choose **Repair**. The wizard runs the same discovery / IP-entry / authentication steps as a fresh pair, but at the end it updates the existing device's IP, transport and credentials in place. The device's internal identity stays the same, so all your Flows keep working.
+
+Repair is also the right path if pairing succeeded long ago but the TV's HTTPS service has become unresponsive - re-running the wizard lets the app re-verify which transport the TV actually serves and updates the device settings accordingly.

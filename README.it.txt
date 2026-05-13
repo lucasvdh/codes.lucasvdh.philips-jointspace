@@ -1,7 +1,7 @@
-L'app Philips TV ti permette di connettere la tua TV Philips al tuo smart home, dandoti la possibilità di integrare la tua TV nei tuoi flussi Homey.
+L'app Philips TV collega il tuo televisore Philips a Homey, così puoi usarlo nei tuoi flussi insieme al resto della tua casa intelligente.
 
-Con questa app, puoi attivare flussi in base ai cambiamenti sulla tua TV, come accenderla o silenziare l'audio. Inoltre, puoi utilizzare le carte condizionali per verificare lo stato della tua TV, come se l'ambilight sia acceso, ed eseguire azioni per cambiare lo stato della tua TV, come accenderla o impostare la modalità ambilight.
+Attiva flussi quando il TV si accende, viene aperta un'app, cambia la sorgente o cambia la modalità Ambilight. Controlla lo stato del TV nei flussi - acceso/spento, app corrente, Ambilight, volume. Esegui azioni come accendere/spegnere, cambiare canale o sorgente, impostare la modalità Ambilight, aprire un'app o inviare un tasto qualsiasi del telecomando. Sui modelli supportati puoi anche spegnere lo schermo mantenendo l'audio attivo, e accendere il TV tramite Wake-on-LAN.
 
-Questa app non è un'app ufficiale e non ha alcun rapporto con Philips o TP Vision. È stato reso possibile grazie agli sforzi di un gruppo di persone che hanno decifrato l'API Jointspace. Si prega di notare che sebbene questa app si sforzi di fornire una soluzione di alta qualità e funzionale, potrebbe non essere affidabile come un'app supportata ufficialmente e si consiglia di utilizzarla a proprio rischio.
+Questa app non è un'app ufficiale e non ha alcuna affiliazione con Philips o TP Vision.
 
-Per eventuali domande, si prega di fare riferimento a https://homey-philips-tv.gitbook.io/homey-philips-tv/.
+Domande? Vedi https://homey-philips-tv.gitbook.io/ o la pagina GitHub.

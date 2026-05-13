@@ -114,7 +114,7 @@
     });
 
     // The server kicks off the report in the background and streams progress
-    // back over realtime events. The POST only returns a runId — listeners
+    // back over realtime events. The POST only returns a runId - listeners
     // filter on that to ignore stale events from a previous run.
     // Watchdog covers the worst case (4 probe phases × up to 30s for the
     // notifyChange long-poll + ARP + discovery).
@@ -150,7 +150,7 @@
 
     function startRun(button, runningLabel, restoreLabel, call) {
       if (activeRun) {
-        showStatus('err', 'A report is already running — please wait for it to finish.');
+        showStatus('err', 'A report is already running - please wait for it to finish.');
         return;
       }
       clearStatus();

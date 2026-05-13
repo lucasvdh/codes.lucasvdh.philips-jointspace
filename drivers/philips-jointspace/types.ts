@@ -122,7 +122,7 @@ export interface PowerState {
 export interface ScreenState {
   // The TV reports and accepts plain "On"/"Off". An older Philips doc
   // dump used "screenOn"/"screenOff" but no live firmware we've tested
-  // actually uses those — sending them gets you a 200 with no state
+  // actually uses those - sending them gets you a 200 with no state
   // change. Confirmed via scripts/debug-screenstate.mjs.
   screenstate: "On" | "Off" | string;
 }

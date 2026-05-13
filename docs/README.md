@@ -10,7 +10,7 @@ coverY: 0
 
 This app offers seamless integration between your TV and your Homey flows, giving you the ability to automate and control your TV like never before.
 
-With this app, you can trigger flows based on changes in your TV's state, such as when it turns on or when it's muted. You can also use condition cards in flows to check the state of your TV, such as whether ambilight is on or not. Finally, you can execute actions to change the state of your TV, such as turning it on, setting the ambilight mode or opening an app.
+With this app, you can trigger flows based on changes on your TV, such as when an app opens, the source changes or the Ambilight mode switches. You can check the state of your TV in flows - power, current app, Ambilight, volume - and execute actions like turning the TV on, switching channel or source, opening an app or sending any remote-control key. On supported TVs you can also turn the screen off while audio keeps playing, and wake the TV with Wake-on-LAN.
 
 Experience a new level of convenience and control with the Philips TV app for Homey.
 

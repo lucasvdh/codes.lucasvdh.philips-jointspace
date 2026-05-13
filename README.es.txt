@@ -1,7 +1,7 @@
-Philipsi teleri rakendus võimaldab teil oma Philipsi telerit ühendada oma nutikoduga, andes teile võimaluse integreerida oma teler oma Homey vooludesse.
+La app Philips TV conecta tu televisor Philips con Homey, para que puedas usarlo en tus flujos junto al resto de tu hogar inteligente.
 
-Selle rakendusega saate aktiveerida voolusid teleri muudatuste alusel, näiteks sisse lülitamisel või vaigistamisel. Te saate ka kasutada tingimuskarpe teleri oleku kontrollimiseks, näiteks kas ambilight on sisse lülitatud, ja teostada toiminguid teleri oleku muutmiseks, näiteks sisse lülitamiseks või ambilighti režiimi seadistamiseks.
+Activa flujos cuando el televisor se enciende, se abre una aplicación, cambia la fuente o cambia el modo Ambilight. Comprueba el estado del televisor en flujos - encendido/apagado, aplicación actual, Ambilight, volumen. Ejecuta acciones como encender/apagar, cambiar de canal o fuente, ajustar el modo Ambilight, abrir una aplicación o enviar cualquier tecla del mando a distancia. En modelos compatibles también puedes apagar la pantalla manteniendo el audio, y encender el televisor mediante Wake-on-LAN.
 
-See rakendus pole ametlik rakendus ja ei ole seotud Philipsi või TP Visioniga mingil viisil. See on tehtav tänu grupile inimestele, kes on Jointspace API lahti mõtestanud. Palun arvestage, et kuigi see rakendus püüab pakkuda kõrgekvaliteetlist ja funktsionaalset lahendust, ei pruugi see olla nii usaldusväärne kui ametlikult toetatud rakendus, ja soovitame seda kasutada oma vastutusel.
+Esta app no es una app oficial y no está afiliada de ningún modo con Philips ni TP Vision.
 
-Küsimuste korral viitke aadressile https://homey-philips-tv.gitbook.io/homey-philips-tv/
+¿Preguntas? Consulta https://homey-philips-tv.gitbook.io/ o la página de GitHub.

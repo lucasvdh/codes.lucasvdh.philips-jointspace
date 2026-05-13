@@ -15,3 +15,4 @@
 ## Development
 
 * [Philips Restlet HTTPS quirks](development/restlet-quirks.md)
+* [State poller design](development/poller-design.md)

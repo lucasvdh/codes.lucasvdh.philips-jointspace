@@ -104,7 +104,7 @@ export class JointspaceApi {
     this.log = options.log ?? (() => undefined);
     this.debug = options.debug ?? false;
     // TVs use a self-signed cert; skip CA verification. No legacy-TLS
-    // tweaks needed — the TLS handshake script confirms modern Philips
+    // tweaks needed - the TLS handshake script confirms modern Philips
     // firmware negotiates TLS 1.2 with ECDHE-CHACHA20 just fine on Node's
     // default cipher set.
     // keepAlive + maxSockets: 1 makes axios reuse the same TCP/TLS connection
@@ -300,7 +300,7 @@ export class JointspaceApi {
   /**
    * Fetch the binary icon for a single app. Returns null on 404 (some
    * apps have no icon registered, and some firmwares don't expose this
-   * endpoint at all). Other failures throw — caller decides how to
+   * endpoint at all). Other failures throw - caller decides how to
    * handle them.
    */
   async getApplicationIcon(appId: string): Promise<{ contentType: string; body: Buffer } | null> {
@@ -578,7 +578,7 @@ export class JointspaceApi {
         return response;
       } catch (err) {
         const code = (err as AxiosError | NodeJS.ErrnoException).code ?? (err as Error).name;
-        // Errors always logged — the failure code is genuinely useful and
+        // Errors always logged - the failure code is genuinely useful and
         // not noisy. Successful requests are gated behind `debug`.
         this.log("✗", code, opts.method, url, `(${Date.now() - startedAt}ms)`);
         throw err;

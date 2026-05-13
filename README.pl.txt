@@ -1,7 +1,7 @@
-Aplikacja TV Philips pozwala na połączenie telewizora Philips z inteligentnym domem, dając możliwość integracji telewizora z przepływami Homey.
+Aplikacja Philips TV łączy Twój telewizor Philips z Homey, dzięki czemu możesz używać go w przepływach razem z resztą inteligentnego domu.
 
-Za pomocą tej aplikacji można wyzwalać przepływy na podstawie zmian na telewizorze, takich jak włączanie lub wyciszanie. Można także korzystać z kart warunków, aby sprawdzać stan telewizora, taki jak czy ambilight jest włączony, i wykonywać działania, aby zmienić stan telewizora, np. włączanie lub ustawianie trybu ambilight.
+Wyzwalaj przepływy, gdy telewizor się włącza, otwiera się aplikacja, zmienia się źródło lub zmienia się tryb Ambilight. Sprawdzaj stan telewizora w przepływach - włączony/wyłączony, bieżąca aplikacja, Ambilight, głośność. Wykonuj akcje takie jak włączanie/wyłączanie, zmiana kanału lub źródła, ustawianie trybu Ambilight, otwieranie aplikacji lub wysyłanie dowolnego klawisza pilota. Na obsługiwanych modelach możesz też wyłączyć ekran zachowując dźwięk, oraz włączyć telewizor przez Wake-on-LAN.
 
-Ta aplikacja nie jest oficjalną aplikacją i nie jest w żaden sposób powiązana z firmą Philips lub TP Vision. Została ona umożliwiona dzięki wysiłkom grupy osób, które odkryły API Jointspace. Należy zauważyć, że choć ta aplikacja stara się zapewnić wysokiej jakości i funkcjonalne rozwiązanie, może nie być tak niezawodna jak oficjalnie wspierana aplikacja, i zaleca się jej używanie na własne ryzyko.
+Ta aplikacja nie jest aplikacją oficjalną i nie jest w żaden sposób powiązana z firmą Philips ani TP Vision.
 
-W przypadku jakichkolwiek pytań prosimy o odwołanie się do https://homey-philips-tv.gitbook.io/homey-philips-tv/
+Pytania? Zobacz https://homey-philips-tv.gitbook.io/ lub stronę GitHub.
