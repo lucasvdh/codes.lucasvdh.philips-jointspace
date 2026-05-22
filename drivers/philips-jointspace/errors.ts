@@ -27,6 +27,20 @@ export class NotFoundError extends JointspaceError {
   }
 }
 
+/**
+ * Raised when the TV answers but refuses the request with HTTP 403. Seen on
+ * firmwares that 403 the unversioned `/system` path while still serving the
+ * version-prefixed `/1/system` (issue #60), and more generally when the TV's
+ * network/external-control API is locked down. Distinct from the base
+ * JointspaceError so the pair UI can surface an actionable message instead of
+ * a generic failure.
+ */
+export class ForbiddenError extends JointspaceError {
+  constructor(message = "Access to the TV API was refused") {
+    super(message, 403);
+  }
+}
+
 export class PairingError extends JointspaceError {
   readonly errorId?: string;
   readonly errorText?: string;

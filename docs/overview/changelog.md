@@ -8,6 +8,18 @@ Here, you'll find a list of meaningful changes made to the app, with the most re
 
 <details>
 
+<summary>v3.7.2 - 2026-05</summary>
+
+#### Fixes
+
+* Pairing now works on TVs that reject the unversioned `/system` path with HTTP 403 (issue [#60](https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues/60)). `getSystem()` falls back to the version-prefixed paths (`/1/system`, `/5/system`, `/6/system`) on HTTP/1925 and HTTPS/1926, and no longer short-circuits the HTTPS fallback when the first probe throws.
+* A 403 from the TV now maps to a dedicated, actionable error message instead of a generic failure.
+* Diagnostic IP reports probe the version-prefixed `/system` paths too, so the asymmetry is visible at a glance.
+
+</details>
+
+<details>
+
 <summary>v3.7.0 - 2026-05</summary>
 
 #### Improvements

@@ -271,7 +271,7 @@ async function runUnauthenticatedProbes(api: JointspaceApi, onProgress?: Progres
   // actually serves. Important when the TV advertises secured_transport=true
   // but only responds on HTTP/1925 (or vice versa); pair/request will hang
   // on the wrong transport even though /system works on the other.
-  onProgress?.("Probing /system on HTTP/1925 and HTTPS/1926…");
+  onProgress?.("Probing /system on HTTP/1925 and HTTPS/1926 (unversioned and version-prefixed)…");
   const specs: ProbeSpec[] = [
     {
       label: "System info (HTTP/1925)",
@@ -284,6 +284,27 @@ async function runUnauthenticatedProbes(api: JointspaceApi, onProgress?: Progres
       method: "GET",
       endpoint: "https://<ip>:1926/system",
       runner: async () => ({ result: await api.probeSystemHttps() }),
+    },
+    // Version-prefixed paths: some firmwares 403 the bare /system but serve
+    // /1/system (issue #60). Probing both makes that asymmetry obvious in the
+    // report instead of looking like a flat "TV refuses everything".
+    {
+      label: "System info (HTTP/1925, /1/system)",
+      method: "GET",
+      endpoint: "http://<ip>:1925/1/system",
+      runner: async () => ({ result: await api.probeSystemVersionedHttp(1) }),
+    },
+    {
+      label: "System info (HTTP/1925, /5/system)",
+      method: "GET",
+      endpoint: "http://<ip>:1925/5/system",
+      runner: async () => ({ result: await api.probeSystemVersionedHttp(5) }),
+    },
+    {
+      label: "System info (HTTPS/1926, /6/system)",
+      method: "GET",
+      endpoint: "https://<ip>:1926/6/system",
+      runner: async () => ({ result: await api.probeSystemVersionedHttps(6) }),
     },
   ];
   return Promise.all(

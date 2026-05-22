@@ -5,6 +5,7 @@ import Homey from "homey";
 import { JointspaceApi } from "./jointspace-api";
 import { PairingStatus } from "./enums";
 import {
+  ForbiddenError,
   HttpsUnavailableError,
   InvalidResponseError,
   NotFoundError,
@@ -429,6 +430,7 @@ class PhilipsTvDriver extends Homey.Driver {
 
   private localeKeyForError(err: unknown): string {
     if (err instanceof HttpsUnavailableError) return "error.https_unavailable_for_pair";
+    if (err instanceof ForbiddenError) return "error.api_forbidden";
     if (err instanceof NotFoundError) return "error.endpoint_not_found";
     if (err instanceof OfflineError) return "error.host_unreachable";
     if (err instanceof InvalidResponseError) return "error.invalid_response";

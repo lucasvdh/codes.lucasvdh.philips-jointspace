@@ -59,6 +59,10 @@ Change the IP `192.168.1.10` to the IP address your TV.
 
 If the page returns a JSON response like the one below, it means that the Jointspace API is enabled for your device and the app will likely work for you.
 
+{% hint style="warning" %}
+Some firmwares reject the unversioned `/system` path with a **403 Forbidden** even though the API works fine. If `http://192.168.1.10:1925/system` returns _Forbidden_, try the version-prefixed paths instead: `http://192.168.1.10:1925/1/system` and `http://192.168.1.10:1925/6/system`. If either of those returns JSON, your TV **is** supported - the app probes these version-prefixed paths automatically.
+{% endhint %}
+
 <details>
 
 <summary>JSON Response Example</summary>

@@ -32,6 +32,7 @@ import {
   SystemInfo,
 } from "./types";
 import {
+  ForbiddenError,
   InvalidResponseError,
   JointspaceError,
   NotFoundError,
@@ -148,32 +149,65 @@ export class JointspaceApi {
   // --- public API -------------------------------------------------------
 
   /**
-   * Most TVs expose system info on HTTP/1925 unauthenticated, even Android
-   * models. Some sets (e.g. 43PUS8546, reported in PR #41) return HTTP 200
-   * with an empty body on /1925/system and only serve real data on
-   * HTTPS/1926/system. Try the standard endpoint first, fall back to the
-   * secured one when the body parses to nothing useful.
+   * Probe the TV's system info, trying transports in order of likelihood:
+   *   1. HTTP/1925 /system        (unversioned - works on most TVs)
+   *   2. HTTPS/1926 /system       (unversioned - PR #41: some sets return an
+   *                                empty body on 1925 and only serve 1926)
+   *   3. HTTP/1925 /1/system      (version-prefixed - issue #60: some
+   *                                firmwares 403 the bare /system but serve
+   *                                the versioned path; every other endpoint
+   *                                already uses the prefix, so this is the
+   *                                only probe that opted out)
+   *   4. HTTP/1925 /5/system      (version-prefixed - some Android sets only
+   *                                answer on the v5 path)
+   *   5. HTTPS/1926 /6/system     (version-prefixed, for symmetry)
    *
-   * The "nothing useful" check is `api_version.Major` because both empty
-   * strings and HTML "Ok" sentinels are normalised to `{}` by parseResponse
-   * upstream - the only reliable signal that we got real system info is the
-   * presence of an api version.
+   * An attempt is treated as failed - and the next is tried - when it either
+   * throws (e.g. 403 Forbidden, ECONNREFUSED) or returns a body with no
+   * `api_version.Major`. The api-version check is the only reliable "got real
+   * data" signal because empty strings and HTML "Ok" sentinels are normalised
+   * to `{}` by parseResponse upstream.
+   *
+   * If every attempt fails we throw the most actionable error we saw: a
+   * TV-issued ForbiddenError (the API is reachable but locked down) is
+   * preferred over a transport error like ECONNREFUSED.
    */
   async getSystem(): Promise<SystemInfo> {
-    const primary = await this.probeSystemHttp();
-    if (primary?.api_version?.Major) {
-      this.lastSystemTransport = { protocol: "http", port: HTTP_PORT };
-      return primary;
+    const attempts: Array<{
+      label: string;
+      protocol: Protocol;
+      port: number;
+      run: () => Promise<SystemInfo>;
+    }> = [
+      { label: "HTTP/1925 /system", protocol: "http", port: HTTP_PORT, run: () => this.probeSystemHttp() },
+      { label: "HTTPS/1926 /system", protocol: "https", port: HTTPS_PORT, run: () => this.probeSystemHttps() },
+      { label: "HTTP/1925 /1/system", protocol: "http", port: HTTP_PORT, run: () => this.probeSystemVersionedHttp(1) },
+      { label: "HTTP/1925 /5/system", protocol: "http", port: HTTP_PORT, run: () => this.probeSystemVersionedHttp(5) },
+      { label: "HTTPS/1926 /6/system", protocol: "https", port: HTTPS_PORT, run: () => this.probeSystemVersionedHttps(6) },
+    ];
+
+    let preferredError: unknown = null;
+    for (const attempt of attempts) {
+      try {
+        const system = await attempt.run();
+        if (system?.api_version?.Major) {
+          this.lastSystemTransport = { protocol: attempt.protocol, port: attempt.port };
+          return system;
+        }
+        this.log(`${attempt.label} returned no api_version, trying next transport`);
+      } catch (err) {
+        // Prefer a TV-issued 403 over anything else: it means the API is
+        // reachable but refusing, which is more actionable than a transport
+        // error. Otherwise keep the first error we saw.
+        if (!preferredError || err instanceof ForbiddenError) preferredError = err;
+        this.log(`${attempt.label} failed (${(err as Error).message}), trying next transport`);
+      }
     }
 
-    this.log("HTTP/1925/system returned empty body, falling back to HTTPS/1926");
-    const fallback = await this.probeSystemHttps();
-    if (fallback?.api_version?.Major) {
-      this.lastSystemTransport = { protocol: "https", port: HTTPS_PORT };
-      return fallback;
-    }
-
-    throw new InvalidResponseError("System endpoint returned no api_version on either HTTP/1925 or HTTPS/1926");
+    if (preferredError instanceof JointspaceError) throw preferredError;
+    throw new InvalidResponseError(
+      "System endpoint returned no api_version on HTTP/1925 or HTTPS/1926 (tried /system, /1/system, /6/system)",
+    );
   }
 
   /**
@@ -203,6 +237,38 @@ export class JointspaceApi {
     return this.request<SystemInfo>({
       method: "GET",
       path: "system",
+      port: HTTPS_PORT,
+      protocol: "https",
+      prefixApiVersion: false,
+      requireAuth: false,
+    });
+  }
+
+  /**
+   * Raw GET /<version>/system on HTTP/1925, unauthenticated. Some firmwares
+   * 403 the unversioned /system but serve the version-prefixed path
+   * (issue #60). Exposed for diagnostics and used as a getSystem fallback.
+   */
+  async probeSystemVersionedHttp(version = 1): Promise<SystemInfo> {
+    return this.request<SystemInfo>({
+      method: "GET",
+      path: `${version}/system`,
+      port: HTTP_PORT,
+      protocol: "http",
+      prefixApiVersion: false,
+      requireAuth: false,
+    });
+  }
+
+  /**
+   * Raw GET /<version>/system on HTTPS/1926, unauthenticated. The secured
+   * counterpart to probeSystemVersionedHttp. Exposed for diagnostics and used
+   * as a getSystem fallback.
+   */
+  async probeSystemVersionedHttps(version = 6): Promise<SystemInfo> {
+    return this.request<SystemInfo>({
+      method: "GET",
+      path: `${version}/system`,
       port: HTTPS_PORT,
       protocol: "https",
       prefixApiVersion: false,
@@ -648,6 +714,7 @@ export class JointspaceApi {
 
   private parseResponse<T>(response: AxiosResponse): T {
     if (response.status === 401) throw new UnauthenticatedError();
+    if (response.status === 403) throw new ForbiddenError(`HTTP 403: ${this.responseSummary(response)}`);
     if (response.status === 404) throw new NotFoundError();
     if (response.status >= 400) {
       throw new JointspaceError(`HTTP ${response.status}: ${this.responseSummary(response)}`, response.status);

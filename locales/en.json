@@ -44,6 +44,7 @@
     "something_went_wrong": "Something went wrong",
     "invalid_response": "The TV responded but the data couldn't be parsed. Your TV model may not be supported, or it's running an unusual firmware. Please check the IP address and try again.",
     "protocol_error": "The connection to the TV was reset. Try again. If this keeps happening, restart the TV completely.",
-    "https_unavailable_for_pair": "Your TV requires pairing over HTTPS, but its HTTPS service is not responding. This is a known issue on some Philips firmwares. Please power-cycle the TV (unplug for 30 seconds, then plug back in) and try again."
+    "https_unavailable_for_pair": "Your TV requires pairing over HTTPS, but its HTTPS service is not responding. This is a known issue on some Philips firmwares. Please power-cycle the TV (unplug for 30 seconds, then plug back in) and try again.",
+    "api_forbidden": "The TV was reached but refused the request (HTTP 403). The app already retried the version-prefixed API paths, so the TV is actively blocking access. It may be powered off, in a restricted or guest mode, or running firmware this app can't use. Try power-cycling the TV (unplug for 30 seconds), make sure it's fully on, then try again. If it keeps failing, check the pairing documentation."
   }
 }
