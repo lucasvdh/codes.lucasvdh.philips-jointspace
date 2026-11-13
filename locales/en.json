@@ -31,7 +31,7 @@
   },
   "error": {
     "generic": "An unexpected error occurred",
-    "pairing_timeout": "The pairing session has expired, please try again.",
+    "pairing_timeout": "The PIN code expired before it was confirmed. A new PIN code is now shown on your TV; please enter that one.",
     "endpoint_not_found": "The TV can be reached but something seems to have gone wrong in determining the Jointspace version. Try adding your TV manually.",
     "host_unreachable": "Could not reach the TV at this IP address. Check the IP address and make sure the TV is on.",
     "connection_timed_out": "A timeout occurred while connecting to your TV.\n\nTry adding your TV again. If this fails again, try restarting your TV completely or add it manually.",
@@ -45,6 +45,11 @@
     "invalid_response": "The TV responded but the data couldn't be parsed. Your TV model may not be supported, or it's running an unusual firmware. Please check the IP address and try again.",
     "protocol_error": "The connection to the TV was reset. Try again. If this keeps happening, restart the TV completely.",
     "https_unavailable_for_pair": "Your TV requires pairing over HTTPS, but its HTTPS service is not responding. This is a known issue on some Philips firmwares. Please power-cycle the TV (unplug for 30 seconds, then plug back in) and try again.",
-    "api_forbidden": "The TV was reached but refused the request (HTTP 403). The app already retried the version-prefixed API paths, so the TV is actively blocking access. It may be powered off, in a restricted or guest mode, or running firmware this app can't use. Try power-cycling the TV (unplug for 30 seconds), make sure it's fully on, then try again. If it keeps failing, check the pairing documentation."
+    "api_forbidden": "The TV was reached but refused the request (HTTP 403). The app already retried the version-prefixed API paths, so the TV is actively blocking access. It may be powered off, in a restricted or guest mode, or running firmware this app can't use. Try power-cycling the TV (unplug for 30 seconds), make sure it's fully on, then try again. If it keeps failing, check the pairing documentation.",
+    "pairing_rejected": "The TV rejected the pairing request (__reason__). Please try again. If this keeps happening, power-cycle the TV and open an issue with this message.",
+    "source_switch_unsupported": "This TV does not allow switching to __source__ via its API."
+  },
+  "warning": {
+    "tv_not_responding": "The TV is not responding. This is normal when it is switched off or in standby."
   }
 }

@@ -1,0 +1,50 @@
+name: CI
+
+# Security notes:
+# - `pull_request` (never `pull_request_target`): fork PRs run without
+#   secrets and with a read-only token.
+# - The token is limited to reading repository contents.
+# - Third-party actions are pinned to a full commit SHA, so a moved tag
+#   cannot change what runs here. Dependabot keeps the pins up to date.
+# - `npm ci --ignore-scripts` installs exactly the lockfile and skips
+#   dependency install hooks.
+# - No secrets are used; tests only talk to a fake TV on 127.0.0.1.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Typecheck and unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test

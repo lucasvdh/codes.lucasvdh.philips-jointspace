@@ -31,7 +31,7 @@
   },
   "error": {
     "generic": "Wystąpił nieoczekiwany błąd",
-    "pairing_timeout": "Sesja parowania wygasła, spróbuj ponownie.",
+    "pairing_timeout": "Kod PIN wygasł przed potwierdzeniem. Na telewizorze wyświetlany jest teraz nowy kod PIN; wprowadź go.",
     "endpoint_not_found": "Telewizor może zostać znaleziony, ale wydaje się, że coś poszło nie tak przy określaniu wersji Jointspace. Spróbuj dodać swój telewizor ręcznie.",
     "host_unreachable": "Nie udało się uzyskać połączenia z telewizorem na tym adresie IP. Sprawdź adres IP i upewnij się, że telewizor jest włączony.",
     "connection_timed_out": "Wystąpił timeout podczas łączenia z telewizorem.\n\nSpróbuj dodać swój telewizor ponownie. Jeśli to nie pomoże, uruchom telewizor ponownie lub spróbuj dodać go ręcznie.",
@@ -44,6 +44,11 @@
     "something_went_wrong": "Coś poszło nie tak",
     "invalid_response": "Telewizor odpowiedział, ale danych nie można było odczytać. Twój model telewizora może nie być obsługiwany lub działa nietypowe oprogramowanie. Sprawdź adres IP i spróbuj ponownie.",
     "protocol_error": "Połączenie z telewizorem zostało zresetowane. Spróbuj ponownie. Jeśli problem się powtarza, uruchom telewizor ponownie.",
-    "https_unavailable_for_pair": "Twój telewizor wymaga parowania przez HTTPS, ale usługa HTTPS nie odpowiada. To znany problem na niektórych wersjach oprogramowania Philips. Odłącz telewizor od prądu na 30 sekund, podłącz ponownie i spróbuj jeszcze raz."
+    "https_unavailable_for_pair": "Twój telewizor wymaga parowania przez HTTPS, ale usługa HTTPS nie odpowiada. To znany problem na niektórych wersjach oprogramowania Philips. Odłącz telewizor od prądu na 30 sekund, podłącz ponownie i spróbuj jeszcze raz.",
+    "pairing_rejected": "Telewizor odrzucił żądanie parowania (__reason__). Spróbuj ponownie. Jeśli problem się powtarza, odłącz telewizor od zasilania i zgłoś problem z tą wiadomością.",
+    "source_switch_unsupported": "Ten telewizor nie pozwala przełączyć na __source__ przez swoje API."
+  },
+  "warning": {
+    "tv_not_responding": "Telewizor nie odpowiada. To normalne, gdy jest wyłączony lub w trybie czuwania."
   }
 }

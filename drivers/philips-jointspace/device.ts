@@ -6,7 +6,7 @@ import * as wol from "wol";
 import { JointspaceApi } from "./jointspace-api";
 import { StatePoller, StateChangeListener, StateChangeSource } from "./state-poller";
 import { AmbilightConfigurations, ambilightModeFromConfiguration, AmbilightModeKey } from "./enums";
-import { extractCanonicalId, extractSystemMetadata, extractTransportConfig, osHasAmbilightModeQuirk, osPollIntervalMs, osRequiresHttpsForAuthenticatedEndpoints } from "./quirks";
+import { extractCanonicalId, extractSystemMetadata, extractTransportConfig, osHasAmbilightModeQuirk, osPollIntervalMs, osRequiresHttpsForAuthenticatedEndpoints, osSupportsGoogleAssistant } from "./quirks";
 import {
   AmbiHueState,
   AmbilightConfiguration,
@@ -20,7 +20,7 @@ import {
   PowerState,
   ScreenState,
 } from "./types";
-import { NotFoundError } from "./errors";
+import { ForbiddenError, NotFoundError } from "./errors";
 
 const CAPABILITY_DEBOUNCE_MS = 100;
 const INIT_OFF_FALLBACK_MS = 3_000;
@@ -157,6 +157,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   private systemReprobeTimer?: NodeJS.Timeout;
   private wolRetryTimer?: NodeJS.Timeout;
   private consecutivePollFailures = 0;
+  private notRespondingWarningShown = false;
   private failureTriggeredRefresh = false;
   private screenOnListenerRegistered = false;
 
@@ -167,6 +168,11 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
 
     await this.migrateCapabilities();
     await this.migrateCredentialsToStore();
+    // Versions <= 3.7.2 marked the device unavailable after a few failed
+    // polls, which also happens whenever the TV is simply switched off
+    // (issue #64). Clear any leftover state so the device can be switched
+    // on (Wake-on-LAN) again.
+    await this.setAvailable().catch(this.error.bind(this));
 
     const debug = this.homey.env?.DEBUG === "true";
     this.api = new JointspaceApi(this.buildApiConfig(), {
@@ -400,6 +406,14 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       this.log(`Switched source to ${label} via /sources/current`);
       return;
     } catch (err) {
+      const osType = this.getStoreValue(STORE_OS_TYPE) as string | null;
+      if (!osSupportsGoogleAssistant(osType)) {
+        // No Google Assistant on Saphi/Linux, so there is nothing to fall
+        // back to. Fail with a clear message instead of a confusing
+        // activities/launch error (issue #69).
+        this.log(`/sources/current failed for ${label} and osType=${osType} has no Google Assistant fallback:`, (err as Error).message);
+        throw new Error(this.homey.__("error.source_switch_unsupported", { source: label }));
+      }
       this.log(`/sources/current failed for ${label}, falling back to GA search:`, (err as Error).message);
     }
     await this.sendGoogleAssistantSearch(label);
@@ -724,13 +738,15 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       this.log("Poll failed; marking TV off:", error.message);
       this.setCapabilityValue("onoff", false).catch(this.error.bind(this));
     }
-    // After 3 consecutive failures, mark the device unavailable in Homey
-    // so the UI shows a clear "TV unreachable" state. Without this, Homey's
-    // own heuristic may silently mark the device unavailable based on
-    // capability-update timing - confusing because we don't know why.
-    if (this.consecutivePollFailures === 3) {
-      this.log("3 consecutive poll failures; setting device unavailable");
-      this.setUnavailable(`TV unreachable: ${error.message}`).catch(this.error.bind(this));
+    // After 3 consecutive failures, show a non-blocking warning. We used to
+    // setUnavailable() here, but a TV in (deep) standby stops answering
+    // too, so every switched-off TV got a "!" in Homey and - worse - an
+    // unavailable device can't receive onoff=true, which blocked waking
+    // the TV via Wake-on-LAN (issue #64). A warning keeps the device usable.
+    if (this.consecutivePollFailures === 3 && !this.notRespondingWarningShown) {
+      this.log("3 consecutive poll failures; showing not-responding warning");
+      this.notRespondingWarningShown = true;
+      this.setWarning(this.homey.__("warning.tv_not_responding")).catch(this.error.bind(this));
     }
     // If polls keep failing while we think the advertised transport is fine,
     // the TV's HTTPS service may have died mid-session. Trigger one
@@ -750,6 +766,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       this.consecutivePollFailures = 0;
       this.failureTriggeredRefresh = false;
     }
+    this.clearNotRespondingWarning();
     // Reaffirm availability on every successful poll. Cheap to call when
     // already available; restores availability if Homey's own heuristic
     // marked the device unavailable (e.g. after a notifyChange ProtocolError
@@ -757,7 +774,14 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     this.setAvailable().catch(this.error.bind(this));
   }
 
+  private clearNotRespondingWarning(): void {
+    if (!this.notRespondingWarningShown) return;
+    this.notRespondingWarningShown = false;
+    this.unsetWarning().catch(this.error.bind(this));
+  }
+
   onNotifyReachable(): void {
+    this.clearNotRespondingWarning();
     // Notify long-poll succeeded - TV is responding on HTTP/1925. Reaffirm
     // availability so a slow poll interval (60s on MSAF) doesn't leave
     // Homey thinking the device is gone between polls.
@@ -1007,7 +1031,9 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       // unsupported. Any other error (offline, parse error, timeout) is
       // transient or unrelated; keep the previous flag so we don't tear
       // down a working capability because the TV happened to be off.
-      if (err instanceof NotFoundError) {
+      // 403 is just as permanent: some Saphi firmwares lock the sources
+      // endpoints down entirely (issue #69).
+      if (err instanceof NotFoundError || err instanceof ForbiddenError) {
         await this.setStoreValue(STORE_CURRENT_SOURCE_SUPPORTED, false);
       }
     }

@@ -9,6 +9,7 @@ import {
   renderMarkdown,
 } from "./drivers/philips-jointspace/diagnostic";
 import { JointspaceApi } from "./drivers/philips-jointspace/jointspace-api";
+import { uniqueByAddress } from "./drivers/philips-jointspace/diagnostic-analysis";
 
 const DRIVER_ID = "philips-jointspace";
 
@@ -184,11 +185,13 @@ function collectDiscovery(homey: any): DiscoverySnapshot | undefined {
     const mdns = homey.discovery.getStrategy("philips-tv-mdns").getDiscoveryResults();
     const ssdpArr = Object.values(ssdp) as Array<{ id: string; address: string }>;
     const mdnsArr = Object.values(mdns) as Array<{ id: string; address: string; name?: string }>;
+    const mdnsUnique = uniqueByAddress(mdnsArr);
     return {
       ssdpResults: ssdpArr.length,
       mdnsResults: mdnsArr.length,
-      ssdpSample: ssdpArr.slice(0, 5).map((r) => ({ id: r.id, address: r.address })),
-      mdnsSample: mdnsArr.slice(0, 5).map((r) => ({ id: r.id, address: r.address, name: r.name })),
+      ssdpSample: uniqueByAddress(ssdpArr).slice(0, 5).map((r) => ({ id: r.id, address: r.address })),
+      mdnsSample: mdnsUnique.slice(0, 5).map((r) => ({ id: r.id, address: r.address, name: r.name })),
+      mdnsUniqueAddresses: mdnsUnique.length,
     };
   } catch {
     return undefined;

@@ -10,3 +10,6 @@ env.json
 
 # Added by Homey CLI
 /.homeybuild/
+
+# Unit test build output
+/.test-build/

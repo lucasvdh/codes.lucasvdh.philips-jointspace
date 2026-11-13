@@ -8,6 +8,26 @@ Here, you'll find a list of meaningful changes made to the app, with the most re
 
 <details>
 
+<summary>v3.8.0 - 2026-11</summary>
+
+#### Fixes
+
+* The port now follows the transport instead of the API version: HTTPS uses 1926, HTTP uses 1925. 2016 Android TVs (API 5 with secured transport) were paired against `https://<ip>:1925` (issue [#63](https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues/63)). Paired devices pick up the corrected settings on their next metadata refresh.
+* TVs that advertise HTTPS but refuse port 1926 are now paired over HTTP/1925 before the app falls back to the power-cycle message (issues [#61](https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues/61), [#67](https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues/67)). Android XTV (MSAF) keeps requiring HTTPS.
+* Only one `pair/request` can run at a time, so a duplicate view event can no longer invalidate the PIN on screen. An expired PIN (`TIMEOUT`) now explains that a new PIN is shown, and other rejections show the TV's `error_id`/`error_text` instead of a generic error (issues [#66](https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues/66), [#62](https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues/62)).
+* A TV that stops responding (switched off or in standby) gets a warning instead of being marked unavailable, which blocked switching it back on via Wake-on-LAN (issue [#64](https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues/64)).
+* Source switching no longer falls back to Google Assistant on Saphi/Linux TVs, which don't have it, and shows a clear error instead. A 403 on `sources/current` now marks the `current_source` capability as unsupported (issue [#69](https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues/69)).
+
+#### Improvements
+
+* The diagnostic report has an **Analysis** section that explains known failure patterns, such as the API service not running, HTTPS closed, TV off or sources locked (issues [#65](https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues/65), [#68](https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues/68)).
+* IP reports also probe `http://<ip>:1925/6/system`, and duplicate mDNS results are collapsed per IP address.
+* Unit tests and a GitHub Actions CI workflow.
+
+</details>
+
+<details>
+
 <summary>v3.7.2 - 2026-05</summary>
 
 #### Fixes

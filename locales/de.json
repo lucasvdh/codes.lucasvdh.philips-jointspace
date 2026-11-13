@@ -31,7 +31,7 @@
   },
   "error": {
     "generic": "Ein unerwarteter Fehler ist aufgetreten",
-    "pairing_timeout": "Die Koppelsitzung ist abgelaufen. Bitte versuchen Sie es erneut.",
+    "pairing_timeout": "Der PIN-Code ist abgelaufen, bevor er bestätigt wurde. Auf deinem Fernseher wird jetzt ein neuer PIN-Code angezeigt; bitte gib diesen ein.",
     "endpoint_not_found": "Der TV ist erreichbar, aber es ist ein Fehler bei der Bestimmung der Jointspace-Version aufgetreten. Versuchen Sie, Ihren TV manuell hinzuzufügen.",
     "host_unreachable": "Der TV konnte unter dieser IP-Adresse nicht erreicht werden. Überprüfen Sie die IP-Adresse und stellen Sie sicher, dass der TV eingeschaltet ist.",
     "connection_timed_out": "Es ist ein Timeout aufgetreten während der Verbindungsherstellung zu Ihrem TV.\n\nVersuchen Sie, Ihren TV erneut hinzuzufügen. Wenn es erneut fehlschlägt, starten Sie Ihren TV vollständig neu oder versuchen Sie, ihn manuell hinzuzufügen.",
@@ -44,6 +44,11 @@
     "something_went_wrong": "Es ist ein Fehler aufgetreten",
     "invalid_response": "Der TV hat geantwortet, aber die Daten konnten nicht gelesen werden. Möglicherweise wird Ihr TV-Modell nicht unterstützt oder es läuft eine ungewöhnliche Firmware. Bitte überprüfen Sie die IP-Adresse und versuchen Sie es erneut.",
     "protocol_error": "Die Verbindung zum TV wurde zurückgesetzt. Versuchen Sie es erneut. Wenn das Problem weiter auftritt, starten Sie den TV vollständig neu.",
-    "https_unavailable_for_pair": "Ihr TV erfordert die Kopplung über HTTPS, aber sein HTTPS-Dienst antwortet nicht. Dies ist ein bekanntes Problem bei einigen Philips-Firmwares. Trennen Sie den TV bitte 30 Sekunden vom Strom, schließen Sie ihn wieder an und versuchen Sie es erneut."
+    "https_unavailable_for_pair": "Ihr TV erfordert die Kopplung über HTTPS, aber sein HTTPS-Dienst antwortet nicht. Dies ist ein bekanntes Problem bei einigen Philips-Firmwares. Trennen Sie den TV bitte 30 Sekunden vom Strom, schließen Sie ihn wieder an und versuchen Sie es erneut.",
+    "pairing_rejected": "Der Fernseher hat die Kopplungsanfrage abgelehnt (__reason__). Bitte versuche es erneut. Falls das weiterhin passiert, trenne den Fernseher kurz vom Strom und erstelle ein Issue mit dieser Meldung.",
+    "source_switch_unsupported": "Dieser Fernseher erlaubt kein Umschalten auf __source__ über seine API."
+  },
+  "warning": {
+    "tv_not_responding": "Der Fernseher reagiert nicht. Das ist normal, wenn er ausgeschaltet oder im Standby ist."
   }
 }

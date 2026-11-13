@@ -8,5 +8,11 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "resolveJsonModule": true
-  }
+  },
+  "exclude": [
+    "node_modules",
+    ".homeybuild",
+    ".test-build",
+    "tests"
+  ]
 }

@@ -1,6 +1,6 @@
 {
   "name": "philips-jointspace",
-  "version": "3.7.2",
+  "version": "3.8.0",
   "private": true,
   "main": "app.js",
   "engines": {
@@ -8,6 +8,8 @@
   },
   "scripts": {
     "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "tsc -p tsconfig.test.json && node --test \".test-build/tests/**/*.test.js\"",
     "homey-validate": "homey app validate --level verified",
     "homey-build": "homey app build",
     "homey-run": "homey app run"

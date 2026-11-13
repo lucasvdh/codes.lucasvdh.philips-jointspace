@@ -31,7 +31,7 @@
   },
   "error": {
     "generic": "Det oppstod en uventet feil",
-    "pairing_timeout": "Paringssesjonen har utløpt, prøv igjen.",
+    "pairing_timeout": "PIN-koden utløp før den ble bekreftet. En ny PIN-kode vises nå på TV-en; skriv inn den.",
     "endpoint_not_found": "TV-en kan nås, men det oppsto en feil under bestemmelse av Jointspace-versjonen. Prøv å legge til TV-en manuelt.",
     "host_unreachable": "Kunne ikke nå TV-en på denne IP-adressen. Sjekk IP-adressen og sørg for at TV-en er på.",
     "connection_timed_out": "Det oppstod en timeout under tilkobling til TV-en.\n\nPrøv å legge til TV-en på nytt. Hvis dette ikke fungerer, start TV-en på nytt eller prøv å legge den til manuelt.",
@@ -44,6 +44,11 @@
     "something_went_wrong": "Noe gikk galt",
     "invalid_response": "TV-en svarte, men dataene kunne ikke tolkes. TV-modellen din støttes kanskje ikke, eller den kjører uvanlig fastvare. Sjekk IP-adressen, og prøv igjen.",
     "protocol_error": "Tilkoblingen til TV-en ble tilbakestilt. Prøv igjen. Hvis dette fortsetter, start TV-en helt på nytt.",
-    "https_unavailable_for_pair": "TV-en din krever paring over HTTPS, men HTTPS-tjenesten svarer ikke. Dette er et kjent problem på enkelte Philips-fastvarer. Ta ut støpselet i 30 sekunder, sett det inn igjen, og prøv igjen."
+    "https_unavailable_for_pair": "TV-en din krever paring over HTTPS, men HTTPS-tjenesten svarer ikke. Dette er et kjent problem på enkelte Philips-fastvarer. Ta ut støpselet i 30 sekunder, sett det inn igjen, og prøv igjen.",
+    "pairing_rejected": "TV-en avviste paringsforespørselen (__reason__). Prøv igjen. Hvis dette fortsetter, trekk ut strømmen til TV-en og opprett en sak med denne meldingen.",
+    "source_switch_unsupported": "Denne TV-en tillater ikke å bytte til __source__ via API-et."
+  },
+  "warning": {
+    "tv_not_responding": "TV-en svarer ikke. Dette er normalt når den er slått av eller i hvilemodus."
   }
 }
