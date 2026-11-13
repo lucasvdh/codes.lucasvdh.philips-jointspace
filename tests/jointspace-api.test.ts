@@ -1,9 +1,4 @@
-/**
- * Runs JointspaceApi against a fake TV on 127.0.0.1. getSystem() probes the
- * fixed JointSpace ports, so the fake listens on HTTP/1925 and nothing
- * listens on 1926 - which is exactly the "HTTPS refused" situation from
- * issues #61 and #67. Only the loopback interface is ever contacted.
- */
+// Fake TV on 127.0.0.1:1925; nothing listens on 1926, like the TVs in #61 and #67.
 import { after, before, test } from "node:test";
 import assert from "node:assert/strict";
 import * as http from "node:http";

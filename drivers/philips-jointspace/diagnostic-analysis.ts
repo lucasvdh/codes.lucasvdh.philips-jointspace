@@ -1,11 +1,4 @@
-/**
- * Turns raw diagnostic probe results into plain-language findings, so a
- * user (and the maintainer triaging an issue) can see at a glance what the
- * report means. Pure and Homey-free so it can be unit-tested.
- *
- * Patterns are taken from real reports in the issue tracker; each finding
- * names the issue it was derived from in a comment.
- */
+/** Explains known failure patterns in diagnostic reports. Patterns come from real issue reports. */
 
 export interface AnalysableProbe {
   label: string;
@@ -63,7 +56,7 @@ function analyseIpReport(probes: AnalysableProbe[]): Finding[] {
     }];
   }
 
-  // Issues #65, #68: every path on 1925 returns HTTP 500, 1926 is closed.
+  // #65, #68
   if (!httpOk && !httpsOk && http.length > 0 && http.every((p) => p.statusCode === 500)) {
     return [{
       id: "api-service-not-running",
@@ -76,7 +69,7 @@ function analyseIpReport(probes: AnalysableProbe[]): Finding[] {
     }];
   }
 
-  // Issues #61, #67: versioned /system works on 1925, 1926 refuses.
+  // #61, #67
   if (httpOk && !httpsOk && https.length > 0 && https.every(isRefused)) {
     return [{
       id: "https-closed-http-works",
@@ -88,7 +81,7 @@ function analyseIpReport(probes: AnalysableProbe[]): Finding[] {
     }];
   }
 
-  // Issue #62: everything healthy, problem is in the PIN handshake.
+  // #62, #66
   if (httpOk && httpsOk) {
     return [{
       id: "network-healthy",
@@ -104,10 +97,10 @@ function analyseIpReport(probes: AnalysableProbe[]): Finding[] {
 
 function analysePairedReport(probes: AnalysableProbe[]): Finding[] {
   const findings: Finding[] = [];
-  // notifychange is a long-poll that may "succeed" by timing out; ignore it.
+  // notifychange is a long-poll that "succeeds" by timing out.
   const requestProbes = probes.filter((p) => p.endpoint !== "notifychange");
 
-  // Issue #64: every request timed out because the TV was off.
+  // #64
   if (requestProbes.length > 0 && requestProbes.every(isNoResponse)) {
     findings.push({
       id: "tv-not-responding",
@@ -122,7 +115,7 @@ function analysePairedReport(probes: AnalysableProbe[]): Finding[] {
   const forbidden = (endpoint: string) =>
     requestProbes.some((p) => p.endpoint === endpoint && p.status === "fail" && p.statusCode === 403);
 
-  // Issue #69: Saphi firmware locks sources down.
+  // #69
   if (forbidden("sources")) {
     findings.push({
       id: "sources-forbidden",
@@ -145,11 +138,7 @@ function analysePairedReport(probes: AnalysableProbe[]): Finding[] {
   return findings;
 }
 
-/**
- * Collapse discovery results that point at the same IP. mDNS name
- * conflicts make some TVs announce themselves hundreds of times as
- * "Name (3)", "Name (5)", ... (issue #64 report: 511 results for 2 TVs).
- */
+// mDNS name conflicts can make one TV appear hundreds of times ("Name (3)", "Name (5)", ...).
 export function uniqueByAddress<T extends { address: string }>(results: T[]): T[] {
   const seen = new Set<string>();
   return results.filter((r) => {

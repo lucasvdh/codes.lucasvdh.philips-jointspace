@@ -168,10 +168,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
 
     await this.migrateCapabilities();
     await this.migrateCredentialsToStore();
-    // Versions <= 3.7.2 marked the device unavailable after a few failed
-    // polls, which also happens whenever the TV is simply switched off
-    // (issue #64). Clear any leftover state so the device can be switched
-    // on (Wake-on-LAN) again.
+    // Clear "unavailable" left behind by <= 3.7.2 (#64).
     await this.setAvailable().catch(this.error.bind(this));
 
     const debug = this.homey.env?.DEBUG === "true";
@@ -408,9 +405,6 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     } catch (err) {
       const osType = this.getStoreValue(STORE_OS_TYPE) as string | null;
       if (!osSupportsGoogleAssistant(osType)) {
-        // No Google Assistant on Saphi/Linux, so there is nothing to fall
-        // back to. Fail with a clear message instead of a confusing
-        // activities/launch error (issue #69).
         this.log(`/sources/current failed for ${label} and osType=${osType} has no Google Assistant fallback:`, (err as Error).message);
         throw new Error(this.homey.__("error.source_switch_unsupported", { source: label }));
       }
@@ -738,11 +732,8 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       this.log("Poll failed; marking TV off:", error.message);
       this.setCapabilityValue("onoff", false).catch(this.error.bind(this));
     }
-    // After 3 consecutive failures, show a non-blocking warning. We used to
-    // setUnavailable() here, but a TV in (deep) standby stops answering
-    // too, so every switched-off TV got a "!" in Homey and - worse - an
-    // unavailable device can't receive onoff=true, which blocked waking
-    // the TV via Wake-on-LAN (issue #64). A warning keeps the device usable.
+    // Warn instead of setUnavailable(): a TV in standby stops answering too, and an
+    // unavailable device can't receive onoff=true, which blocks Wake-on-LAN (#64).
     if (this.consecutivePollFailures === 3 && !this.notRespondingWarningShown) {
       this.log("3 consecutive poll failures; showing not-responding warning");
       this.notRespondingWarningShown = true;
@@ -1031,8 +1022,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       // unsupported. Any other error (offline, parse error, timeout) is
       // transient or unrelated; keep the previous flag so we don't tear
       // down a working capability because the TV happened to be off.
-      // 403 is just as permanent: some Saphi firmwares lock the sources
-      // endpoints down entirely (issue #69).
+      // Some Saphi firmwares 403 the sources endpoints permanently (#69).
       if (err instanceof NotFoundError || err instanceof ForbiddenError) {
         await this.setStoreValue(STORE_CURRENT_SOURCE_SUPPORTED, false);
       }

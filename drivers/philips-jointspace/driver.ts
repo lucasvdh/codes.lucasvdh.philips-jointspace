@@ -50,9 +50,6 @@ interface DeviceDescriptor {
   // Carried separately because it controls whether the user needs to PIN-pair,
   // independent of which transport (HTTP/HTTPS) the TV serves on.
   pairingType?: string;
-  // Set when the TV advertised HTTPS but 1926 didn't answer during probing
-  // and we fell back to HTTP/1925. pair/request is then attempted on HTTP;
-  // if that fails too, the user gets the power-cycle message.
   httpsUnavailable?: boolean;
 }
 
@@ -175,8 +172,7 @@ class PhilipsTvDriver extends Homey.Driver {
     ctx: PairContext,
     onCredentialsConfirmed: (credentials: JointspaceCredentials) => Promise<void>,
   ): void {
-    // pair/request invalidates any PIN already on screen, so never run two
-    // concurrently (e.g. a duplicate showView event for start_pair).
+    // Each pair/request invalidates the PIN already on screen (#66).
     const startPairOnce = singleFlight(() => this.handleStartPairView(session, ctx));
 
     session.setHandler("showView", async (view: string) => {
@@ -410,12 +406,7 @@ class PhilipsTvDriver extends Homey.Driver {
     }
   }
 
-  /**
-   * POST pair/request. When probing already showed HTTPS/1926 is dead and
-   * we're on the HTTP/1925 fallback, any failure here (404, 403, refused)
-   * means the TV really needs its secured service: surface the
-   * power-cycle message rather than a confusing "endpoint not found".
-   */
+  /** On the HTTP fallback, a failed pair/request means the TV needs HTTPS: ask for a power-cycle. */
   private async requestPairing(
     api: JointspaceApi,
     device: PairDevice,
@@ -524,13 +515,7 @@ class PhilipsTvDriver extends Homey.Driver {
     return descriptor;
   }
 
-  /**
-   * Some Philips firmwares advertise secured_transport=true in their system
-   * info but don't actually answer on HTTPS/1926. Subsequent calls
-   * (pair/request in particular) then hang on the unreachable port. Verify
-   * the advertised transport by pinging /system on it; what happens when it
-   * doesn't answer is decided by resolveTransport (pairing-logic.ts).
-   */
+  /** Some firmwares advertise secured_transport=true but don't answer on HTTPS/1926. */
   private async verifyAdvertisedTransport(
     ip: string,
     transport: TransportConfig,
@@ -538,9 +523,7 @@ class PhilipsTvDriver extends Homey.Driver {
     probeApi: JointspaceApi,
   ): Promise<{ transport: TransportConfig; httpsUnavailable: boolean }> {
     if (!transport.secured) return { transport, httpsUnavailable: false };
-    // Fast-path: if the probeApi's getSystem just succeeded via HTTPS, trust
-    // it. A second concurrent HTTPS request to a fragile TV often hangs even
-    // when the first one worked.
+    // A second HTTPS request to a fragile TV often hangs; trust a getSystem that just succeeded.
     const lastSystemTransport = probeApi.getLastSystemTransport();
     if (lastSystemTransport?.protocol === "https" && lastSystemTransport.port === transport.port) {
       return { transport, httpsUnavailable: false };

@@ -12,8 +12,6 @@ import { HttpsUnavailableError, OfflineError, PairingError } from "../drivers/ph
 const SECURED = { apiVersion: 6, secured: true, port: 1926 };
 const PLAIN = { apiVersion: 6, secured: false, port: 1925 };
 
-// --- resolveTransport ----------------------------------------------------
-
 test("unsecured transport is used as-is", () => {
   assert.deepEqual(resolveTransport(PLAIN, false, null), { transport: PLAIN, httpsUnavailable: false });
 });
@@ -36,8 +34,6 @@ test("unknown OS with dead HTTPS also falls back", () => {
 test("MSAF TV with dead HTTPS throws HttpsUnavailableError", () => {
   assert.throws(() => resolveTransport(SECURED, false, "MSAF_2019_P"), HttpsUnavailableError);
 });
-
-// --- classifyPinError ----------------------------------------------------
 
 test("INVALID_PIN keeps the PIN screen open", () => {
   assert.deepEqual(classifyPinError(new PairingError("x", "INVALID_PIN")), { kind: "retry_pin" });
@@ -68,8 +64,6 @@ test("describePairingError falls back to 'unknown' when the TV sends nothing", (
   assert.equal(describePairingError(new PairingError("x")), "unknown");
   assert.equal(describePairingError(new PairingError("x", "TIMEOUT", "  ")), "TIMEOUT");
 });
-
-// --- singleFlight --------------------------------------------------------
 
 test("singleFlight shares one in-flight run between concurrent callers", async () => {
   let calls = 0;
