@@ -34,6 +34,17 @@ export function osRequiresHttpsForAuthenticatedEndpoints(osType: string | null):
 }
 
 /**
+ * Whether the TV runs Google Assistant, which selectSource uses as a
+ * fallback when /sources/current is refused. Saphi (os_type "Linux") has no
+ * Google Assistant, so on those sets the fallback can only fail (issue #69).
+ * Unknown OS types keep the fallback: older Android firmwares don't always
+ * report os_type.
+ */
+export function osSupportsGoogleAssistant(osType: string | null): boolean {
+  return osType !== "Linux";
+}
+
+/**
  * How often the state poller should run a full HTTPS poll cycle.
  *
  * Polling acts as a sync fallback for state changes notifyChange might miss
@@ -96,10 +107,17 @@ export interface TransportConfig {
   port: number;
 }
 
+/**
+ * The port follows the transport, not the API version: HTTPS lives on 1926,
+ * plain HTTP on 1925. Deriving it from the API version (the old behaviour)
+ * paired API-5 sets that advertise secured_transport (2016 Android models,
+ * issue #63) with `https://<ip>:1925`, i.e. TLS against the plain-HTTP port,
+ * and API-6 sets without secured_transport with `http://<ip>:1926`.
+ */
 export function extractTransportConfig(system: SystemInfo): TransportConfig {
   const apiVersion = system.api_version?.Major ?? 1;
   const secured = extractSecuredTransport(system);
-  const port = apiVersion < 6 ? 1925 : 1926;
+  const port = secured ? 1926 : 1925;
   return { apiVersion, secured, port };
 }
 

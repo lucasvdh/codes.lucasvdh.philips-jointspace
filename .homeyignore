@@ -5,3 +5,6 @@
 package-lock.json
 package.json
 /tests
+/.test-build
+/.github
+/tsconfig.test.json

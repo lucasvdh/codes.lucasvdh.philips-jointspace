@@ -25,8 +25,9 @@ import {
   extractPairingType,
   extractTransportConfig,
   legacyUsnToCanonicalId,
-  osRequiresHttpsForAuthenticatedEndpoints,
+  TransportConfig,
 } from "./quirks";
+import { classifyPinError, describePairingError, resolveTransport, singleFlight } from "./pairing-logic";
 
 interface DiscoveryHint {
   usn?: string;
@@ -49,6 +50,10 @@ interface DeviceDescriptor {
   // Carried separately because it controls whether the user needs to PIN-pair,
   // independent of which transport (HTTP/HTTPS) the TV serves on.
   pairingType?: string;
+  // Set when the TV advertised HTTPS but 1926 didn't answer during probing
+  // and we fell back to HTTP/1925. pair/request is then attempted on HTTP;
+  // if that fails too, the user gets the power-cycle message.
+  httpsUnavailable?: boolean;
 }
 
 interface PairContext {
@@ -170,6 +175,10 @@ class PhilipsTvDriver extends Homey.Driver {
     ctx: PairContext,
     onCredentialsConfirmed: (credentials: JointspaceCredentials) => Promise<void>,
   ): void {
+    // pair/request invalidates any PIN already on screen, so never run two
+    // concurrently (e.g. a duplicate showView event for start_pair).
+    const startPairOnce = singleFlight(() => this.handleStartPairView(session, ctx));
+
     session.setHandler("showView", async (view: string) => {
       this.log("Show view", view);
       switch (view) {
@@ -183,7 +192,7 @@ class PhilipsTvDriver extends Homey.Driver {
           await this.handleValidateView(session, ctx);
           break;
         case "start_pair":
-          await this.handleStartPairView(session, ctx);
+          await startPairOnce();
           break;
       }
     });
@@ -209,7 +218,7 @@ class PhilipsTvDriver extends Homey.Driver {
         await onCredentialsConfirmed(credentials);
         return true;
       } catch (err) {
-        return this.handlePincodeError(err, session);
+        return this.handlePincodeError(err, session, ctx);
       }
     });
   }
@@ -383,7 +392,7 @@ class PhilipsTvDriver extends Homey.Driver {
       const pairingType = extractPairingType(system) ?? "none";
       if (pairingType === "digest_auth_pairing") {
         const device: PairDevice = { ...PAIR_DEVICE_INFO, id: JointspaceApi.generateDeviceId() };
-        ctx.pairingState = await ctx.pairingApi.startPair(device);
+        ctx.pairingState = await this.requestPairing(ctx.pairingApi, device, ctx.selected);
         await session.showView("authenticate");
       } else if (pairingType === "none") {
         await session.showView("add_device");
@@ -401,20 +410,51 @@ class PhilipsTvDriver extends Homey.Driver {
     }
   }
 
-  private async handlePincodeError(err: unknown, session: Homey.Driver.PairSession): Promise<boolean> {
-    this.log("Pincode error", err);
-    if (err instanceof PairingError) {
-      if (err.errorId === PairingStatus.InvalidPin) {
-        return false;
+  /**
+   * POST pair/request. When probing already showed HTTPS/1926 is dead and
+   * we're on the HTTP/1925 fallback, any failure here (404, 403, refused)
+   * means the TV really needs its secured service: surface the
+   * power-cycle message rather than a confusing "endpoint not found".
+   */
+  private async requestPairing(
+    api: JointspaceApi,
+    device: PairDevice,
+    selected: DeviceDescriptor,
+  ): Promise<PairingState> {
+    try {
+      return await api.startPair(device);
+    } catch (err) {
+      if (selected.httpsUnavailable && !(err instanceof PairingError)) {
+        this.log(`pair/request over HTTP/1925 fallback failed (${(err as Error).message}); HTTPS/1926 is required`);
+        throw new HttpsUnavailableError(
+          `pair/request failed on HTTP/1925 and HTTPS/1926 is not responding: ${(err as Error).message}`,
+        );
       }
-      if (err.errorId === PairingStatus.Timeout) {
-        await session.showView("start_pair");
-        return false;
-      }
+      throw err;
     }
-    await session.showView("discover");
-    await session.emit("alert", this.homey.__("error.generic"));
-    return false;
+  }
+
+  private async handlePincodeError(
+    err: unknown,
+    session: Homey.Driver.PairSession,
+    ctx: PairContext,
+  ): Promise<boolean> {
+    const action = classifyPinError(err);
+    const detail = err instanceof PairingError ? describePairingError(err) : (err as Error)?.message;
+    this.log(`Pincode error (${action.kind}): ${detail}`);
+    switch (action.kind) {
+      case "retry_pin":
+        return false;
+      case "restart_pair":
+        ctx.pairingState = null;
+        await session.showView("start_pair");
+        await session.emit("alert", this.homey.__(action.messageKey));
+        return false;
+      case "abort":
+        await session.showView("discover");
+        await session.emit("alert", this.homey.__(action.messageKey, action.tokens));
+        return false;
+    }
   }
 
   private async handleSystemInfoError(
@@ -471,10 +511,11 @@ class PhilipsTvDriver extends Homey.Driver {
     const transport = extractTransportConfig(system);
     descriptor.pairingType = extractPairingType(system) ?? "none";
     const osType = extractOsType(system);
-    const verified = await this.verifyAdvertisedTransport(ip, transport, descriptor.pairingType, osType, api);
+    const { transport: verified, httpsUnavailable } = await this.verifyAdvertisedTransport(ip, transport, osType, api);
     descriptor.settings.apiVersion = verified.apiVersion;
     descriptor.settings.secure = verified.secured;
     descriptor.settings.port = verified.port;
+    descriptor.httpsUnavailable = httpsUnavailable;
     descriptor.data.id = extractCanonicalId(system, {
       usn: hint?.usn,
       mdnsName: hint?.mdnsName,
@@ -487,41 +528,34 @@ class PhilipsTvDriver extends Homey.Driver {
    * Some Philips firmwares advertise secured_transport=true in their system
    * info but don't actually answer on HTTPS/1926. Subsequent calls
    * (pair/request in particular) then hang on the unreachable port. Verify
-   * the advertised transport by pinging /system on it; if the secured port
-   * doesn't reply within a short window, fall back to HTTP/1925.
-   *
-   * Exception: when pairingType=digest_auth_pairing we MUST NOT fall back
-   * silently. pair/request is only exposed on HTTPS/1926, so HTTP/1925
-   * would 404. Throw a specific error instead so the UI can tell the user
-   * to power-cycle the TV.
+   * the advertised transport by pinging /system on it; what happens when it
+   * doesn't answer is decided by resolveTransport (pairing-logic.ts).
    */
-  private async verifyAdvertisedTransport(ip: string, transport: { apiVersion: number; secured: boolean; port: number }, pairingType: string, osType: string | null, probeApi: JointspaceApi): Promise<{ apiVersion: number; secured: boolean; port: number }> {
-    if (!transport.secured) return transport;
+  private async verifyAdvertisedTransport(
+    ip: string,
+    transport: TransportConfig,
+    osType: string | null,
+    probeApi: JointspaceApi,
+  ): Promise<{ transport: TransportConfig; httpsUnavailable: boolean }> {
+    if (!transport.secured) return { transport, httpsUnavailable: false };
     // Fast-path: if the probeApi's getSystem just succeeded via HTTPS, trust
     // it. A second concurrent HTTPS request to a fragile TV often hangs even
     // when the first one worked.
     const lastSystemTransport = probeApi.getLastSystemTransport();
     if (lastSystemTransport?.protocol === "https" && lastSystemTransport.port === transport.port) {
-      return transport;
+      return { transport, httpsUnavailable: false };
     }
     const httpsApi = new JointspaceApi(
       { host: ip, apiVersion: transport.apiVersion, secured: true, port: transport.port },
       { log: (...args) => this.log("[verify-api]", ...args) },
     );
-    if (await httpsApi.verifyHttpsResponds()) return transport;
-    // HTTPS is required for digest_auth_pairing (pair/request endpoint) AND
-    // for MSAF firmware in general (only /system is exposed on HTTP/1925).
-    // Either way the user has to power-cycle; tell them so explicitly.
-    if (pairingType === "digest_auth_pairing" || osRequiresHttpsForAuthenticatedEndpoints(osType)) {
-      this.log(`TV at ${ip} requires HTTPS/${transport.port} but the secured service is not responding (osType=${osType}, pairingType=${pairingType}).`);
-      throw new HttpsUnavailableError(
-        `TV at ${ip} requires HTTPS but HTTPS/${transport.port} is not responding`,
-      );
+    const httpsResponds = await httpsApi.verifyHttpsResponds();
+    const resolution = resolveTransport(transport, httpsResponds, osType);
+    if (resolution.httpsUnavailable) {
+      this.log(`TV at ${ip} advertised secured_transport=true but HTTPS/${transport.port} doesn't respond (osType=${osType}). Falling back to HTTP/1925.`);
     }
-    this.log(`TV at ${ip} advertised secured_transport=true but HTTPS/${transport.port} doesn't respond. Falling back to HTTP/1925.`);
-    return { apiVersion: transport.apiVersion, secured: false, port: 1925 };
+    return resolution;
   }
-
 }
 
 module.exports = PhilipsTvDriver;

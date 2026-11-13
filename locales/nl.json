@@ -31,7 +31,7 @@
   },
   "error": {
     "generic": "Er is een onverwachte fout opgetreden",
-    "pairing_timeout": "De koppelsessie is verlopen, probeer het nogmaals.",
+    "pairing_timeout": "De pincode is verlopen voordat deze bevestigd was. Er staat nu een nieuwe pincode op je TV; vul die in.",
     "endpoint_not_found": "De tv kan worden bereikt maar er lijkt iets fout te zijn gegaan in het bepalen van de Jointspace versie. Probeer uw tv handmatig toe te voegen.",
     "host_unreachable": "Kon de tv niet bereiken op dit IP-adres. Controleer het IP-adres en zorg dat de tv aan staat.",
     "connection_timed_out": "Er is een time-out opgetreden tijdens het verbinding met uw tv.\n\nProbeer uw tv nogmaals toe te voegen. Als dit weer fout gaat start uw tv dan helemaal opnieuw op of probeer hem handmatig toe te voegen.",
@@ -44,6 +44,11 @@
     "something_went_wrong": "Er ging iets fout",
     "invalid_response": "De tv reageerde, maar de respons kon niet worden gelezen. Mogelijk wordt uw tv-model niet ondersteund of draait er een afwijkende firmware. Controleer het IP-adres en probeer het opnieuw.",
     "protocol_error": "De verbinding met de tv werd verbroken. Probeer het opnieuw. Als dit blijft gebeuren, herstart de tv volledig.",
-    "https_unavailable_for_pair": "Uw tv vereist koppelen via HTTPS, maar de HTTPS-service reageert niet. Dit is een bekend probleem op bepaalde Philips firmwares. Trek de stekker er 30 seconden uit, sluit de tv weer aan en probeer het opnieuw."
+    "https_unavailable_for_pair": "Uw tv vereist koppelen via HTTPS, maar de HTTPS-service reageert niet. Dit is een bekend probleem op bepaalde Philips firmwares. Trek de stekker er 30 seconden uit, sluit de tv weer aan en probeer het opnieuw.",
+    "pairing_rejected": "De TV heeft het koppelverzoek geweigerd (__reason__). Probeer het opnieuw. Blijft dit gebeuren, haal dan de stroom van de TV en maak een issue aan met deze melding.",
+    "source_switch_unsupported": "Deze TV staat niet toe om via de API naar __source__ te schakelen."
+  },
+  "warning": {
+    "tv_not_responding": "De TV reageert niet. Dit is normaal als de TV uit staat of in stand-by is."
   }
 }

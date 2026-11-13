@@ -31,7 +31,7 @@
   },
   "error": {
     "generic": "Si è verificato un errore imprevisto",
-    "pairing_timeout": "La sessione di abbinamento è scaduta, riprova.",
+    "pairing_timeout": "Il codice PIN è scaduto prima della conferma. Sul televisore è ora visualizzato un nuovo codice PIN; inserisci quello.",
     "endpoint_not_found": "La TV è raggiungibile ma sembra esserci un problema nella determinazione della versione Jointspace. Prova ad aggiungere manualmente la tua TV.",
     "host_unreachable": "Impossibile raggiungere la TV all'indirizzo IP specificato. Verifica l'indirizzo IP e assicurati che la TV sia accesa.",
     "connection_timed_out": "Si è verificato un timeout durante la connessione alla tua TV.\n\nProva ad aggiungere nuovamente la tua TV. Se il problema persiste, spegni completamente la TV o prova ad aggiungerla manualmente.",
@@ -44,6 +44,11 @@
     "something_went_wrong": "Si è verificato un errore",
     "invalid_response": "La TV ha risposto ma i dati non sono stati interpretabili. Il modello di TV potrebbe non essere supportato, o esegue un firmware insolito. Controlla l'indirizzo IP e riprova.",
     "protocol_error": "La connessione alla TV è stata ripristinata. Riprova. Se il problema persiste, riavvia completamente la TV.",
-    "https_unavailable_for_pair": "La tua TV richiede l'abbinamento tramite HTTPS, ma il servizio HTTPS non risponde. È un problema noto su alcuni firmware Philips. Stacca la TV dalla corrente per 30 secondi, ricollegala e riprova."
+    "https_unavailable_for_pair": "La tua TV richiede l'abbinamento tramite HTTPS, ma il servizio HTTPS non risponde. È un problema noto su alcuni firmware Philips. Stacca la TV dalla corrente per 30 secondi, ricollegala e riprova.",
+    "pairing_rejected": "Il televisore ha rifiutato la richiesta di associazione (__reason__). Riprova. Se continua a succedere, scollega il televisore dalla corrente e apri una segnalazione con questo messaggio.",
+    "source_switch_unsupported": "Questo televisore non consente di passare a __source__ tramite la sua API."
+  },
+  "warning": {
+    "tv_not_responding": "Il televisore non risponde. È normale quando è spento o in standby."
   }
 }

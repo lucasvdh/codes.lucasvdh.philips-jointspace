@@ -31,7 +31,7 @@
   },
   "error": {
     "generic": "Une erreur inattendue s'est produite",
-    "pairing_timeout": "La session de couplage a expiré, veuillez réessayer.",
+    "pairing_timeout": "Le code PIN a expiré avant d'être confirmé. Un nouveau code PIN est maintenant affiché sur votre téléviseur ; veuillez saisir celui-ci.",
     "endpoint_not_found": "La télévision est accessible mais il semble qu'il y ait eu une erreur lors de la détermination de la version Jointspace. Essayez d'ajouter votre téléviseur manuellement.",
     "host_unreachable": "Impossible de contacter la télévision à cette adresse IP. Vérifiez l'adresse IP et assurez-vous que la télévision est allumée.",
     "connection_timed_out": "Une temporisation s'est produite lors de la connexion à votre téléviseur.\n\nEssayez d'ajouter votre téléviseur à nouveau. Si cela échoue à nouveau, redémarrez complètement votre téléviseur ou essayez de l'ajouter manuellement.",
@@ -44,6 +44,11 @@
     "something_went_wrong": "Une erreur s'est produite",
     "invalid_response": "Le téléviseur a répondu mais les données n'ont pas pu être lues. Votre modèle de TV n'est peut-être pas pris en charge, ou il exécute un firmware inhabituel. Vérifiez l'adresse IP et réessayez.",
     "protocol_error": "La connexion au téléviseur a été réinitialisée. Réessayez. Si le problème persiste, redémarrez complètement votre téléviseur.",
-    "https_unavailable_for_pair": "Votre téléviseur nécessite un couplage via HTTPS, mais son service HTTPS ne répond pas. C'est un problème connu sur certains firmwares Philips. Débranchez le téléviseur pendant 30 secondes, rebranchez-le et réessayez."
+    "https_unavailable_for_pair": "Votre téléviseur nécessite un couplage via HTTPS, mais son service HTTPS ne répond pas. C'est un problème connu sur certains firmwares Philips. Débranchez le téléviseur pendant 30 secondes, rebranchez-le et réessayez.",
+    "pairing_rejected": "Le téléviseur a refusé la demande d'appairage (__reason__). Veuillez réessayer. Si cela se reproduit, débranchez le téléviseur puis ouvrez un ticket avec ce message.",
+    "source_switch_unsupported": "Ce téléviseur ne permet pas de basculer vers __source__ via son API."
+  },
+  "warning": {
+    "tv_not_responding": "Le téléviseur ne répond pas. C'est normal lorsqu'il est éteint ou en veille."
   }
 }

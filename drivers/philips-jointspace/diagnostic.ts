@@ -1,5 +1,6 @@
 import type Homey from "homey";
 import type { JointspaceApi } from "./jointspace-api";
+import { analyseReport } from "./diagnostic-analysis";
 
 // Store keys whose value must never appear in a diagnostic report.
 const SECRET_STORE_KEYS = new Set<string>(["credentials"]);
@@ -32,6 +33,9 @@ export interface DiscoverySnapshot {
   mdnsResults: number;
   ssdpSample: Array<{ id: string; address: string }>;
   mdnsSample: Array<{ id: string; address: string; name?: string }>;
+  // Distinct IPs behind the mDNS results; mDNS name conflicts can make one
+  // TV show up hundreds of times.
+  mdnsUniqueAddresses?: number;
 }
 
 export interface NetworkSnapshot {
@@ -300,6 +304,14 @@ async function runUnauthenticatedProbes(api: JointspaceApi, onProgress?: Progres
       endpoint: "http://<ip>:1925/5/system",
       runner: async () => ({ result: await api.probeSystemVersionedHttp(5) }),
     },
+    // HTTP counterpart of /6/system: tells apart TVs that serve API v6 over
+    // plain HTTP when HTTPS/1926 is closed (issues #61, #67).
+    {
+      label: "System info (HTTP/1925, /6/system)",
+      method: "GET",
+      endpoint: "http://<ip>:1925/6/system",
+      runner: async () => ({ result: await api.probeSystemVersionedHttp(6) }),
+    },
     {
       label: "System info (HTTPS/1926, /6/system)",
       method: "GET",
@@ -386,6 +398,16 @@ export function renderMarkdown(report: DiagnosticReport): string {
   lines.push(`- Scope: ${scopeHeader}`);
   lines.push("");
 
+  const findings = analyseReport(report);
+  if (findings.length > 0) {
+    lines.push("## Analysis");
+    lines.push("");
+    for (const f of findings) {
+      lines.push(`- **${f.title}.** ${f.detail}`);
+    }
+    lines.push("");
+  }
+
   if (report.device) {
     const device = report.device;
     lines.push("## Device snapshot");
@@ -442,7 +464,9 @@ export function renderMarkdown(report: DiagnosticReport): string {
     for (const r of report.discovery.ssdpSample) {
       lines.push(`  - \`${r.id}\` at \`${r.address}\``);
     }
-    lines.push(`- mDNS (\`_philipstv_s_rpc._tcp\`): ${report.discovery.mdnsResults} result(s)`);
+    const unique = report.discovery.mdnsUniqueAddresses;
+    const uniqueNote = unique != null && unique !== report.discovery.mdnsResults ? ` (${unique} unique address(es))` : "";
+    lines.push(`- mDNS (\`_philipstv_s_rpc._tcp\`): ${report.discovery.mdnsResults} result(s)${uniqueNote}`);
     for (const r of report.discovery.mdnsSample) {
       lines.push(`  - \`${r.name ?? r.id}\` at \`${r.address}\``);
     }
