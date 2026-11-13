@@ -33,13 +33,7 @@ export function osRequiresHttpsForAuthenticatedEndpoints(osType: string | null):
   return osType.startsWith("MSAF_");
 }
 
-/**
- * Whether the TV runs Google Assistant, which selectSource uses as a
- * fallback when /sources/current is refused. Saphi (os_type "Linux") has no
- * Google Assistant, so on those sets the fallback can only fail (issue #69).
- * Unknown OS types keep the fallback: older Android firmwares don't always
- * report os_type.
- */
+// Saphi ("Linux") has no Google Assistant (#69). Older Android firmwares may not report os_type.
 export function osSupportsGoogleAssistant(osType: string | null): boolean {
   return osType !== "Linux";
 }
@@ -107,13 +101,7 @@ export interface TransportConfig {
   port: number;
 }
 
-/**
- * The port follows the transport, not the API version: HTTPS lives on 1926,
- * plain HTTP on 1925. Deriving it from the API version (the old behaviour)
- * paired API-5 sets that advertise secured_transport (2016 Android models,
- * issue #63) with `https://<ip>:1925`, i.e. TLS against the plain-HTTP port,
- * and API-6 sets without secured_transport with `http://<ip>:1926`.
- */
+// The port follows the transport, not the API version: secured API-5 TVs serve HTTPS on 1926 (#63).
 export function extractTransportConfig(system: SystemInfo): TransportConfig {
   const apiVersion = system.api_version?.Major ?? 1;
   const secured = extractSecuredTransport(system);

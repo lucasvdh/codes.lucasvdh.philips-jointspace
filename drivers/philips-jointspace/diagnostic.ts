@@ -33,8 +33,6 @@ export interface DiscoverySnapshot {
   mdnsResults: number;
   ssdpSample: Array<{ id: string; address: string }>;
   mdnsSample: Array<{ id: string; address: string; name?: string }>;
-  // Distinct IPs behind the mDNS results; mDNS name conflicts can make one
-  // TV show up hundreds of times.
   mdnsUniqueAddresses?: number;
 }
 
@@ -304,8 +302,7 @@ async function runUnauthenticatedProbes(api: JointspaceApi, onProgress?: Progres
       endpoint: "http://<ip>:1925/5/system",
       runner: async () => ({ result: await api.probeSystemVersionedHttp(5) }),
     },
-    // HTTP counterpart of /6/system: tells apart TVs that serve API v6 over
-    // plain HTTP when HTTPS/1926 is closed (issues #61, #67).
+    // Some TVs serve API v6 over plain HTTP when HTTPS/1926 is closed (#61, #67).
     {
       label: "System info (HTTP/1925, /6/system)",
       method: "GET",
