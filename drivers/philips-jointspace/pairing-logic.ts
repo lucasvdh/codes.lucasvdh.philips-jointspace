@@ -1,7 +1,24 @@
 // Kept free of Homey imports so it can be unit-tested.
 import { PairingStatus } from "./enums";
 import { HttpsUnavailableError, PairingError } from "./errors";
-import { osRequiresHttpsForAuthenticatedEndpoints, TransportConfig } from "./quirks";
+import { JointspaceApi, LogFn } from "./jointspace-api";
+import {
+  extractOsType,
+  extractPairingType,
+  extractTransportConfig,
+  osRequiresHttpsForAuthenticatedEndpoints,
+  TransportConfig,
+} from "./quirks";
+import { PairDevice, Protocol, SystemInfo } from "./types";
+
+export const PAIR_DEVICE_INFO: PairDevice = {
+  app_id: "codes.lucasvdh.philips-jointspace",
+  app_name: "Homey Philips TV",
+  device_name: "Homey",
+  device_os: "Homey",
+  id: "",
+  type: "native",
+};
 
 export interface TransportResolution {
   transport: TransportConfig;
@@ -26,6 +43,50 @@ export function resolveTransport(
     transport: { apiVersion: advertised.apiVersion, secured: false, port: 1925 },
     httpsUnavailable: true,
   };
+}
+
+export interface TransportProbe {
+  system: SystemInfo;
+  /** Which /system attempt answered first. */
+  systemTransport: { protocol: Protocol; port: number } | null;
+  advertised: TransportConfig;
+  pairingType: string;
+  osType: string | null;
+  /** null when no separate HTTPS check was needed. */
+  httpsResponds: boolean | null;
+  resolution: TransportResolution | null;
+  resolutionError: Error | null;
+}
+
+/** The transport decision pairing makes; shared with the diagnostic report so both always agree. */
+export async function probeTransport(ip: string, log: LogFn, debug = false): Promise<TransportProbe> {
+  const api = new JointspaceApi({ host: ip, apiVersion: 1, secured: false, port: 1925 }, { log, debug });
+  const system = await api.getSystem();
+  const advertised = extractTransportConfig(system);
+  const osType = extractOsType(system);
+  const systemTransport = api.getLastSystemTransport();
+  const base = { system, systemTransport, advertised, pairingType: extractPairingType(system) ?? "none", osType };
+
+  // A second HTTPS request to a fragile TV often hangs; trust a getSystem that just succeeded.
+  if (!advertised.secured || (systemTransport?.protocol === "https" && systemTransport.port === advertised.port)) {
+    return {
+      ...base,
+      httpsResponds: null,
+      resolution: { transport: advertised, httpsUnavailable: false },
+      resolutionError: null,
+    };
+  }
+
+  const httpsApi = new JointspaceApi(
+    { host: ip, apiVersion: advertised.apiVersion, secured: true, port: advertised.port },
+    { log, debug },
+  );
+  const httpsResponds = await httpsApi.verifyHttpsResponds();
+  try {
+    return { ...base, httpsResponds, resolution: resolveTransport(advertised, httpsResponds, osType), resolutionError: null };
+  } catch (err) {
+    return { ...base, httpsResponds, resolution: null, resolutionError: err as Error };
+  }
 }
 
 export type PinErrorAction =

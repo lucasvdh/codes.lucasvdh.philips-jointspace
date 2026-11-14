@@ -1,11 +1,21 @@
 import type Homey from "homey";
-import type { JointspaceApi } from "./jointspace-api";
+import * as net from "net";
+import { JointspaceApi } from "./jointspace-api";
 import { analyseReport } from "./diagnostic-analysis";
+import { ActivityEntry, activityLog, deviceScope, PAIRING_SCOPE } from "./activity-log";
+import { PAIR_DEVICE_INFO, probeTransport } from "./pairing-logic";
+import { extractOsType, extractPairingType, extractSecuredTransport } from "./quirks";
+import { PairingStatus } from "./enums";
+import { PairingError } from "./errors";
+import { Protocol, SystemInfo } from "./types";
 
 // Store keys whose value must never appear in a diagnostic report.
 const SECRET_STORE_KEYS = new Set<string>(["credentials"]);
 
+export type ProbeKind = "system" | "pair" | "state";
+
 export interface ProbeResult {
+  kind?: ProbeKind;
   label: string;
   method: "GET" | "POST";
   endpoint: string;
@@ -42,6 +52,37 @@ export interface NetworkSnapshot {
   arpError?: string;
 }
 
+export interface PortCheck {
+  port: number;
+  label: string;
+  result: "open" | "refused" | "timeout" | "error";
+  durationMs: number;
+  detail?: string;
+}
+
+export interface PairingTarget {
+  protocol: Protocol;
+  port: number;
+  versionPrefix: number | null;
+}
+
+export interface PairingPlanSnapshot {
+  systemTransport: string | null;
+  advertised?: { apiVersion: number; secured: boolean; port: number };
+  pairingType?: string;
+  osType?: string | null;
+  httpsResponds?: boolean | null;
+  chosen: PairingTarget | null;
+  httpsUnavailable?: boolean;
+  error?: string;
+  log: string[];
+}
+
+export interface ActivitySection {
+  title: string;
+  entries: ActivityEntry[];
+}
+
 export interface DiagnosticReport {
   generatedAt: string;
   appVersion: string;
@@ -52,7 +93,11 @@ export interface DiagnosticReport {
   device?: DeviceSnapshot;
   network?: NetworkSnapshot;
   discovery?: DiscoverySnapshot;
+  system?: SystemInfo;
+  ports?: PortCheck[];
+  pairingPlan?: PairingPlanSnapshot;
   probes: ProbeResult[];
+  activity?: ActivitySection[];
 }
 
 interface ProbeRunner {
@@ -68,6 +113,16 @@ const RESPONSE_PREVIEW_LENGTH = 600;
 // while still bounding the worst case.
 const PER_PROBE_TIMEOUT_MS = 15_000;
 const NOTIFY_PROBE_TIMEOUT_MS = 30_000;
+const PORT_CHECK_TIMEOUT_MS = 3_000;
+const PAIRING_PLAN_TIMEOUT_MS = 70_000;
+const MAX_ACTIVITY_ENTRIES = 150;
+
+const PORTS: Array<{ port: number; label: string }> = [
+  { port: 1925, label: "JointSpace HTTP" },
+  { port: 1926, label: "JointSpace HTTPS" },
+  { port: 8008, label: "Chromecast HTTP (Android TV)" },
+  { port: 8009, label: "Chromecast TLS (Android TV)" },
+];
 
 export type ProgressCallback = (message: string) => void;
 
@@ -82,6 +137,13 @@ export async function generateDeviceReport(opts: {
   onProgress?: ProgressCallback;
 }): Promise<DiagnosticReport> {
   const { device, api, appVersion, homeyFirmwareVersion, homeyPlatform, discovery, network, onProgress } = opts;
+  const snapshot = snapshotDevice(device);
+  const ip = typeof snapshot.settings.ipAddress === "string" ? snapshot.settings.ipAddress : null;
+
+  onProgress?.("Checking TV ports…");
+  const ports = ip ? await checkPorts(ip) : undefined;
+  const probes = await runProbes(api, onProgress);
+  const systemProbe = probes.find((p) => p.kind === "system" && p.status === "ok");
 
   return {
     generatedAt: new Date().toISOString(),
@@ -90,19 +152,22 @@ export async function generateDeviceReport(opts: {
     homeyPlatform,
     scope: "paired-device",
     scopeTarget: device.getName(),
-    device: snapshotDevice(device),
+    device: snapshot,
     network,
     discovery,
-    probes: await runProbes(api, onProgress),
+    system: systemProbe?.responseRaw as SystemInfo | undefined,
+    ports,
+    probes,
+    activity: [
+      { title: "Device log (errors and failed requests)", entries: recentActivity(deviceScope(snapshot.id)) },
+      { title: "Last pairing / repair attempts", entries: recentActivity(PAIRING_SCOPE) },
+    ],
   };
 }
 
 /**
- * Build a report against an IP address only, used when the TV refuses to
- * pair or when discovery never finds it. We can only run the handful of
- * probes that don't require credentials (which means: getSystem and not
- * much else), so the body is intentionally thinner than the paired-device
- * report.
+ * Report against an IP address only, for when pairing fails or discovery never finds the TV. Replays the
+ * app's own transport decision and sends real pair/request calls, so one report shows where pairing breaks.
  */
 export async function generateIpReport(opts: {
   ip: string;
@@ -116,6 +181,13 @@ export async function generateIpReport(opts: {
 }): Promise<DiagnosticReport> {
   const { ip, api, appVersion, homeyFirmwareVersion, homeyPlatform, discovery, network, onProgress } = opts;
 
+  onProgress?.("Checking TV ports…");
+  const ports = await checkPorts(ip);
+  const systemProbes = await runUnauthenticatedProbes(api, onProgress);
+  onProgress?.("Replaying the app's pairing transport decision…");
+  const { plan, system } = await capturePairingPlan(ip);
+  const pairProbes = await runPairRequestProbes(ip, plan, system, onProgress);
+
   return {
     generatedAt: new Date().toISOString(),
     appVersion,
@@ -125,8 +197,128 @@ export async function generateIpReport(opts: {
     scopeTarget: ip,
     network,
     discovery,
-    probes: await runUnauthenticatedProbes(api, onProgress),
+    system: system ?? (systemProbes.find((p) => p.status === "ok")?.responseRaw as SystemInfo | undefined),
+    ports,
+    pairingPlan: plan,
+    probes: [...systemProbes, ...pairProbes],
+    activity: [{ title: "Last pairing / repair attempts", entries: recentActivity(PAIRING_SCOPE) }],
   };
+}
+
+function recentActivity(scope: string): ActivityEntry[] {
+  return activityLog.list(scope).slice(-MAX_ACTIVITY_ENTRIES);
+}
+
+async function checkPorts(ip: string): Promise<PortCheck[]> {
+  return Promise.all(PORTS.map(({ port, label }) => checkPort(ip, port, label)));
+}
+
+function checkPort(ip: string, port: number, label: string): Promise<PortCheck> {
+  const started = Date.now();
+  return new Promise((resolve) => {
+    const socket = net.connect({ host: ip, port });
+    const done = (result: PortCheck["result"], detail?: string) => {
+      socket.destroy();
+      resolve({ port, label, result, durationMs: Date.now() - started, detail });
+    };
+    socket.setTimeout(PORT_CHECK_TIMEOUT_MS, () => done("timeout"));
+    socket.once("connect", () => done("open"));
+    socket.once("error", (err: NodeJS.ErrnoException) =>
+      done(err.code === "ECONNREFUSED" ? "refused" : "error", err.code ?? err.message),
+    );
+  });
+}
+
+async function capturePairingPlan(ip: string): Promise<{ plan: PairingPlanSnapshot; system?: SystemInfo }> {
+  const log: string[] = [];
+  const started = Date.now();
+  const record = (...args: unknown[]) =>
+    log.push(`+${Date.now() - started}ms ${args.map((a) => (typeof a === "string" ? a : JSON.stringify(a))).join(" ")}`);
+  try {
+    const probe = await withTimeout(probeTransport(ip, record, true), PAIRING_PLAN_TIMEOUT_MS);
+    const chosen = probe.resolution?.transport;
+    return {
+      system: probe.system,
+      plan: {
+        systemTransport: probe.systemTransport ? `${probe.systemTransport.protocol}/${probe.systemTransport.port}` : null,
+        advertised: probe.advertised,
+        pairingType: probe.pairingType,
+        osType: probe.osType,
+        httpsResponds: probe.httpsResponds,
+        chosen: chosen
+          ? { protocol: chosen.secured ? "https" : "http", port: chosen.port, versionPrefix: chosen.apiVersion }
+          : null,
+        httpsUnavailable: probe.resolution?.httpsUnavailable,
+        error: probe.resolutionError ? `${probe.resolutionError.name}: ${probe.resolutionError.message}` : undefined,
+        log,
+      },
+    };
+  } catch (err) {
+    const e = err as Error;
+    return { plan: { systemTransport: null, chosen: null, error: `${e.name}: ${e.message}`, log } };
+  }
+}
+
+const targetUrl = (t: PairingTarget) =>
+  `${t.protocol}://<ip>:${t.port}/${t.versionPrefix == null ? "" : `${t.versionPrefix}/`}pair/request`;
+
+/** The app's chosen transport first, then the alternatives, stopping at the first one that shows a PIN. */
+export function pairRequestTargets(plan: PairingPlanSnapshot, apiVersion: number): PairingTarget[] {
+  const candidates: PairingTarget[] = [
+    ...(plan.chosen ? [plan.chosen] : []),
+    { protocol: "https", port: 1926, versionPrefix: apiVersion },
+    { protocol: "http", port: 1925, versionPrefix: apiVersion },
+    { protocol: "http", port: 1925, versionPrefix: null },
+  ];
+  const seen = new Set<string>();
+  return candidates.filter((t) => {
+    const key = targetUrl(t);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+async function runPairRequestProbes(
+  ip: string,
+  plan: PairingPlanSnapshot,
+  system: SystemInfo | undefined,
+  onProgress?: ProgressCallback,
+): Promise<ProbeResult[]> {
+  const skipped = (reason: string): ProbeResult[] => [{
+    kind: "pair",
+    label: "pair/request",
+    method: "POST",
+    endpoint: "pair/request",
+    status: "skipped",
+    errorMessage: reason,
+  }];
+  if (!system) return skipped("No /system response, so the pairing transport is unknown");
+  const pairingType = extractPairingType(system) ?? "none";
+  if (pairingType !== "digest_auth_pairing") return skipped(`TV does not use PIN pairing (pairing_type=${pairingType})`);
+
+  const api = new JointspaceApi({ host: ip, apiVersion: system.api_version.Major, secured: false, port: 1925 });
+  const device = { ...PAIR_DEVICE_INFO, id: JointspaceApi.generateDeviceId() };
+  const results: ProbeResult[] = [];
+  for (const target of pairRequestTargets(plan, system.api_version.Major)) {
+    const isChosen = plan.chosen != null && targetUrl(plan.chosen) === targetUrl(target);
+    onProgress?.(`Sending pair/request to ${targetUrl(target)} (a PIN may appear on the TV)…`);
+    const result = await runProbe(
+      `Pair request${isChosen ? " (transport the app uses)" : ""}`,
+      "POST",
+      targetUrl(target),
+      async () => {
+        const response = await api.probePairRequest(device, target);
+        if (response.error_id !== PairingStatus.Success) {
+          throw new PairingError(`pair/request rejected: ${response.error_id}`, response.error_id, response.error_text);
+        }
+        return { result: response };
+      },
+    );
+    results.push({ ...result, kind: "pair" });
+    if (result.status === "ok") break;
+  }
+  return results;
 }
 
 function snapshotDevice(device: Homey.Device): DeviceSnapshot {
@@ -171,12 +363,15 @@ async function runProbes(api: JointspaceApi, onProgress?: ProgressCallback): Pro
   // result easy to spot in progress logs and avoids racing it against ten
   // other concurrent connections on TVs with fragile HTTPS servers.
   progress("Probing /system…");
-  const systemProbe = await runProbe(
-    "System info",
-    "GET",
-    "/system (HTTP/1925 → HTTPS/1926 fallback)",
-    async () => ({ result: await api.getSystem() }),
-  );
+  const systemProbe: ProbeResult = {
+    ...(await runProbe(
+      "System info",
+      "GET",
+      "/system (HTTP/1925 → HTTPS/1926 fallback)",
+      async () => ({ result: await api.getSystem() }),
+    )),
+    kind: "system",
+  };
 
   // Phase 2: live-state endpoints. Each is small, independent, and we want
   // them in parallel since the bottleneck is round-trip latency.
@@ -239,6 +434,12 @@ async function runProbes(api: JointspaceApi, onProgress?: ProgressCallback): Pro
       method: "GET",
       endpoint: "sources",
       runner: async () => ({ result: await api.getSources() }),
+    },
+    {
+      label: "Current source",
+      method: "GET",
+      endpoint: "sources/current",
+      runner: async () => ({ result: await api.getCurrentSource() }),
     },
   ];
   const listProbes = await Promise.all(
@@ -316,9 +517,10 @@ async function runUnauthenticatedProbes(api: JointspaceApi, onProgress?: Progres
       runner: async () => ({ result: await api.probeSystemVersionedHttps(6) }),
     },
   ];
-  return Promise.all(
+  const results = await Promise.all(
     specs.map((p) => runProbe(p.label, p.method, p.endpoint, p.runner)),
   );
+  return results.map((r) => ({ ...r, kind: "system" as const }));
 }
 
 async function runProbe(
@@ -405,6 +607,28 @@ export function renderMarkdown(report: DiagnosticReport): string {
     lines.push("");
   }
 
+  if (report.system) {
+    const system = report.system;
+    const features = system.featuring?.systemfeatures;
+    lines.push("## TV");
+    lines.push("");
+    lines.push(`- Name: ${system.name ?? "-"}`);
+    lines.push(`- API version: ${system.api_version ? `${system.api_version.Major}.${system.api_version.Minor}.${system.api_version.Patch}` : "-"}`);
+    lines.push(`- OS type: ${extractOsType(system) ?? "-"}`);
+    lines.push(`- Pairing type: ${extractPairingType(system) ?? "none"}`);
+    lines.push(`- Secured transport advertised: ${extractSecuredTransport(system) ? "yes" : "no"}`);
+    if (features) lines.push(`- System features: \`${JSON.stringify(features)}\``);
+    lines.push("");
+    lines.push("<details><summary>Full /system response</summary>");
+    lines.push("");
+    lines.push("```json");
+    lines.push(JSON.stringify(system, null, 2));
+    lines.push("```");
+    lines.push("");
+    lines.push("</details>");
+    lines.push("");
+  }
+
   if (report.device) {
     const device = report.device;
     lines.push("## Device snapshot");
@@ -470,6 +694,38 @@ export function renderMarkdown(report: DiagnosticReport): string {
     lines.push("");
   }
 
+  if (report.ports) {
+    lines.push("## Ports");
+    lines.push("");
+    for (const p of report.ports) {
+      lines.push(`- ${p.port} (${p.label}): **${p.result}** in ${p.durationMs} ms${p.detail ? ` (${p.detail})` : ""}`);
+    }
+    lines.push("");
+  }
+
+  if (report.pairingPlan) {
+    const plan = report.pairingPlan;
+    lines.push("## Pairing transport (as the app decides it)");
+    lines.push("");
+    lines.push(`- /system answered on: ${plan.systemTransport ?? "nothing"}`);
+    if (plan.advertised) lines.push(`- TV advertises: \`${JSON.stringify(plan.advertised)}\``);
+    if (plan.pairingType) lines.push(`- Pairing type: ${plan.pairingType}, OS type: ${plan.osType ?? "-"}`);
+    if (plan.httpsResponds != null) lines.push(`- HTTPS check: ${plan.httpsResponds ? "responds" : "does not respond"}`);
+    lines.push(`- Chosen: ${plan.chosen ? `\`${plan.chosen.protocol}/${plan.chosen.port}\` (API ${plan.chosen.versionPrefix})${plan.httpsUnavailable ? ", HTTP fallback because HTTPS is unavailable" : ""}` : "none"}`);
+    if (plan.error) lines.push(`- Error: ${plan.error}`);
+    if (plan.log.length > 0) {
+      lines.push("");
+      lines.push("<details><summary>Request log</summary>");
+      lines.push("");
+      lines.push("```");
+      lines.push(...plan.log);
+      lines.push("```");
+      lines.push("");
+      lines.push("</details>");
+    }
+    lines.push("");
+  }
+
   lines.push("## Probes");
   lines.push("");
   lines.push("| Result | Endpoint | Status | Time | Summary |");
@@ -484,6 +740,23 @@ export function renderMarkdown(report: DiagnosticReport): string {
     lines.push(`| ${result} | \`${p.method} ${p.endpoint}\` | ${status} | ${time} | ${summary} |`);
   }
   lines.push("");
+
+  for (const section of report.activity ?? []) {
+    lines.push(`## ${section.title}`);
+    lines.push("");
+    if (section.entries.length === 0) {
+      lines.push("_Nothing recorded since the app last started._");
+    } else {
+      lines.push(`<details><summary>${section.entries.length} entries</summary>`);
+      lines.push("");
+      lines.push("```");
+      for (const e of section.entries) lines.push(`${e.at} ${e.message}`);
+      lines.push("```");
+      lines.push("");
+      lines.push("</details>");
+    }
+    lines.push("");
+  }
 
   lines.push("## Raw probe data (JSON)");
   lines.push("");

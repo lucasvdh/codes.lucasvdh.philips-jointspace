@@ -7,6 +7,7 @@ import type { AddressInfo } from "node:net";
 import { JointspaceApi } from "../drivers/philips-jointspace/jointspace-api";
 import { PairingError } from "../drivers/philips-jointspace/errors";
 import type { PairDevice } from "../drivers/philips-jointspace/types";
+import { generateIpReport, renderMarkdown } from "../drivers/philips-jointspace/diagnostic";
 
 const HOST = "127.0.0.1";
 
@@ -123,4 +124,57 @@ test("confirmPair succeeds and stores credentials", async () => {
 
   assert.deepEqual(credentials, { user: DEVICE.id, pass: "secret" });
   assert.equal(api.isPaired(), true);
+});
+
+test("IP report replays the pairing decision and reports why pair/request fails (#67)", async () => {
+  routes.clear();
+  route("GET", "/system", () => ({ status: 403, text: "Forbidden" }));
+  route("GET", "/1/system", () => ({ status: 200, json: SAPHI_SYSTEM }));
+  route("GET", "/6/system", () => ({ status: 200, json: SAPHI_SYSTEM }));
+  route("POST", "/6/pair/request", () => ({ status: 403, text: "Forbidden" }));
+
+  const report = await generateIpReport({
+    ip: HOST,
+    api: new JointspaceApi({ host: HOST, apiVersion: 1, secured: false, port: 1925 }),
+    appVersion: "test",
+  });
+
+  assert.deepEqual(
+    report.ports?.filter((p) => p.port === 1925 || p.port === 1926).map((p) => [p.port, p.result]),
+    [[1925, "open"], [1926, "refused"]],
+  );
+  assert.deepEqual(report.pairingPlan?.chosen, { protocol: "http", port: 1925, versionPrefix: 6 });
+  assert.equal(report.pairingPlan?.httpsUnavailable, true);
+  const pair = report.probes.filter((p) => p.kind === "pair");
+  assert.deepEqual(pair.map((p) => [p.endpoint, p.statusCode]), [
+    ["http://<ip>:1925/6/pair/request", 403],
+    ["https://<ip>:1926/6/pair/request", 503],
+    ["http://<ip>:1925/pair/request", 404],
+  ]);
+
+  const md = renderMarkdown(report);
+  assert.match(md, /The TV rejected every pairing request/);
+  assert.match(md, /## Pairing transport \(as the app decides it\)/);
+  assert.match(md, /"pairing_type": "digest_auth_pairing"/);
+});
+
+test("IP report stops at the first accepted pair/request and never leaks the auth key", async () => {
+  routes.clear();
+  route("GET", "/1/system", () => ({ status: 200, json: SAPHI_SYSTEM }));
+  route("POST", "/6/pair/request", () => ({
+    status: 200,
+    json: { error_id: "SUCCESS", auth_key: "super-secret", timestamp: 1, timeout: 60 },
+  }));
+
+  const report = await generateIpReport({
+    ip: HOST,
+    api: new JointspaceApi({ host: HOST, apiVersion: 1, secured: false, port: 1925 }),
+    appVersion: "test",
+  });
+
+  const pair = report.probes.filter((p) => p.kind === "pair");
+  assert.deepEqual(pair.map((p) => p.status), ["ok"]);
+  const md = renderMarkdown(report);
+  assert.doesNotMatch(md, /super-secret/);
+  assert.match(md, /The TV accepts the pairing request the app sends/);
 });
