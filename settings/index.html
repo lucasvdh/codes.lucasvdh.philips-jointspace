@@ -51,7 +51,7 @@
     <input id="ip" type="text" placeholder="e.g. 192.168.1.42" />
     <button id="generate-ip">Probe IP</button>
   </div>
-  <p class="hint">Use this when discovery / pairing fails so option A isn't available yet. Only unauthenticated endpoints are probed.</p>
+  <p class="hint">Use this when discovery / pairing fails so option A isn't available yet. Try pairing once first, then run this: the report includes what happened during that attempt. It also sends a pairing request, so a PIN may appear on your TV; you can ignore it.</p>
 </div>
 
 <textarea id="output" placeholder="The report will appear here after you click 'Generate report' / 'Probe IP'." readonly></textarea>
@@ -116,9 +116,8 @@
     // The server kicks off the report in the background and streams progress
     // back over realtime events. The POST only returns a runId - listeners
     // filter on that to ignore stale events from a previous run.
-    // Watchdog covers the worst case (4 probe phases × up to 30s for the
-    // notifyChange long-poll + ARP + discovery).
-    const WATCHDOG_MS = 120000;
+    // Worst case: ARP + port checks + /system probes + the pairing transport replay + up to 4 pair requests.
+    const WATCHDOG_MS = 240000;
     let activeRun = null;
 
     function finishRun(kind, msg, markdown) {

@@ -1,6 +1,7 @@
 /** Explains known failure patterns in diagnostic reports. Patterns come from real issue reports. */
 
 export interface AnalysableProbe {
+  kind?: "system" | "pair" | "state";
   label: string;
   endpoint: string;
   status: "ok" | "fail" | "skipped";
@@ -12,6 +13,7 @@ export interface AnalysableProbe {
 export interface AnalysableReport {
   scope: "paired-device" | "ip-only";
   probes: AnalysableProbe[];
+  pairingPlan?: { chosen: { protocol: string; port: number; versionPrefix: number | null } | null; error?: string };
 }
 
 export interface Finding {
@@ -22,7 +24,11 @@ export interface Finding {
     | "network-healthy"
     | "tv-not-responding"
     | "sources-forbidden"
-    | "applications-forbidden";
+    | "applications-forbidden"
+    | "pairing-plan-failed"
+    | "pairing-request-works"
+    | "pairing-wrong-transport"
+    | "pairing-request-rejected";
   title: string;
   detail: string;
 }
@@ -35,7 +41,57 @@ const isNoResponse = (p: AnalysableProbe) =>
   (p.errorName === "OfflineError" || /timeout|timed out/i.test(p.errorMessage ?? ""));
 
 export function analyseReport(report: AnalysableReport): Finding[] {
-  return report.scope === "ip-only" ? analyseIpReport(report.probes) : analysePairedReport(report.probes);
+  if (report.scope !== "ip-only") return analysePairedReport(report.probes);
+  return [
+    ...analyseIpReport(report.probes.filter((p) => p.kind !== "pair")),
+    ...analysePairing(report),
+  ];
+}
+
+const describeOutcome = (p: AnalysableProbe) =>
+  `\`${p.endpoint}\` → ${p.status === "ok" ? "accepted" : p.errorMessage ?? p.errorName ?? "failed"}`;
+
+function analysePairing(report: AnalysableReport): Finding[] {
+  const plan = report.pairingPlan;
+  const findings: Finding[] = [];
+  if (plan?.error) {
+    findings.push({
+      id: "pairing-plan-failed",
+      title: "The app could not decide how to pair",
+      detail: `Pairing stops before a PIN is requested: ${plan.error}.`,
+    });
+  }
+
+  const attempts = report.probes.filter((p) => p.kind === "pair" && p.status !== "skipped");
+  if (attempts.length === 0) return findings;
+  const chosen = attempts.find((p) => /transport the app uses/.test(p.label));
+  const accepted = attempts.find((p) => p.status === "ok");
+
+  if (accepted && accepted === chosen) {
+    findings.push({
+      id: "pairing-request-works",
+      title: "The TV accepts the pairing request the app sends",
+      detail:
+        `A PIN was requested via \`${accepted.endpoint}\` and should have appeared on the TV. If pairing in Homey ` +
+        "still fails, the problem is in the PIN step or the pairing screen; see the pairing log below.",
+    });
+  } else if (accepted) {
+    findings.push({
+      id: "pairing-wrong-transport",
+      title: "The app pairs over the wrong transport",
+      detail:
+        `The TV accepts pairing via \`${accepted.endpoint}\`, but the app uses ` +
+        `${chosen ? `\`${chosen.endpoint}\`` : "no transport at all"}. This is an app bug. Attempts: ` +
+        attempts.map(describeOutcome).join("; ") + ".",
+    });
+  } else {
+    findings.push({
+      id: "pairing-request-rejected",
+      title: "The TV rejected every pairing request",
+      detail: `Attempts: ${attempts.map(describeOutcome).join("; ")}.`,
+    });
+  }
+  return findings;
 }
 
 function analyseIpReport(probes: AnalysableProbe[]): Finding[] {
@@ -75,9 +131,8 @@ function analyseIpReport(probes: AnalysableProbe[]): Finding[] {
       id: "https-closed-http-works",
       title: "The TV only serves its API over HTTP (port 1925)",
       detail:
-        "System info works on port 1925, but port 1926 (HTTPS) refuses connections. This app version then tries " +
-        "pairing over HTTP. If pairing still fails, unplug the TV for 60 seconds and try again; on some firmwares " +
-        "the HTTPS service only starts after a full power-cycle.",
+        "System info works on port 1925, but port 1926 (HTTPS) refuses connections, so the app pairs over HTTP. " +
+        "On some firmwares the HTTPS service only starts after unplugging the TV for 60 seconds.",
     }];
   }
 

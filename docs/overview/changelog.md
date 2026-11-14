@@ -8,6 +8,22 @@ Here, you'll find a list of meaningful changes made to the app, with the most re
 
 <details>
 
+<summary>v3.8.1 - 2026-11</summary>
+
+#### Improvements
+
+* The IP diagnostic report now tests pairing itself, so one report shows where pairing breaks (issue [#67](https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues/67)):
+  * TCP checks for ports 1925, 1926, 8008 and 8009.
+  * The transport decision the pairing flow makes, using the same code, with a request log.
+  * Real `pair/request` calls on the app's transport first, then the alternatives, stopping at the first that is accepted. The analysis says whether pairing works, whether the app uses the wrong transport, or why every attempt was rejected.
+  * The full `/system` response.
+  * A log of the last pairing or repair attempts, including the message the user saw.
+* Paired-device reports include recent device errors and failed requests, and probe `sources/current`.
+
+</details>
+
+<details>
+
 <summary>v3.8.0 - 2026-11</summary>
 
 #### Fixes

@@ -141,6 +141,6 @@ If your TV got a new IP from your router, you don't need to remove and re-pair t
 
 ### How do I report a problem?
 
-The app's settings page (in the Homey app, under **Settings → Apps → Philips TV**) has a built-in **Diagnostic report** generator. Pick your TV from the list, click **Generate report**, and paste the output into a new [GitHub issue](https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues). If the TV isn't paired yet, switch to the **By IP address** tab and run a probe against the TV's IP.
+The app's settings page (in the Homey app, under **Settings → Apps → Philips TV**) has a built-in **Diagnostic report** generator. Pick your TV from the list, click **Generate report**, and paste the output into a new [GitHub issue](https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues). If the TV isn't paired yet, try pairing once, then switch to the **By IP address** tab and run a probe against the TV's IP. That report includes what happened during your pairing attempt and sends a test pairing request, so a PIN may appear on the TV.
 
 The report runs in the background with live progress updates, so even slow or partially-unreachable TVs eventually produce a usable report. Credentials and other secrets are automatically redacted.

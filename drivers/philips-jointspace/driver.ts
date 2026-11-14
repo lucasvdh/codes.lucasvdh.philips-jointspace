@@ -19,15 +19,9 @@ import {
   PairDevice,
   PairingState,
 } from "./types";
-import {
-  extractCanonicalId,
-  extractOsType,
-  extractPairingType,
-  extractTransportConfig,
-  legacyUsnToCanonicalId,
-  TransportConfig,
-} from "./quirks";
-import { classifyPinError, describePairingError, resolveTransport, singleFlight } from "./pairing-logic";
+import { extractCanonicalId, extractPairingType, legacyUsnToCanonicalId } from "./quirks";
+import { classifyPinError, describePairingError, PAIR_DEVICE_INFO, probeTransport, singleFlight } from "./pairing-logic";
+import { activityLog, PAIRING_SCOPE } from "./activity-log";
 
 interface DiscoveryHint {
   usn?: string;
@@ -60,15 +54,6 @@ interface PairContext {
   pairingApi: JointspaceApi | null;
   pairingState: PairingState | null;
 }
-
-const PAIR_DEVICE_INFO: PairDevice = {
-  app_id: "codes.lucasvdh.philips-jointspace",
-  app_name: "Homey Philips TV",
-  device_name: "Homey",
-  device_os: "Homey",
-  id: "",
-  type: "native",
-};
 
 class PhilipsTvDriver extends Homey.Driver {
   private applicationOpenedTrigger!: Homey.FlowCardTriggerDevice;
@@ -131,9 +116,16 @@ class PhilipsTvDriver extends Homey.Driver {
 
   // --- pairing ----------------------------------------------------------
 
+  private trace(...args: unknown[]): void {
+    this.log(...args);
+    activityLog.add(PAIRING_SCOPE, ...args);
+  }
+
   async onPair(session: Homey.Driver.PairSession): Promise<void> {
     const ctx = this.createPairContext();
+    this.trace("--- pair session started ---");
     this.registerSharedPairHandlers(session, ctx, async (credentials) => {
+      this.trace("Pairing succeeded");
       if (ctx.selected) ctx.selected.data.credentials = credentials;
       await session.showView("add_device");
     });
@@ -150,7 +142,9 @@ class PhilipsTvDriver extends Homey.Driver {
    */
   async onRepair(session: Homey.Driver.PairSession, device: Homey.Device): Promise<void> {
     const ctx = this.createPairContext();
+    this.trace("--- repair session started ---");
     this.registerSharedPairHandlers(session, ctx, async (credentials) => {
+      this.trace("Repair succeeded");
       if (!ctx.selected) return;
       await this.applyRepairToDevice(device, ctx.selected, credentials);
       await session.showView("repair_done");
@@ -176,7 +170,7 @@ class PhilipsTvDriver extends Homey.Driver {
     const startPairOnce = singleFlight(() => this.handleStartPairView(session, ctx));
 
     session.setHandler("showView", async (view: string) => {
-      this.log("Show view", view);
+      this.trace("Show view", view);
       switch (view) {
         case "discover":
           await this.handleDiscoverView(session, ctx);
@@ -194,17 +188,19 @@ class PhilipsTvDriver extends Homey.Driver {
     });
 
     session.setHandler("setTvIp", async (ip: string) => {
+      this.trace("IP entered", ip);
       ctx.ip = ip;
     });
     session.setHandler("getTvIp", async () => ctx.ip);
     session.setHandler("list_devices", async () => ctx.candidates);
     session.setHandler("list_devices_selection", async (devices: DeviceDescriptor[]) => {
       ctx.selected = devices[devices.length - 1] ?? null;
+      this.trace("Device selected", ctx.selected?.name, ctx.selected?.settings, `pairingType=${ctx.selected?.pairingType}`, `httpsUnavailable=${ctx.selected?.httpsUnavailable}`);
     });
 
     session.setHandler("pincode", async (digits: string[]) => {
       const pin = digits.join("");
-      this.log("Pincode submitted");
+      this.trace("Pincode submitted");
       if (!ctx.selected || !ctx.pairingApi || !ctx.pairingState) {
         await session.showView("discover");
         return false;
@@ -359,10 +355,10 @@ class PhilipsTvDriver extends Homey.Driver {
     // that don't actually respond on HTTPS/1926.
     const pairingType = ctx.selected.pairingType ?? "none";
     if (pairingType === "digest_auth_pairing") {
-      this.log("Pairing device requires authentication");
+      this.trace("Pairing device requires authentication");
       await session.showView("start_pair");
     } else {
-      this.log(`Pairing device does not require authentication (pairing_type=${pairingType})`);
+      this.trace(`Pairing device does not require authentication (pairing_type=${pairingType})`);
       await session.showView("add_device");
     }
   }
@@ -380,15 +376,17 @@ class PhilipsTvDriver extends Homey.Driver {
         secured: ctx.selected.settings.secure,
         port: ctx.selected.settings.port,
       },
-      { log: (...args) => this.log("[pair-api]", ...args) },
+      { log: (...args) => this.trace("[pair-api]", ...args), debug: true },
     );
 
     try {
       const system = await ctx.pairingApi.getSystem();
       const pairingType = extractPairingType(system) ?? "none";
+      this.trace(`start_pair: pairing_type=${pairingType}`, ctx.selected.settings);
       if (pairingType === "digest_auth_pairing") {
         const device: PairDevice = { ...PAIR_DEVICE_INFO, id: JointspaceApi.generateDeviceId() };
         ctx.pairingState = await this.requestPairing(ctx.pairingApi, device, ctx.selected);
+        this.trace("pair/request accepted, PIN should be on the TV");
         await session.showView("authenticate");
       } else if (pairingType === "none") {
         await session.showView("add_device");
@@ -416,7 +414,7 @@ class PhilipsTvDriver extends Homey.Driver {
       return await api.startPair(device);
     } catch (err) {
       if (selected.httpsUnavailable && !(err instanceof PairingError)) {
-        this.log(`pair/request over HTTP/1925 fallback failed (${(err as Error).message}); HTTPS/1926 is required`);
+        this.trace(`pair/request over HTTP/1925 fallback failed (${(err as Error).message}); HTTPS/1926 is required`);
         throw new HttpsUnavailableError(
           `pair/request failed on HTTP/1925 and HTTPS/1926 is not responding: ${(err as Error).message}`,
         );
@@ -432,7 +430,7 @@ class PhilipsTvDriver extends Homey.Driver {
   ): Promise<boolean> {
     const action = classifyPinError(err);
     const detail = err instanceof PairingError ? describePairingError(err) : (err as Error)?.message;
-    this.log(`Pincode error (${action.kind}): ${detail}`);
+    this.trace(`Pincode error (${action.kind}): ${detail}`);
     switch (action.kind) {
       case "retry_pin":
         return false;
@@ -453,8 +451,8 @@ class PhilipsTvDriver extends Homey.Driver {
     session: Homey.Driver.PairSession,
     returnView: "discover" | "add_by_ip" = "discover",
   ): Promise<void> {
-    this.log("System info / pairing failure:", err);
     const messageKey = this.localeKeyForError(err);
+    this.trace("System info / pairing failure:", err, `-> shown to user: ${messageKey}`);
     await session.showView(returnView);
     await session.emit("alert", this.homey.__(messageKey));
   }
@@ -487,22 +485,18 @@ class PhilipsTvDriver extends Homey.Driver {
       settings: { ipAddress: ip, apiVersion: 1, secure: false, port: 1925 },
     };
 
-    const api = new JointspaceApi(
-      {
-        host: ip,
-        apiVersion: descriptor.settings.apiVersion,
-        secured: descriptor.settings.secure,
-        port: descriptor.settings.port,
-      },
-      { log: (...args) => this.log("[probe-api]", ...args) },
+    const probe = await probeTransport(ip, (...args) => this.trace("[probe-api]", ...args), true);
+    this.trace(
+      `${ip}: /system via ${probe.systemTransport?.protocol}/${probe.systemTransport?.port}`,
+      `advertised=${JSON.stringify(probe.advertised)} os=${probe.osType} pairingType=${probe.pairingType}`,
+      `httpsResponds=${probe.httpsResponds}`,
+      probe.resolutionError ?? `-> ${JSON.stringify(probe.resolution)}`,
     );
-
-    const system = await api.getSystem();
+    if (probe.resolutionError) throw probe.resolutionError;
+    const { system } = probe;
+    const { transport: verified, httpsUnavailable } = probe.resolution!;
     if (system.name) descriptor.name = system.name;
-    const transport = extractTransportConfig(system);
-    descriptor.pairingType = extractPairingType(system) ?? "none";
-    const osType = extractOsType(system);
-    const { transport: verified, httpsUnavailable } = await this.verifyAdvertisedTransport(ip, transport, osType, api);
+    descriptor.pairingType = probe.pairingType;
     descriptor.settings.apiVersion = verified.apiVersion;
     descriptor.settings.secure = verified.secured;
     descriptor.settings.port = verified.port;
@@ -513,31 +507,6 @@ class PhilipsTvDriver extends Homey.Driver {
       ip,
     });
     return descriptor;
-  }
-
-  /** Some firmwares advertise secured_transport=true but don't answer on HTTPS/1926. */
-  private async verifyAdvertisedTransport(
-    ip: string,
-    transport: TransportConfig,
-    osType: string | null,
-    probeApi: JointspaceApi,
-  ): Promise<{ transport: TransportConfig; httpsUnavailable: boolean }> {
-    if (!transport.secured) return { transport, httpsUnavailable: false };
-    // A second HTTPS request to a fragile TV often hangs; trust a getSystem that just succeeded.
-    const lastSystemTransport = probeApi.getLastSystemTransport();
-    if (lastSystemTransport?.protocol === "https" && lastSystemTransport.port === transport.port) {
-      return { transport, httpsUnavailable: false };
-    }
-    const httpsApi = new JointspaceApi(
-      { host: ip, apiVersion: transport.apiVersion, secured: true, port: transport.port },
-      { log: (...args) => this.log("[verify-api]", ...args) },
-    );
-    const httpsResponds = await httpsApi.verifyHttpsResponds();
-    const resolution = resolveTransport(transport, httpsResponds, osType);
-    if (resolution.httpsUnavailable) {
-      this.log(`TV at ${ip} advertised secured_transport=true but HTTPS/${transport.port} doesn't respond (osType=${osType}). Falling back to HTTP/1925.`);
-    }
-    return resolution;
   }
 }
 

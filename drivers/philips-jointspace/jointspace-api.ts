@@ -323,6 +323,23 @@ export class JointspaceApi {
     };
   }
 
+  /** Diagnostics: raw pair/request on an explicit transport. Shows a PIN on the TV when accepted. */
+  async probePairRequest(
+    device: PairDevice,
+    target: { protocol: Protocol; port: number; versionPrefix: number | null },
+  ): Promise<Omit<PairRequestResponse, "auth_key"> & { auth_key?: string }> {
+    const response = await this.request<PairRequestResponse>({
+      method: "POST",
+      path: target.versionPrefix == null ? "pair/request" : `${target.versionPrefix}/pair/request`,
+      protocol: target.protocol,
+      port: target.port,
+      prefixApiVersion: false,
+      requireAuth: false,
+      data: { access: { scope: ["read", "write", "control"] }, device },
+    });
+    return { ...response, auth_key: response.auth_key ? "<redacted>" : undefined };
+  }
+
   async confirmPair(state: PairingState, pin: string): Promise<JointspaceCredentials> {
     const credentials: JointspaceCredentials = { user: state.device.id, pass: state.authKey };
     const signature = JointspaceApi.hmacSignature(PAIR_SHARED_KEY, String(state.timestamp), pin);

@@ -8,6 +8,8 @@ import {
 } from "../drivers/philips-jointspace/diagnostic-analysis";
 import { renderMarkdown, DiagnosticReport } from "../drivers/philips-jointspace/diagnostic";
 import { osSupportsGoogleAssistant } from "../drivers/philips-jointspace/quirks";
+import { pairRequestTargets } from "../drivers/philips-jointspace/diagnostic";
+import { ActivityLog } from "../drivers/philips-jointspace/activity-log";
 
 const ok = (endpoint: string): AnalysableProbe => ({ label: endpoint, endpoint, status: "ok" });
 const http = (endpoint: string, statusCode: number, errorName = "JointspaceError"): AnalysableProbe => ({
@@ -130,4 +132,72 @@ test("Google Assistant fallback is skipped only on Saphi/Linux (#69)", () => {
   assert.equal(osSupportsGoogleAssistant("Linux"), false);
   assert.equal(osSupportsGoogleAssistant("MSAF_2019_P"), true);
   assert.equal(osSupportsGoogleAssistant(null), true);
+});
+
+const pair = (endpoint: string, outcome: "ok" | number, chosen = false): AnalysableProbe => ({
+  kind: "pair",
+  label: `Pair request${chosen ? " (transport the app uses)" : ""}`,
+  endpoint,
+  status: outcome === "ok" ? "ok" : "fail",
+  statusCode: outcome === "ok" ? undefined : outcome,
+  errorMessage: outcome === "ok" ? undefined : `HTTP ${outcome}`,
+});
+
+const pairingIds = (probes: AnalysableProbe[], error?: string) =>
+  analyseReport({ scope: "ip-only", probes, pairingPlan: { chosen: null, error } })
+    .map((f) => f.id)
+    .filter((id) => id.startsWith("pairing"));
+
+test("pair/request accepted on the app's own transport", () => {
+  assert.deepEqual(pairingIds([pair("http://<ip>:1925/6/pair/request", "ok", true)]), ["pairing-request-works"]);
+});
+
+test("pair/request only accepted on another transport is flagged as an app bug", () => {
+  assert.deepEqual(pairingIds([
+    pair("http://<ip>:1925/6/pair/request", 403, true),
+    pair("https://<ip>:1926/6/pair/request", "ok"),
+  ]), ["pairing-wrong-transport"]);
+});
+
+test("pair/request rejected everywhere lists every attempt", () => {
+  const findings = analyseReport({
+    scope: "ip-only",
+    probes: [pair("http://<ip>:1925/6/pair/request", 403, true), pair("http://<ip>:1925/pair/request", 404)],
+  });
+  const rejected = findings.find((f) => f.id === "pairing-request-rejected");
+  assert.ok(rejected);
+  assert.match(rejected.detail, /1925\/6\/pair\/request.*HTTP 403.*1925\/pair\/request.*HTTP 404/);
+});
+
+test("a failed transport decision is reported", () => {
+  assert.deepEqual(pairingIds([], "HttpsUnavailableError: TV requires HTTPS"), ["pairing-plan-failed"]);
+});
+
+test("pair/request probes don't count towards the transport findings", () => {
+  assert.deepEqual(ids([
+    refused("http://<ip>:1925/system"),
+    refused("https://<ip>:1926/system"),
+    { kind: "pair", label: "pair/request", endpoint: "pair/request", status: "skipped" },
+  ]), ["unreachable"]);
+});
+
+test("pairRequestTargets tries the app's transport first and dedupes", () => {
+  const targets = pairRequestTargets(
+    { systemTransport: "http/1925", chosen: { protocol: "http", port: 1925, versionPrefix: 6 }, log: [] },
+    6,
+  );
+  assert.deepEqual(targets, [
+    { protocol: "http", port: 1925, versionPrefix: 6 },
+    { protocol: "https", port: 1926, versionPrefix: 6 },
+    { protocol: "http", port: 1925, versionPrefix: null },
+  ]);
+});
+
+test("ActivityLog keeps only the newest entries and formats errors", () => {
+  const log = new ActivityLog(2);
+  log.add("pairing", "one");
+  log.add("pairing", "two");
+  log.add("pairing", Object.assign(new Error("nope"), { name: "ForbiddenError", statusCode: 403 }));
+  assert.deepEqual(log.list("pairing").map((e) => e.message), ["two", "ForbiddenError (403): nope"]);
+  assert.deepEqual(log.list("device:x"), []);
 });

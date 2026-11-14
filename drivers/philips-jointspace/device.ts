@@ -21,6 +21,7 @@ import {
   ScreenState,
 } from "./types";
 import { ForbiddenError, NotFoundError } from "./errors";
+import { activityLog, deviceScope } from "./activity-log";
 
 const CAPABILITY_DEBOUNCE_MS = 100;
 const INIT_OFF_FALLBACK_MS = 3_000;
@@ -161,6 +162,11 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   private failureTriggeredRefresh = false;
   private screenOnListenerRegistered = false;
 
+  error(...args: unknown[]): void {
+    super.error(...args);
+    activityLog.add(deviceScope(String(this.getData().id)), ...args);
+  }
+
   async onInit(): Promise<void> {
     this.deviceData = this.getData() as DeviceData;
     this.deviceSettings = this.getSettings() as DeviceSettings;
@@ -173,7 +179,10 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
 
     const debug = this.homey.env?.DEBUG === "true";
     this.api = new JointspaceApi(this.buildApiConfig(), {
-      log: (...args) => this.log(`[api]`, ...args),
+      log: (...args) => {
+        this.log(`[api]`, ...args);
+        activityLog.add(deviceScope(this.deviceData.id), "[api]", ...args);
+      },
       debug,
     });
 
