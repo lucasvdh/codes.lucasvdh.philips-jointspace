@@ -126,8 +126,8 @@ class PhilipsTvDriver extends Homey.Driver {
     this.trace("--- pair session started ---");
     this.registerSharedPairHandlers(session, ctx, async (credentials) => {
       this.trace("Pairing succeeded");
-      if (ctx.selected) ctx.selected.data.credentials = credentials;
-      await session.showView("add_device");
+      if (ctx.selected && credentials) ctx.selected.data.credentials = credentials;
+      await session.showView("add_my_device");
     });
     session.setHandler("getDevice", async () => ctx.selected);
   }
@@ -164,10 +164,10 @@ class PhilipsTvDriver extends Homey.Driver {
   private registerSharedPairHandlers(
     session: Homey.Driver.PairSession,
     ctx: PairContext,
-    onCredentialsConfirmed: (credentials: JointspaceCredentials) => Promise<void>,
+    onPairingComplete: (credentials: JointspaceCredentials | null) => Promise<void>,
   ): void {
     // Each pair/request invalidates the PIN already on screen (#66).
-    const startPairOnce = singleFlight(() => this.handleStartPairView(session, ctx));
+    const startPairOnce = singleFlight(() => this.handleStartPairView(session, ctx, onPairingComplete));
 
     session.setHandler("showView", async (view: string) => {
       this.trace("Show view", view);
@@ -179,7 +179,7 @@ class PhilipsTvDriver extends Homey.Driver {
           await this.handleCheckIpView(session, ctx);
           break;
         case "validate":
-          await this.handleValidateView(session, ctx);
+          await this.handleValidateView(session, ctx, onPairingComplete);
           break;
         case "start_pair":
           await startPairOnce();
@@ -207,7 +207,7 @@ class PhilipsTvDriver extends Homey.Driver {
       }
       try {
         const credentials = await ctx.pairingApi.confirmPair(ctx.pairingState, pin);
-        await onCredentialsConfirmed(credentials);
+        await onPairingComplete(credentials);
         return true;
       } catch (err) {
         return this.handlePincodeError(err, session, ctx);
@@ -218,7 +218,7 @@ class PhilipsTvDriver extends Homey.Driver {
   private async applyRepairToDevice(
     device: Homey.Device,
     descriptor: DeviceDescriptor,
-    credentials: JointspaceCredentials,
+    credentials: JointspaceCredentials | null,
   ): Promise<void> {
     const { settings } = descriptor;
     // Write store FIRST: credentials and reset cached metadata. setSettings
@@ -227,7 +227,7 @@ class PhilipsTvDriver extends Homey.Driver {
     // If we updated settings before credentials, that rebuild would read the
     // STALE credentials and the device would 401 against the new TV until
     // the next restart.
-    await device.setStoreValue("credentials", { user: credentials.user, pass: credentials.pass });
+    await device.setStoreValue("credentials", credentials ? { user: credentials.user, pass: credentials.pass } : null);
     await device.setStoreValue("osType", null);
     await device.setStoreValue("notifyChangeSupported", null);
     await device.setStoreValue("pairingType", descriptor.pairingType ?? null);
@@ -343,7 +343,11 @@ class PhilipsTvDriver extends Homey.Driver {
     }
   }
 
-  private async handleValidateView(session: Homey.Driver.PairSession, ctx: PairContext): Promise<void> {
+  private async handleValidateView(
+    session: Homey.Driver.PairSession,
+    ctx: PairContext,
+    onPairingComplete: (credentials: JointspaceCredentials | null) => Promise<void>,
+  ): Promise<void> {
     if (!ctx.selected) {
       await session.showView("discover");
       return;
@@ -359,11 +363,15 @@ class PhilipsTvDriver extends Homey.Driver {
       await session.showView("start_pair");
     } else {
       this.trace(`Pairing device does not require authentication (pairing_type=${pairingType})`);
-      await session.showView("add_device");
+      await onPairingComplete(null);
     }
   }
 
-  private async handleStartPairView(session: Homey.Driver.PairSession, ctx: PairContext): Promise<void> {
+  private async handleStartPairView(
+    session: Homey.Driver.PairSession,
+    ctx: PairContext,
+    onPairingComplete: (credentials: JointspaceCredentials | null) => Promise<void>,
+  ): Promise<void> {
     if (!ctx.selected) {
       await session.showView("discover");
       return;
@@ -389,7 +397,7 @@ class PhilipsTvDriver extends Homey.Driver {
         this.trace("pair/request accepted, PIN should be on the TV");
         await session.showView("authenticate");
       } else if (pairingType === "none") {
-        await session.showView("add_device");
+        await onPairingComplete(null);
       } else {
         await session.showView("discover");
         await session.emit("alert", this.homey.__("error.unknown_pairing_type", { pairingType }));
