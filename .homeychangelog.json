@@ -1,4 +1,16 @@
 {
+  "3.8.2": {
+    "en": "Fixes pairing for TVs that don't ask for a PIN: adding the TV no longer gets stuck on an endless loading screen. Repairing such a TV works again too.",
+    "nl": "Lost het koppelen op van tv's die niet om een pincode vragen: het toevoegen blijft niet meer eindeloos laden. Ook het repareren van zo'n tv werkt weer.",
+    "de": "Behebt die Kopplung von TVs, die keine PIN abfragen: Das Hinzufügen bleibt nicht mehr endlos beim Laden hängen. Auch die Reparatur eines solchen TVs funktioniert wieder.",
+    "fr": "Corrige le couplage des TV qui ne demandent pas de code PIN : l'ajout ne reste plus bloqué sur un écran de chargement sans fin. La réparation d'une telle TV fonctionne aussi à nouveau.",
+    "it": "Corregge l'accoppiamento dei TV che non chiedono un PIN: l'aggiunta non resta più bloccata su una schermata di caricamento infinita. Anche la riparazione di questi TV funziona di nuovo.",
+    "sv": "Åtgärdar parning av TV-apparater som inte ber om en PIN: att lägga till TV:n fastnar inte längre på en oändlig laddningsskärm. Reparation av en sådan TV fungerar också igen.",
+    "no": "Fikser paring av TV-er som ikke ber om PIN: å legge til TV-en blir ikke lenger stående på en endeløs lasteskjerm. Reparasjon av en slik TV fungerer også igjen.",
+    "es": "Corrige el emparejamiento de los TV que no piden un PIN: al añadir el TV ya no se queda atascado en una pantalla de carga infinita. La reparación de estos TV también vuelve a funcionar.",
+    "da": "Retter parring af tv'er, der ikke beder om en PIN: tilføjelse af tv'et hænger ikke længere på en endeløs indlæsningsskærm. Reparation af sådan et tv virker også igen.",
+    "pl": "Naprawia parowanie telewizorów, które nie proszą o PIN: dodawanie telewizora nie zawiesza się już na niekończącym się ekranie ładowania. Naprawa takiego telewizora również znów działa."
+  },
   "3.8.1": {
     "en": "The diagnostic report now tests pairing itself: it checks the TV's ports, shows which connection the app chooses, sends a test pairing request and includes what happened during your last pairing attempt. Paired TVs also include recent errors, so one report is enough to find the cause.",
     "nl": "Het diagnoserapport test nu het koppelen zelf: het controleert de poorten van de tv, toont welke verbinding de app kiest, stuurt een testkoppelverzoek en bevat wat er tijdens je laatste koppelpoging gebeurde. Gekoppelde tv's bevatten ook recente fouten, zodat één rapport genoeg is om de oorzaak te vinden.",
