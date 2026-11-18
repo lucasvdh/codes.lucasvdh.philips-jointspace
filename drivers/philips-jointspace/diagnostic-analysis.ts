@@ -14,6 +14,7 @@ export interface AnalysableReport {
   scope: "paired-device" | "ip-only";
   probes: AnalysableProbe[];
   pairingPlan?: { chosen: { protocol: string; port: number; versionPrefix: number | null } | null; error?: string };
+  device?: { mac?: string | null; store: Record<string, unknown> };
 }
 
 export interface Finding {
@@ -28,7 +29,9 @@ export interface Finding {
     | "pairing-plan-failed"
     | "pairing-request-works"
     | "pairing-wrong-transport"
-    | "pairing-request-rejected";
+    | "pairing-request-rejected"
+    | "wake-mac-unknown"
+    | "wake-on-lan-disabled";
   title: string;
   detail: string;
 }
@@ -41,7 +44,7 @@ const isNoResponse = (p: AnalysableProbe) =>
   (p.errorName === "OfflineError" || /timeout|timed out/i.test(p.errorMessage ?? ""));
 
 export function analyseReport(report: AnalysableReport): Finding[] {
-  if (report.scope !== "ip-only") return analysePairedReport(report.probes);
+  if (report.scope !== "ip-only") return [...analysePairedReport(report.probes), ...analyseWake(report.device)];
   return [
     ...analyseIpReport(report.probes.filter((p) => p.kind !== "pair")),
     ...analysePairing(report),
@@ -191,6 +194,34 @@ function analysePairedReport(probes: AnalysableProbe[]): Finding[] {
     });
   }
   return findings;
+}
+
+// #81
+function analyseWake(device: AnalysableReport["device"]): Finding[] {
+  if (!device) return [];
+  const stored = device.store.wakeMacs;
+  const hasMac = (Array.isArray(stored) && stored.length > 0) || Boolean(device.mac);
+  if (!hasMac) {
+    return [{
+      id: "wake-mac-unknown",
+      title: "Homey cannot wake this TV yet",
+      detail:
+        "The app doesn't know the TV's MAC address, so it can't send Wake-on-LAN and turning the TV on only " +
+        "works while it is still reachable. The app learns the address automatically while the TV is on: " +
+        "switch it on, wait a minute and generate the report again.",
+    }];
+  }
+  if (device.store.wakeOnLanEnabled === false) {
+    return [{
+      id: "wake-on-lan-disabled",
+      title: "Wake-on-LAN is switched off on the TV",
+      detail:
+        "The TV reports Wake-on-LAN as disabled on all its network connections, so it ignores Homey's wake-up " +
+        "signal in standby. Enable \"Switch on with Wi-Fi (WoWLAN)\" or \"Wake on LAN\" in the TV's network " +
+        "settings.",
+    }];
+  }
+  return [];
 }
 
 // mDNS name conflicts can make one TV appear hundreds of times ("Name (3)", "Name (5)", ...).

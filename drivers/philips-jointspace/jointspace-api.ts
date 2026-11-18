@@ -25,6 +25,7 @@ import {
   PairGrantResponse,
   PairingState,
   PairRequestResponse,
+  NetworkDevice,
   PowerState,
   Protocol,
   ScreenState,
@@ -410,8 +411,13 @@ export class JointspaceApi {
     await this.request<unknown>({ method: "POST", path: "activities/launch", data: { intent } });
   }
 
-  async getPowerState(): Promise<PowerState> {
-    return this.request<PowerState>({ method: "GET", path: "powerstate" });
+  async getPowerState(timeoutMs?: number): Promise<PowerState> {
+    return this.request<PowerState>({ method: "GET", path: "powerstate", timeoutMs });
+  }
+
+  async getNetworkDevices(): Promise<NetworkDevice[]> {
+    const devices = await this.request<NetworkDevice[]>({ method: "GET", path: "network/devices" });
+    return Array.isArray(devices) ? devices : [];
   }
 
   async setPowerState(on: boolean): Promise<void> {

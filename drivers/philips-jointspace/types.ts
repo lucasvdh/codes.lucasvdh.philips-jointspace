@@ -119,6 +119,13 @@ export interface PowerState {
   powerstate: "On" | "Standby" | string;
 }
 
+export interface NetworkDevice {
+  type?: string;
+  mac?: string;
+  ip?: string;
+  "wake-on-lan"?: "Enabled" | "Disabled" | string;
+}
+
 export interface ScreenState {
   // The TV reports and accepts plain "On"/"Off". An older Philips doc
   // dump used "screenOn"/"screenOff" but no live firmware we've tested

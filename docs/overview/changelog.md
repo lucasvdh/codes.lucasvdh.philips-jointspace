@@ -8,6 +8,19 @@ Here, you'll find a list of meaningful changes made to the app, with the most re
 
 <details>
 
+<summary>v3.8.3 - 2026-11</summary>
+
+#### Fixes
+
+* Turning the TV on from Homey now uses Wake-on-LAN (issue [#81](https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues/81)). Since v2.0.0 the app never stored the TV's MAC address, so no Wake-on-LAN packet was ever sent and only TVs that stay reachable in standby could be switched on.
+  * The MAC address is collected at pairing and repair, and for existing devices whenever the TV is on (ARP plus the TV's `network/devices` list, covering both wired and Wi-Fi).
+  * Turning on now repeats Wake-on-LAN (to the limited and subnet broadcast, ports 9 and 7) until the TV answers and then sends `powerstate On`, instead of sending both at the same moment while the TV is still asleep.
+* The diagnostic report says when the app doesn't know the MAC address yet, or when the TV reports Wake-on-LAN as switched off.
+
+</details>
+
+<details>
+
 <summary>v3.8.2 - 2026-11</summary>
 
 #### Fixes

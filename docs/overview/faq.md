@@ -108,9 +108,16 @@ If you [are able to verify that your TV supports the Jointspace API](faq.md#how-
 
 ### Why is my TV not turning on?
 
-The app first calls the standard `powerstate` endpoint to wake the TV. If that fails (because the TV has dropped its network stack to save power), it falls back to the ChromeCast trick. On TVs where Wake-on-LAN is supported and the MAC address is known, a magic packet is also sent.
+If the TV still answers on the network in standby, the app switches it on through the `powerstate` endpoint. If it doesn't, the app sends Wake-on-LAN packets until the TV answers (up to about 30 seconds) and then switches it on.
 
-In **deep sleep**, however, the TV may not be reachable over the network at all - none of the above can reach it. There is no permanent app-side solution for this; the TV has to keep its network stack alive.
+For Wake-on-LAN to work:
+
+* **Enable it on the TV.** In the TV's network settings, turn on **Switch on with Wi-Fi (WoWLAN)** or **Wake on LAN** (the name differs per model).
+* **The app needs the TV's MAC address.** It learns this automatically while the TV is on. A TV paired with an older version gets it the first time it is on after updating to 3.8.3.
+
+The app's diagnostic report (**Settings → Apps → Philips TV**) tells you if the MAC address is still unknown or if the TV reports Wake-on-LAN as switched off.
+
+Some TVs drop off the network completely in **deep sleep** and ignore Wake-on-LAN. There is no app-side solution for those; the options below keep the TV reachable.
 
 #### Option 1 - Turn the screen off instead of the TV (recommended on supported models)
 

@@ -22,6 +22,7 @@ import {
 import { extractCanonicalId, extractPairingType, legacyUsnToCanonicalId } from "./quirks";
 import { classifyPinError, describePairingError, PAIR_DEVICE_INFO, probeTransport, singleFlight } from "./pairing-logic";
 import { activityLog, PAIRING_SCOPE } from "./activity-log";
+import { resolveWakeInfo } from "./wake";
 
 interface DiscoveryHint {
   usn?: string;
@@ -45,6 +46,7 @@ interface DeviceDescriptor {
   // independent of which transport (HTTP/HTTPS) the TV serves on.
   pairingType?: string;
   httpsUnavailable?: boolean;
+  store?: { wakeMacs: string[] };
 }
 
 interface PairContext {
@@ -237,6 +239,9 @@ class PhilipsTvDriver extends Homey.Driver {
     // and stores its canonical id. Avoids dedup carrying over from the old TV
     // when Repair re-points the device.
     await device.setStoreValue("canonicalId", null);
+    // Repair may point at a different TV; drop the old TV's MACs.
+    await device.setStoreValue("wakeMacs", descriptor.store?.wakeMacs ?? []);
+    await device.setStoreValue("wakeOnLanEnabled", null);
 
     await device.setSettings({
       ipAddress: settings.ipAddress,
@@ -514,6 +519,14 @@ class PhilipsTvDriver extends Homey.Driver {
       mdnsName: hint?.mdnsName,
       ip,
     });
+    // network/devices needs credentials on some TVs; the device fills it in after pairing.
+    const wake = await resolveWakeInfo(
+      () => this.homey.arp.getMAC(ip),
+      async () => [],
+      (...args) => this.trace("[wake]", ...args),
+    );
+    descriptor.data.mac = wake.macs[0] ?? null;
+    descriptor.store = { wakeMacs: wake.macs };
     return descriptor;
   }
 }
