@@ -12,7 +12,7 @@ Here, you'll find a list of meaningful changes made to the app, with the most re
 
 #### Fixes
 
-* TVs that don't use PIN pairing (`pairing_type: none`) got stuck on an endless loading screen while being added. The pairing flow navigated to a view that doesn't exist; it now continues to the add-device step (issue [#67](https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues/67)).
+* TVs that don't use PIN pairing (`pairing_type: none`) got stuck on an endless loading screen while being added. This was a regression in v3.5.0 through v3.8.1: the pairing flow navigated to a view that doesn't exist. It now continues to the add-device step again, as it did in v3.0.0 through v3.4.0 (issue [#67](https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues/67)).
 * Repairing such a TV hit the same dead end. It now applies the new connection settings and clears any stored credentials.
 
 </details>
