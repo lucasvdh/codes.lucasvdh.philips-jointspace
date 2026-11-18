@@ -1,7 +1,6 @@
 "use strict";
 
 import Homey from "homey";
-import * as wol from "wol";
 
 import { JointspaceApi } from "./jointspace-api";
 import { StatePoller, StateChangeListener, StateChangeSource } from "./state-poller";
@@ -22,10 +21,13 @@ import {
 } from "./types";
 import { ForbiddenError, NotFoundError } from "./errors";
 import { activityLog, deviceScope } from "./activity-log";
+import { mergeMacs, resolveWakeInfo, sendMagicPackets, wakeUntilReachable } from "./wake";
 
 const CAPABILITY_DEBOUNCE_MS = 100;
 const INIT_OFF_FALLBACK_MS = 3_000;
-const WOL_RETRY_DELAY_MS = 1_000;
+const WAKE_ATTEMPTS = 10;
+const WAKE_ATTEMPT_INTERVAL_MS = 2_000;
+const WAKE_PROBE_TIMEOUT_MS = 1_500;
 const DEFAULT_VOLUME_MAX = 60;
 const SYSTEM_REPROBE_INTERVAL_MS = 60 * 60 * 1000;
 
@@ -130,6 +132,8 @@ const STORE_SCREEN_STATE_SUPPORTED = "screenStateSupported";
 const STORE_CURRENT_SOURCE_SUPPORTED = "currentSourceSupported";
 const STORE_CREDENTIALS = "credentials";
 const STORE_CANONICAL_ID = "canonicalId";
+const STORE_WAKE_MACS = "wakeMacs";
+const STORE_WAKE_ON_LAN_ENABLED = "wakeOnLanEnabled";
 
 const CAPABILITY_SCREEN_ON = "screen_on";
 const CAPABILITY_CURRENT_SOURCE = "current_source";
@@ -156,7 +160,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   private deviceSettings!: DeviceSettings;
   private initOffFallback?: NodeJS.Timeout;
   private systemReprobeTimer?: NodeJS.Timeout;
-  private wolRetryTimer?: NodeJS.Timeout;
+  private wakeGeneration = 0;
   private consecutivePollFailures = 0;
   private notRespondingWarningShown = false;
   private failureTriggeredRefresh = false;
@@ -246,10 +250,9 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     this.poller?.stop();
     if (this.initOffFallback) this.homey.clearTimeout(this.initOffFallback);
     if (this.systemReprobeTimer) this.homey.clearTimeout(this.systemReprobeTimer);
-    if (this.wolRetryTimer) this.homey.clearTimeout(this.wolRetryTimer);
+    this.wakeGeneration++;
     this.initOffFallback = undefined;
     this.systemReprobeTimer = undefined;
-    this.wolRetryTimer = undefined;
   }
 
   async onSettings({
@@ -930,6 +933,8 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
         this.deviceSettings = { ...this.deviceSettings, ...settingsUpdate };
         this.api.updateConfig(this.buildApiConfig());
       }
+      // The TV just answered, so it's in the ARP cache.
+      await this.refreshWakeInfo();
     } catch (err) {
       this.log("refreshSystemMetadata failed (TV likely offline):", (err as Error).message);
     }
@@ -1126,20 +1131,60 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
 
   private async onCapabilityOnOffSet(value: boolean): Promise<void> {
     this.log(`Powering ${value ? "on" : "off"}`);
-    if (value && this.deviceData.mac) {
-      const mac = this.deviceData.mac;
-      wol.wake(mac).catch((err: Error) => this.log("WOL failed:", err.message));
-      // Second magic packet in case the first dropped on the wire.
-      if (this.wolRetryTimer) this.homey.clearTimeout(this.wolRetryTimer);
-      this.wolRetryTimer = this.homey.setTimeout(() => {
-        wol.wake(mac).catch((err: Error) => this.log("WOL retry failed:", err.message));
-      }, WOL_RETRY_DELAY_MS);
+    const generation = ++this.wakeGeneration;
+    const macs = this.getWakeMacs();
+    if (value && macs.length > 0) {
+      // In the background: waking can take ~20s, longer than a capability call should block.
+      void this.wakeAndPowerOn(macs, generation);
+      return;
     }
     try {
       await this.api.setPowerState(value);
       this.log(`Successfully sent power ${value ? "on" : "off"}`);
     } catch (err) {
       this.log("setPowerState failed", err);
+    }
+  }
+
+  private async wakeAndPowerOn(macs: string[], generation: number): Promise<void> {
+    const log = (...args: unknown[]) => this.log("[wake]", ...args);
+    const { outcome, attempt } = await wakeUntilReachable({
+      probe: () => this.api.getPowerState(WAKE_PROBE_TIMEOUT_MS).then((s) => s.powerstate ?? "", () => null),
+      powerOn: () => this.api.setPowerState(true),
+      sendWake: () => sendMagicPackets(macs, this.deviceSettings.ipAddress, log),
+      sleep: (ms) => new Promise<void>((resolve) => this.homey.setTimeout(resolve, ms)),
+      isCancelled: () => generation !== this.wakeGeneration,
+      attempts: WAKE_ATTEMPTS,
+      intervalMs: WAKE_ATTEMPT_INTERVAL_MS,
+    });
+    if (outcome === "no-answer") {
+      log(`TV did not answer after ${attempt} wake attempts; check that Wake-on-LAN is enabled on the TV`);
+    } else {
+      log(`Power on: ${outcome} (attempt ${attempt})`);
+    }
+  }
+
+  private getWakeMacs(): string[] {
+    const stored = (this.getStoreValue(STORE_WAKE_MACS) as unknown[] | null) ?? [];
+    return mergeMacs(stored, [this.deviceData.mac]);
+  }
+
+  private async refreshWakeInfo(): Promise<void> {
+    const ip = this.deviceSettings.ipAddress;
+    const log = (...args: unknown[]) => this.log("[wake]", ...args);
+    const info = await resolveWakeInfo(
+      () => this.homey.arp.getMAC(ip),
+      () => this.api.getNetworkDevices(),
+      log,
+    );
+    const macs = mergeMacs(info.macs, this.getWakeMacs());
+    const previous = (this.getStoreValue(STORE_WAKE_MACS) as string[] | null) ?? [];
+    if (macs.join() !== previous.join()) {
+      log("Wake MACs:", macs.join(", ") || "none");
+      await this.setStoreValue(STORE_WAKE_MACS, macs);
+    }
+    if (info.wakeOnLanEnabled !== null) {
+      await this.setStoreValue(STORE_WAKE_ON_LAN_ENABLED, info.wakeOnLanEnabled);
     }
   }
 

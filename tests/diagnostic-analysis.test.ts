@@ -201,3 +201,17 @@ test("ActivityLog keeps only the newest entries and formats errors", () => {
   assert.deepEqual(log.list("pairing").map((e) => e.message), ["two", "ForbiddenError (403): nope"]);
   assert.deepEqual(log.list("device:x"), []);
 });
+
+test("paired report flags a TV the app cannot wake (#81)", () => {
+  const ids = (device: { mac?: string | null; store: Record<string, unknown> }) =>
+    analyseReport({ scope: "paired-device", probes: [ok("system")], device }).map((f) => f.id);
+
+  assert.deepEqual(ids({ mac: null, store: {} }), ["wake-mac-unknown"]);
+  assert.deepEqual(ids({ mac: null, store: { wakeMacs: [] } }), ["wake-mac-unknown"]);
+  assert.deepEqual(ids({ mac: null, store: { wakeMacs: ["34:f1:50:d7:bf:6e"], wakeOnLanEnabled: false } }), [
+    "wake-on-lan-disabled",
+  ]);
+  assert.deepEqual(ids({ mac: null, store: { wakeMacs: ["34:f1:50:d7:bf:6e"], wakeOnLanEnabled: true } }), []);
+  // Devices paired before 2.0.0 still carry the MAC in data.
+  assert.deepEqual(ids({ mac: "34:f1:50:d7:bf:6e", store: {} }), []);
+});
