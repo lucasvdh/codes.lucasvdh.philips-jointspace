@@ -6,13 +6,22 @@ import { ActivityEntry, activityLog, deviceScope, PAIRING_SCOPE } from "./activi
 import { PAIR_DEVICE_INFO, probeTransport } from "./pairing-logic";
 import { extractOsType, extractPairingType, extractSecuredTransport } from "./quirks";
 import { PairingStatus } from "./enums";
+import {
+  currentAmbilightMode,
+  currentPictureStyle,
+  describeMenuTree,
+  extractMenuCapabilities,
+  MenuCurrentResponse,
+  menuNodesToRead,
+  MenuStructure,
+} from "./menu";
 import { PairingError } from "./errors";
 import { Protocol, SystemInfo } from "./types";
 
 // Store keys whose value must never appear in a diagnostic report.
 const SECRET_STORE_KEYS = new Set<string>(["credentials"]);
 
-export type ProbeKind = "system" | "pair" | "state";
+export type ProbeKind = "system" | "pair" | "state" | "menu-structure" | "menu-current";
 
 export interface ProbeResult {
   kind?: ProbeKind;
@@ -466,7 +475,29 @@ async function runProbes(api: JointspaceApi, onProgress?: ProgressCallback): Pro
     NOTIFY_PROBE_TIMEOUT_MS + 1_000,
   );
 
-  return [systemProbe, ...stateProbes, ...listProbes, notifyProbe];
+  progress("Reading the settings menu (picture style, Ambilight styles)…");
+  const menuProbes = await runMenuProbes(api);
+
+  return [systemProbe, ...stateProbes, ...listProbes, ...menuProbes, notifyProbe];
+}
+
+async function runMenuProbes(api: JointspaceApi): Promise<ProbeResult[]> {
+  const structureProbe: ProbeResult = {
+    ...(await runProbe("Settings menu structure", "GET", "menuitems/settings/structure", async () => ({
+      result: await api.getMenuStructure(),
+    }), 25_000)),
+    kind: "menu-structure",
+  };
+  if (structureProbe.status !== "ok") return [structureProbe];
+  const nodes = menuNodesToRead(extractMenuCapabilities(structureProbe.responseRaw as MenuStructure));
+  if (nodes.length === 0) return [structureProbe];
+  const currentProbe: ProbeResult = {
+    ...(await runProbe("Settings menu values", "POST", "menuitems/settings/current", async () => ({
+      result: await api.getMenuCurrent(nodes),
+    }))),
+    kind: "menu-current",
+  };
+  return [structureProbe, currentProbe];
 }
 
 async function runUnauthenticatedProbes(api: JointspaceApi, onProgress?: ProgressCallback): Promise<ProbeResult[]> {
@@ -741,6 +772,8 @@ export function renderMarkdown(report: DiagnosticReport): string {
   }
   lines.push("");
 
+  lines.push(...renderMenuSection(report));
+
   for (const section of report.activity ?? []) {
     lines.push(`## ${section.title}`);
     lines.push("");
@@ -769,6 +802,57 @@ export function renderMarkdown(report: DiagnosticReport): string {
   lines.push("</details>");
 
   return lines.join("\n");
+}
+
+function renderMenuSection(report: DiagnosticReport): string[] {
+  const structureProbe = report.probes.find((p) => p.kind === "menu-structure");
+  if (!structureProbe) return [];
+  const lines = ["## Settings menu", ""];
+  const structure = structureProbe.responseRaw as MenuStructure | undefined;
+  if (structureProbe.status !== "ok" || !structure?.node) {
+    lines.push(`The TV did not return its settings menu (${structureProbe.statusCode ?? "-"} ${structureProbe.errorMessage ?? ""}).`.replace(/\s+\)/, ")"));
+    lines.push("Picture style and the Ambilight style list then fall back to the fixed list.", "");
+    return lines;
+  }
+  const capabilities = extractMenuCapabilities(structure);
+  const current = report.probes.find((p) => p.kind === "menu-current" && p.status === "ok")?.responseRaw as MenuCurrentResponse | undefined;
+
+  const picture = capabilities.pictureStyle;
+  if (picture) {
+    const selected = current ? currentPictureStyle(picture, current) : null;
+    lines.push(`- **Picture style** (node ${picture.nodeId}): ${picture.options.map((o) => `\`${o.id}\`=${o.enumId}`).join(", ")}`);
+    lines.push(`  - Current: ${selected ? `\`${selected}\`` : "unknown"}`);
+  } else {
+    lines.push("- **Picture style**: not in the menu");
+  }
+  const ambilight = capabilities.ambilight;
+  if (ambilight) {
+    const selected = current ? currentAmbilightMode(ambilight, current) : null;
+    lines.push(`- **Ambilight style** (node ${ambilight.styleNodeId}): ${ambilight.options.map((o) => `\`${o.id}\``).join(", ")}`);
+    lines.push(`  - Current: ${selected ? `\`${selected}\`` : "unknown"}`);
+  } else {
+    lines.push("- **Ambilight style**: not in the menu");
+  }
+  lines.push("");
+  lines.push("<details><summary>Full menu tree</summary>");
+  lines.push("");
+  lines.push("```");
+  lines.push(...describeMenuTree(structure.node));
+  lines.push("```");
+  lines.push("");
+  lines.push("</details>");
+  if (current) {
+    lines.push("");
+    lines.push("<details><summary>Current menu values</summary>");
+    lines.push("");
+    lines.push("```json");
+    lines.push(JSON.stringify(current, null, 2));
+    lines.push("```");
+    lines.push("");
+    lines.push("</details>");
+  }
+  lines.push("");
+  return lines;
 }
 
 function truncateForTable(text: string): string {

@@ -1,7 +1,7 @@
 /** Explains known failure patterns in diagnostic reports. Patterns come from real issue reports. */
 
 export interface AnalysableProbe {
-  kind?: "system" | "pair" | "state";
+  kind?: "system" | "pair" | "state" | "menu-structure" | "menu-current";
   label: string;
   endpoint: string;
   status: "ok" | "fail" | "skipped";
@@ -26,6 +26,7 @@ export interface Finding {
     | "tv-not-responding"
     | "sources-forbidden"
     | "applications-forbidden"
+    | "menu-unavailable"
     | "pairing-plan-failed"
     | "pairing-request-works"
     | "pairing-wrong-transport"
@@ -191,6 +192,16 @@ function analysePairedReport(probes: AnalysableProbe[]): Finding[] {
       detail:
         "The applications endpoint returns HTTP 403, so the app list and app flow cards are not available on " +
         "this TV.",
+    });
+  }
+  const menu = requestProbes.find((p) => p.endpoint === "menuitems/settings/structure");
+  if (menu?.status === "fail" && (menu.statusCode === 403 || menu.statusCode === 404)) {
+    findings.push({
+      id: "menu-unavailable",
+      title: "The TV does not share its settings menu",
+      detail:
+        `The settings menu endpoint returns HTTP ${menu.statusCode}, so picture style is not available and the ` +
+        "Ambilight style list falls back to the fixed list, which may not match this TV.",
     });
   }
   return findings;

@@ -44,6 +44,7 @@ import {
 } from "./errors";
 import { PairingStatus } from "./enums";
 import { JOINTSPACE_SHARED_KEY } from "./shared-key";
+import type { MenuCurrentResponse, MenuStructure } from "./menu";
 import allPossibleInputs from "../../assets/json/allPossibleInputs.json";
 import initialNotifyState from "../../assets/json/notifyChange.json";
 
@@ -508,6 +509,22 @@ export class JointspaceApi {
 
   async setSetting(setting: MenuItemsSettingUpdate): Promise<void> {
     await this.request<unknown>({ method: "POST", path: "menuitems/settings/update", data: setting });
+  }
+
+  async getMenuStructure(): Promise<MenuStructure> {
+    return this.request<MenuStructure>({ method: "GET", path: "menuitems/settings/structure", timeoutMs: 20_000 });
+  }
+
+  async getMenuCurrent(nodeIds: number[]): Promise<MenuCurrentResponse> {
+    return this.request<MenuCurrentResponse>({
+      method: "POST",
+      path: "menuitems/settings/current",
+      data: { nodes: nodeIds.map((nodeid) => ({ nodeid })) },
+    });
+  }
+
+  async setMenuListValue(nodeId: number, enumId: number): Promise<void> {
+    await this.setSetting({ values: [{ value: { Nodeid: nodeId, data: { selected_item: enumId } } }] });
   }
 
   // --- channels --------------------------------------------------------

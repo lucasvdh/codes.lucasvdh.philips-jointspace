@@ -173,7 +173,7 @@ export interface MenuItemsSettingUpdate {
       Nodeid: number;
       Controllable?: string;
       Available?: string;
-      data?: { value?: string | number | boolean };
+      data?: { value?: string | number | boolean; selected_item?: number };
     };
   }>;
 }
