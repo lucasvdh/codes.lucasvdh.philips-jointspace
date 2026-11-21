@@ -1,0 +1,29 @@
+{
+  "id": "picture_style_changed",
+  "title": {
+    "en": "Picture style changed",
+    "nl": "Beeldstijl gewijzigd",
+    "de": "Bildstil geändert",
+    "fr": "Style d'image modifié"
+  },
+  "tokens": [
+    {
+      "name": "style",
+      "type": "string",
+      "title": {
+        "en": "Picture style",
+        "nl": "Beeldstijl",
+        "de": "Bildstil",
+        "fr": "Style d'image"
+      },
+      "example": "Movie"
+    }
+  ],
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=philips-jointspace"
+    }
+  ]
+}

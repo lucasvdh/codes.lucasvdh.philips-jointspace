@@ -22,6 +22,16 @@ import {
 import { ForbiddenError, NotFoundError } from "./errors";
 import { activityLog, deviceScope } from "./activity-log";
 import { mergeMacs, resolveWakeInfo, sendMagicPackets, wakeUntilReachable } from "./wake";
+import {
+  AMBILIGHT_OFF,
+  currentAmbilightMode,
+  currentPictureStyle,
+  extractMenuCapabilities,
+  MenuCapabilities,
+  MenuCurrentResponse,
+  menuNodesToRead,
+  MenuOption,
+} from "./menu";
 
 const CAPABILITY_DEBOUNCE_MS = 100;
 const INIT_OFF_FALLBACK_MS = 3_000;
@@ -71,6 +81,7 @@ interface PhilipsTvDriverLike {
   triggerAmbiHueChangedTrigger(device: Homey.Device, args: { enabled: boolean }): Promise<unknown>;
   triggerAmbilightChangedTrigger(device: Homey.Device, args: { enabled: boolean }): Promise<unknown>;
   triggerAmbilightModeChangedTrigger(device: Homey.Device, args: { mode: string }): Promise<unknown>;
+  triggerPictureStyleChangedTrigger(device: Homey.Device, args: { style: string }): Promise<unknown>;
 }
 
 const KEY_CAPABILITY_TO_TV_KEY: Record<string, string> = {
@@ -134,9 +145,14 @@ const STORE_CREDENTIALS = "credentials";
 const STORE_CANONICAL_ID = "canonicalId";
 const STORE_WAKE_MACS = "wakeMacs";
 const STORE_WAKE_ON_LAN_ENABLED = "wakeOnLanEnabled";
+const STORE_MENU_CAPABILITIES = "menuCapabilities";
+// capability id -> the option list last applied with setCapabilityOptions
+const STORE_APPLIED_OPTIONS = "appliedCapabilityOptions";
 
 const CAPABILITY_SCREEN_ON = "screen_on";
 const CAPABILITY_CURRENT_SOURCE = "current_source";
+const CAPABILITY_PICTURE_STYLE = "picture_style";
+const CAPABILITY_AMBILIGHT_MODE = "ambilight_mode";
 
 class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   private api!: JointspaceApi;
@@ -165,6 +181,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   private notRespondingWarningShown = false;
   private failureTriggeredRefresh = false;
   private screenOnListenerRegistered = false;
+  private pictureStyleListenerRegistered = false;
 
   error(...args: unknown[]): void {
     super.error(...args);
@@ -193,6 +210,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     this.registerCapabilityListeners();
     await this.applyScreenStateCapability();
     await this.applyCurrentSourceCapability();
+    await this.applyMenuCapabilities();
     await this.setVolumeSliderBounds();
 
     // If we don't hear from the TV within INIT_OFF_FALLBACK_MS, assume it's
@@ -221,6 +239,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     // Both calls are idempotent.
     await this.applyScreenStateCapability();
     await this.applyCurrentSourceCapability();
+    await this.applyMenuCapabilities();
 
     const notifyChangeSupported = (this.getStoreValue(STORE_NOTIFY_CHANGE_SUPPORTED) as boolean | null) ?? true;
     const osType = this.getStoreValue(STORE_OS_TYPE) as string | null;
@@ -483,9 +502,17 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   }
 
   async setAmbilightMode(mode: string): Promise<void> {
-    if (mode === "off") {
+    if (mode === AMBILIGHT_OFF) {
       await this.setAmbilight(false);
-      await this.setCapabilityValue("ambilight_mode", mode).catch(this.error.bind(this));
+      await this.setCapabilityValue(CAPABILITY_AMBILIGHT_MODE, mode).catch(this.error.bind(this));
+      return;
+    }
+    const menuOption = this.menuOption(this.menuCapabilities()?.ambilight?.options, mode);
+    if (menuOption) {
+      await this.api.setMenuListValue(menuOption.nodeId, menuOption.enumId);
+      this.log(`Sent: Ambilight mode ${mode} (menu)`);
+      await this.setCapabilityValue(CAPABILITY_AMBILIGHT_MODE, mode).catch(this.error.bind(this));
+      await this.driverApi().triggerAmbilightModeChangedTrigger(this, { mode }).catch(this.error.bind(this));
       return;
     }
     const configuration = AmbilightConfigurations[mode as AmbilightModeKey];
@@ -934,6 +961,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
 
       await this.probeScreenStateSupport();
       await this.probeCurrentSourceSupport();
+      await this.probeMenuCapabilities();
 
       const advertised = extractTransportConfig(system);
       const transport = await this.verifyAdvertisedTransport(advertised, osType);
@@ -1077,6 +1105,142 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     }
   }
 
+
+  // --- settings menu: picture style and the Ambilight style list --------
+
+  private menuCapabilities(): MenuCapabilities | null {
+    return (this.getStoreValue(STORE_MENU_CAPABILITIES) as MenuCapabilities | null) ?? null;
+  }
+
+  private menuOption(options: MenuOption[] | undefined, id: string): MenuOption | undefined {
+    return options?.find((o) => o.id === id && o.enumId >= 0);
+  }
+
+  /**
+   * Reads which picture styles and Ambilight styles this TV offers. A 403/404
+   * means the TV has no menu API; any other error keeps the last known result.
+   */
+  private async probeMenuCapabilities(): Promise<void> {
+    let capabilities: MenuCapabilities;
+    try {
+      capabilities = extractMenuCapabilities(await this.api.getMenuStructure());
+    } catch (err) {
+      if (!(err instanceof NotFoundError || err instanceof ForbiddenError)) return;
+      capabilities = { pictureStyle: null, ambilight: null };
+    }
+    if (JSON.stringify(capabilities) === JSON.stringify(this.menuCapabilities())) return;
+    this.log(
+      `Settings menu: picture style ${capabilities.pictureStyle?.options.length ?? 0} options, ` +
+      `Ambilight style ${capabilities.ambilight?.options.length ?? 0} options`,
+    );
+    await this.setStoreValue(STORE_MENU_CAPABILITIES, capabilities);
+  }
+
+  private async applyMenuCapabilities(): Promise<void> {
+    const menu = this.menuCapabilities();
+
+    const picture = menu?.pictureStyle;
+    if (picture && picture.options.length > 0) {
+      if (!this.hasCapability(CAPABILITY_PICTURE_STYLE)) {
+        await this.addCapability(CAPABILITY_PICTURE_STYLE).catch((err: Error) =>
+          this.error(`addCapability(${CAPABILITY_PICTURE_STYLE}) failed:`, err),
+        );
+      }
+      if (this.hasCapability(CAPABILITY_PICTURE_STYLE) && !this.pictureStyleListenerRegistered) {
+        this.registerCapabilityListener(CAPABILITY_PICTURE_STYLE, (value: string) => this.setPictureStyle(value));
+        this.pictureStyleListenerRegistered = true;
+      }
+      await this.applyCapabilityValues(CAPABILITY_PICTURE_STYLE, picture.options);
+    } else if (menu && this.hasCapability(CAPABILITY_PICTURE_STYLE)) {
+      await this.removeCapability(CAPABILITY_PICTURE_STYLE).catch((err: Error) =>
+        this.error(`removeCapability(${CAPABILITY_PICTURE_STYLE}) failed:`, err),
+      );
+      this.pictureStyleListenerRegistered = false;
+    }
+
+    // Without a menu the manifest's fixed Ambilight list stays in place.
+    if (menu?.ambilight) await this.applyCapabilityValues(CAPABILITY_AMBILIGHT_MODE, menu.ambilight.options);
+  }
+
+  /** Limits an enum capability to the options this TV offers. setCapabilityOptions is expensive, so only on change. */
+  private async applyCapabilityValues(capabilityId: string, options: MenuOption[]): Promise<void> {
+    const values = options.map((o) => ({ id: o.id, title: this.capabilityValueTitle(capabilityId, o) }));
+    const applied = (this.getStoreValue(STORE_APPLIED_OPTIONS) as Record<string, string> | null) ?? {};
+    const signature = JSON.stringify(values);
+    if (applied[capabilityId] === signature) return;
+    try {
+      await this.setCapabilityOptions(capabilityId, { values });
+      await this.setStoreValue(STORE_APPLIED_OPTIONS, { ...applied, [capabilityId]: signature });
+      this.log(`${capabilityId} options: ${options.map((o) => o.id).join(", ")}`);
+    } catch (err) {
+      this.error(`setCapabilityOptions(${capabilityId}) failed:`, err);
+    }
+  }
+
+  private capabilityValueTitle(capabilityId: string, option: MenuOption): Record<string, string> {
+    const manifest = this.homey.manifest as { capabilities?: Record<string, { values?: Array<{ id: string; title: Record<string, string> }> }> };
+    const known = manifest.capabilities?.[capabilityId]?.values?.find((v) => v.id === option.id);
+    return known?.title ?? { en: option.fallbackTitle };
+  }
+
+  private optionName(capabilityId: string, option: MenuOption): string {
+    const title = this.capabilityValueTitle(capabilityId, option);
+    return title[this.homey.i18n.getLanguage()] ?? title.en ?? option.id;
+  }
+
+  /** For the flow card autocomplete. */
+  getPictureStyleOptions(): Array<{ id: string; name: string }> {
+    return (this.menuCapabilities()?.pictureStyle?.options ?? []).map((o) => ({
+      id: o.id,
+      name: this.optionName(CAPABILITY_PICTURE_STYLE, o),
+    }));
+  }
+
+  async setPictureStyle(id: string): Promise<void> {
+    const option = this.menuOption(this.menuCapabilities()?.pictureStyle?.options, id);
+    if (!option) throw new Error(`This TV has no picture style "${id}"`);
+    await this.api.setMenuListValue(option.nodeId, option.enumId);
+    this.log(`Sent: picture style ${id}`);
+    this.applyPictureStyle(option, "set");
+  }
+
+  private applyPictureStyle(option: MenuOption, source: StateChangeSource | "set"): void {
+    const current = this.getCapabilityValue(CAPABILITY_PICTURE_STYLE) as string | null;
+    if (current === option.id) return;
+    this.log(`Picture style ${current ?? "?"} -> ${option.id} (${source})`);
+    this.setCapabilityValue(CAPABILITY_PICTURE_STYLE, option.id).catch(this.error.bind(this));
+    void this.driverApi()
+      .triggerPictureStyleChangedTrigger(this, { style: this.optionName(CAPABILITY_PICTURE_STYLE, option) })
+      .catch(this.error.bind(this));
+  }
+
+  menuNodesToPoll(): number[] {
+    const menu = this.menuCapabilities();
+    return menu ? menuNodesToRead(menu) : [];
+  }
+
+  handleMenuValues(source: StateChangeSource, values: MenuCurrentResponse): void {
+    const menu = this.menuCapabilities();
+    if (!menu) return;
+
+    if (menu.pictureStyle && this.hasCapability(CAPABILITY_PICTURE_STYLE)) {
+      const id = currentPictureStyle(menu.pictureStyle, values);
+      const option = id ? menu.pictureStyle.options.find((o) => o.id === id) : undefined;
+      if (option) this.applyPictureStyle(option, source);
+    }
+
+    if (menu.ambilight) {
+      const mode = currentAmbilightMode(menu.ambilight, values);
+      const current = this.getCapabilityValue(CAPABILITY_AMBILIGHT_MODE) as string | null;
+      if (mode && mode !== current) {
+        this.log(`Ambilight mode ${current ?? "?"} -> ${mode} (${source}, menu)`);
+        this.setCapabilityValue(CAPABILITY_AMBILIGHT_MODE, mode).catch(this.error.bind(this));
+        void this.driverApi()
+          .triggerAmbilightModeChangedTrigger(this, { mode })
+          .catch(this.error.bind(this));
+      }
+    }
+  }
 
   private async migrateCapabilities(): Promise<void> {
     for (const capability of NEW_CAPABILITIES) {
