@@ -93,6 +93,28 @@ export function extractSystemMetadata(system: SystemInfo): SystemMetadata {
   };
 }
 
+/**
+ * Optional capabilities and whether /system's jsonfeatures says the TV has the
+ * feature behind them. null when the TV doesn't report jsonfeatures at all.
+ */
+export function featureCapabilities(system: SystemInfo): Record<string, boolean | null> {
+  const features = system.featuring?.jsonfeatures;
+  const has = (list: string[] | undefined, item?: string): boolean | null => {
+    if (!features) return null;
+    if (!Array.isArray(list)) return false;
+    return item ? list.includes(item) : list.length > 0;
+  };
+  const ambilight = has(features?.ambilight, "Ambilight");
+  return {
+    ambilight_onoff: ambilight,
+    ambilight_mode: ambilight,
+    key_toggle_ambilight: ambilight,
+    ambihue_onoff: has(features?.ambilight, "Hue"),
+    key_record: has(features?.recordings),
+    current_application: has(features?.applications),
+  };
+}
+
 export function extractSecuredTransport(system: SystemInfo): boolean {
   const value = system.featuring?.systemfeatures?.secured_transport;
   return value === true || value === "true";

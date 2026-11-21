@@ -217,8 +217,8 @@ export class StatePoller {
     const menuNodes = this.listener.menuNodesToPoll?.() ?? [];
     const steps: Array<{ name: string; run: () => Promise<unknown>; apply: (value: unknown) => void; gateCapability?: string }> = [
       { name: "audio/volume",                   run: () => this.api.getAudioData(),     apply: (v) => this.listener.handleAudioChange("poll", v as AudioData) },
-      { name: "HueLamp/power",                  run: () => this.api.getAmbiHue(),       apply: (v) => this.listener.handleAmbiHueChange("poll", v as AmbiHueState) },
-      { name: "ambilight/currentconfiguration", run: () => this.api.getAmbilight(),     apply: (v) => this.listener.handleAmbilightChange("poll", v as AmbilightConfiguration) },
+      { name: "HueLamp/power",                  run: () => this.api.getAmbiHue(),       apply: (v) => this.listener.handleAmbiHueChange("poll", v as AmbiHueState), gateCapability: "ambihue_onoff" },
+      { name: "ambilight/currentconfiguration", run: () => this.api.getAmbilight(),     apply: (v) => this.listener.handleAmbilightChange("poll", v as AmbilightConfiguration), gateCapability: "ambilight_onoff" },
       { name: "powerstate",                     run: () => this.api.getPowerState(),    apply: (v) => this.listener.handlePowerStateChange("poll", v as PowerState) },
       { name: "sources/current",                run: () => this.api.getCurrentSource(), apply: (v) => this.listener.handleCurrentSourceChange("poll", v as CurrentSource), gateCapability: "current_source" },
     ];
