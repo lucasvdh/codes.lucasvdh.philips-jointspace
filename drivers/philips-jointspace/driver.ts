@@ -31,11 +31,8 @@ interface DiscoveryHint {
 
 interface DeviceDescriptor {
   name: string;
-  data: {
-    id: string;
-    mac: string | null;
-    credentials: Partial<JointspaceCredentials>;
-  };
+  // Only the identity: Homey hides already-paired devices by comparing data.
+  data: { id: string };
   settings: {
     ipAddress: string;
     apiVersion: number;
@@ -46,7 +43,7 @@ interface DeviceDescriptor {
   // independent of which transport (HTTP/HTTPS) the TV serves on.
   pairingType?: string;
   httpsUnavailable?: boolean;
-  store?: { wakeMacs: string[] };
+  store: { wakeMacs: string[]; credentials?: JointspaceCredentials };
   // Ids this TV may already be paired under; data.id plus the USN form.
   aliases: string[];
 }
@@ -132,12 +129,17 @@ class PhilipsTvDriver extends Homey.Driver {
     this.trace("--- pair session started ---");
     this.registerSharedPairHandlers(session, ctx, async (credentials) => {
       this.trace("Pairing succeeded");
-      if (ctx.selected && credentials) ctx.selected.data.credentials = credentials;
+      if (ctx.selected && credentials) ctx.selected.store.credentials = { user: credentials.user, pass: credentials.pass };
       await session.showView("add_my_device");
     });
-    session.setHandler("getDevice", async () => ctx.selected);
+    session.setHandler("getDevice", async () => {
+      if (!ctx.selected) return null;
+      const { name, data, settings, store } = ctx.selected;
+      return { name, data, settings, store };
+    });
     session.setHandler("createDeviceFailed", async (message: string) => {
-      this.trace(`createDevice failed: ${message}`, JSON.stringify({ data: { ...ctx.selected?.data, credentials: "<redacted>" }, store: ctx.selected?.store }));
+      const store = ctx.selected ? { ...ctx.selected.store, credentials: ctx.selected.store.credentials ? "<redacted>" : undefined } : null;
+      this.trace(`createDevice failed: ${message}`, JSON.stringify({ data: ctx.selected?.data, store }));
     });
   }
 
@@ -248,7 +250,7 @@ class PhilipsTvDriver extends Homey.Driver {
     // when Repair re-points the device.
     await device.setStoreValue("canonicalId", null);
     // Repair may point at a different TV; drop the old TV's MACs.
-    await device.setStoreValue("wakeMacs", descriptor.store?.wakeMacs ?? []);
+    await device.setStoreValue("wakeMacs", descriptor.store.wakeMacs);
     await device.setStoreValue("wakeOnLanEnabled", null);
 
     await device.setSettings({
@@ -496,8 +498,9 @@ class PhilipsTvDriver extends Homey.Driver {
       name: "Philips TV",
       // Placeholder; replaced with the canonical id after we've called
       // getSystem() and know the serial / can fall back to USN.
-      data: { id: ip, mac: null, credentials: {} },
+      data: { id: ip },
       settings: { ipAddress: ip, apiVersion: 1, secure: false, port: 1925 },
+      store: { wakeMacs: [] },
       aliases: [],
     };
 
@@ -529,8 +532,7 @@ class PhilipsTvDriver extends Homey.Driver {
       async () => [],
       (...args) => this.trace("[wake]", ...args),
     );
-    descriptor.data.mac = wake.macs[0] ?? null;
-    descriptor.store = { wakeMacs: wake.macs };
+    descriptor.store.wakeMacs = wake.macs;
     return descriptor;
   }
 }
