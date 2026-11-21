@@ -48,6 +48,19 @@ poll interval. `pollOnce` logs each fetched value too:
 [poller]   poll[ambilight/currentconfiguration] = {"styleName":"FOLLOW_VIDEO",…}
 ```
 
+## An idle notifyChange ends with a connection reset
+
+When nothing changes, MSAF firmware never answers the long-poll. It
+resets the connection after 60-120 s (measured on a 49PUS6412: 61 s,
+87 s, 94 s). That is the normal "no changes" outcome, so
+`JointspaceApi.notifyChange` returns `null` for it: no retry, no `✗`
+log line. The loop starts the next long-poll right away and only logs
+it with `debug` on.
+
+A reset within 10 s (`NOTIFY_MIN_IDLE_MS`) is treated as a fault and
+backs off for 60 s, so a TV that keeps dropping the connection can't
+put the loop in a tight retry cycle.
+
 ## Capability handler gates can swallow updates during startup
 
 When a `handleXChange` handler depends on the value of another

@@ -79,6 +79,8 @@ interface RequestOptions {
   prefixApiVersion?: boolean;
   timeoutMs?: number;
   requireAuth?: boolean;
+  // Long-poll: a reset after a while is the TV ending it, not a failure. Don't retry or log it.
+  idleResetIsExpected?: boolean;
 }
 
 export class JointspaceApi {
@@ -569,14 +571,21 @@ export class JointspaceApi {
       ? { notification: lastState }
       : this.buildInitialNotifyPayload();
 
-    return this.request<NotifyChangeState>({
-      method: "POST",
-      path: "notifychange",
-      data: payload,
-      port: HTTP_PORT,
-      protocol: "http",
-      timeoutMs: NOTIFY_CHANGE_TIMEOUT_MS,
-    });
+    try {
+      return await this.request<NotifyChangeState>({
+        method: "POST",
+        path: "notifychange",
+        data: payload,
+        port: HTTP_PORT,
+        protocol: "http",
+        timeoutMs: NOTIFY_CHANGE_TIMEOUT_MS,
+        idleResetIsExpected: true,
+      });
+    } catch (err) {
+      // MSAF firmware answers "nothing changed" by resetting the connection after 60-120s.
+      if (err instanceof ProtocolError) return null;
+      throw err;
+    }
   }
 
   getPossibleKeys(): InputKeyDescriptor[] {
@@ -667,7 +676,9 @@ export class JointspaceApi {
         const code = (err as AxiosError | NodeJS.ErrnoException).code ?? (err as Error).name;
         // Errors always logged - the failure code is genuinely useful and
         // not noisy. Successful requests are gated behind `debug`.
-        this.log("✗", code, opts.method, url, `(${Date.now() - startedAt}ms)`);
+        if (!(opts.idleResetIsExpected && err instanceof ProtocolError)) {
+          this.log("✗", code, opts.method, url, `(${Date.now() - startedAt}ms)`);
+        }
         throw err;
       }
     };
@@ -703,7 +714,7 @@ export class JointspaceApi {
     try {
       return await send();
     } catch (err) {
-      if (this.isRetryableProtocolError(err)) {
+      if (!opts.idleResetIsExpected && this.isRetryableProtocolError(err)) {
         this.log(`Retrying after ${(err as Error).message} on ${opts.method} ${requestConfig.url}`);
         try {
           return await send();
