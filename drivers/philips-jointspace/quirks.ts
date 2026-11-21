@@ -1,3 +1,6 @@
+import * as crypto from "crypto";
+
+import { JOINTSPACE_SHARED_KEY } from "./shared-key";
 import type { SystemInfo } from "./types";
 
 export interface SystemMetadata {
@@ -123,21 +126,55 @@ export function extractCanonicalId(
   fallback: { usn?: string; mdnsName?: string; ip: string },
 ): string {
   if (system.serialnumber) return `serial-${system.serialnumber}`;
-  // Android-XTV (MSAF) firmware doesn't expose serialnumber in plaintext;
-  // it wraps it in a deterministic base64 ciphertext that's per-TV stable,
-  // so we can use it as an identifier without ever decrypting. The trailing
-  // newline that Philips emits on these fields is stripped to keep the id
-  // tidy.
-  const encSerial = system.serialnumber_encrypted?.trim();
-  if (encSerial) return `enc-serial-${encSerial}`;
-  const encDeviceId = system.deviceid_encrypted?.trim();
-  if (encDeviceId) return `enc-device-${encDeviceId}`;
+  // Some firmwares pick a random IV per response, so only the plaintext is stable.
+  const serial = decryptSystemField(system.serialnumber_encrypted);
+  if (serial) return `serial-${serial}`;
+  const deviceId = decryptSystemField(system.deviceid_encrypted);
+  if (deviceId) return `deviceid-${deviceId}`;
   if (fallback.usn) {
-    const m = fallback.usn.match(/uuid:([0-9a-f-]+)/i);
-    if (m) return `uuid-${m[1]}`;
+    const fromUsn = legacyUsnToCanonicalId(fallback.usn);
+    if (fromUsn) return fromUsn;
   }
   if (fallback.mdnsName) return `mdns-${fallback.mdnsName}`;
   return `ip-${fallback.ip}`;
+}
+
+/** Decrypts a `*_encrypted` /system field: AES-128-CBC, IV in the first 16 bytes. */
+export function decryptSystemField(value: string | undefined): string | null {
+  if (!value) return null;
+  try {
+    const raw = Buffer.from(value.trim(), "base64");
+    if (raw.length < 32 || raw.length % 16 !== 0) return null;
+    const decipher = crypto.createDecipheriv("aes-128-cbc", JOINTSPACE_SHARED_KEY.subarray(0, 16), raw.subarray(0, 16));
+    const plain = Buffer.concat([decipher.update(raw.subarray(16)), decipher.final()]).toString("utf8").trim();
+    return plain && /^[\x20-\x7e]+$/.test(plain) ? plain : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Every id a stored `data.id` or canonical id may also be known by. Ids from
+ * before 3.8.4 hold the ciphertext (`enc-serial-`, `enc-device-`) or an SSDP USN.
+ */
+export function canonicalIdAliases(id: string): string[] {
+  const aliases = [id];
+  const fromUsn = legacyUsnToCanonicalId(id);
+  if (fromUsn) aliases.push(fromUsn);
+  if (id.startsWith("enc-serial-")) {
+    const serial = decryptSystemField(id.slice("enc-serial-".length));
+    if (serial) aliases.push(`serial-${serial}`);
+  }
+  if (id.startsWith("enc-device-")) {
+    const deviceId = decryptSystemField(id.slice("enc-device-".length));
+    if (deviceId) aliases.push(`deviceid-${deviceId}`);
+  }
+  return aliases;
+}
+
+/** Whether a stored canonical id should be recomputed: ciphertext ids aren't stable on every TV. */
+export function isUnstableCanonicalId(id: string): boolean {
+  return id.startsWith("enc-serial-") || id.startsWith("enc-device-");
 }
 
 /**

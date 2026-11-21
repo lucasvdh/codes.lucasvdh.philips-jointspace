@@ -5,7 +5,7 @@ import Homey from "homey";
 import { JointspaceApi } from "./jointspace-api";
 import { StatePoller, StateChangeListener, StateChangeSource } from "./state-poller";
 import { AmbilightConfigurations, ambilightModeFromConfiguration, AmbilightModeKey } from "./enums";
-import { extractCanonicalId, extractSystemMetadata, extractTransportConfig, osHasAmbilightModeQuirk, osPollIntervalMs, osRequiresHttpsForAuthenticatedEndpoints, osSupportsGoogleAssistant } from "./quirks";
+import { extractCanonicalId, extractSystemMetadata, isUnstableCanonicalId, extractTransportConfig, osHasAmbilightModeQuirk, osPollIntervalMs, osRequiresHttpsForAuthenticatedEndpoints, osSupportsGoogleAssistant } from "./quirks";
 import {
   AmbiHueState,
   AmbilightConfiguration,
@@ -882,12 +882,14 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
    * recognise this TV regardless of which legacy id was originally stored.
    */
   private async backfillCanonicalId(system: import("./types").SystemInfo): Promise<void> {
-    if (this.getStoreValue(STORE_CANONICAL_ID)) return;
+    const stored = this.getStoreValue(STORE_CANONICAL_ID) as string | null;
+    if (stored && !isUnstableCanonicalId(stored)) return;
     const legacyId = this.deviceData.id;
     const canonical = extractCanonicalId(system, {
       usn: legacyId.startsWith("uuid:") ? legacyId : undefined,
       ip: this.deviceSettings.ipAddress,
     });
+    if (canonical === stored) return;
     try {
       await this.setStoreValue(STORE_CANONICAL_ID, canonical);
       this.log(`Backfilled canonicalId=${canonical} (legacy data.id=${legacyId})`);

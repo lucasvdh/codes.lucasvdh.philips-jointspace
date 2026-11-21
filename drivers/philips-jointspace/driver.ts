@@ -19,7 +19,7 @@ import {
   PairDevice,
   PairingState,
 } from "./types";
-import { extractCanonicalId, extractPairingType, legacyUsnToCanonicalId } from "./quirks";
+import { canonicalIdAliases, extractCanonicalId, extractPairingType } from "./quirks";
 import { classifyPinError, describePairingError, PAIR_DEVICE_INFO, probeTransport, singleFlight } from "./pairing-logic";
 import { activityLog, PAIRING_SCOPE } from "./activity-log";
 import { resolveWakeInfo } from "./wake";
@@ -47,6 +47,8 @@ interface DeviceDescriptor {
   pairingType?: string;
   httpsUnavailable?: boolean;
   store?: { wakeMacs: string[] };
+  // Ids this TV may already be paired under; data.id plus the USN form.
+  aliases: string[];
 }
 
 interface PairContext {
@@ -55,6 +57,8 @@ interface PairContext {
   selected: DeviceDescriptor | null;
   pairingApi: JointspaceApi | null;
   pairingState: PairingState | null;
+  // Repair may rediscover the device it repairs; dedup must not hide it.
+  repairing: Homey.Device | null;
 }
 
 class PhilipsTvDriver extends Homey.Driver {
@@ -146,7 +150,7 @@ class PhilipsTvDriver extends Homey.Driver {
    * Triggered from the device's overflow menu → Repair in the Homey UI.
    */
   async onRepair(session: Homey.Driver.PairSession, device: Homey.Device): Promise<void> {
-    const ctx = this.createPairContext();
+    const ctx = this.createPairContext(device);
     this.trace("--- repair session started ---");
     this.registerSharedPairHandlers(session, ctx, async (credentials) => {
       this.trace("Repair succeeded");
@@ -156,8 +160,9 @@ class PhilipsTvDriver extends Homey.Driver {
     });
   }
 
-  private createPairContext(): PairContext {
+  private createPairContext(repairing: Homey.Device | null = null): PairContext {
     return {
+      repairing,
       ip: null,
       candidates: [],
       selected: null,
@@ -269,7 +274,7 @@ class PhilipsTvDriver extends Homey.Driver {
     // the SSDP entry, which gives us a real USN (and thus a uuid fallback)
     // versus mDNS's name-only id.
     const merged = this.mergeDiscoveryResults([...ssdpResults, ...mdnsResults]);
-    const existingIds = this.collectExistingCanonicalIds();
+    const existingIds = this.collectExistingCanonicalIds(ctx.repairing);
 
     const probed = await Promise.allSettled(merged.map((r) => this.deviceFromDiscoveryResult(r)));
     ctx.candidates = probed
@@ -278,7 +283,7 @@ class PhilipsTvDriver extends Homey.Driver {
           p.status === "fulfilled" && p.value !== null,
       )
       .map((p) => p.value)
-      .filter((d) => !existingIds.has(d.data.id));
+      .filter((d) => !this.isAlreadyPaired(d, existingIds));
 
     const hadDiscoveryResults = merged.length > 0;
 
@@ -305,27 +310,21 @@ class PhilipsTvDriver extends Homey.Driver {
     return out;
   }
 
-  /**
-   * Build the set of canonical ids we consider "already paired", for
-   * deduplication during pair. We include three layers per existing device:
-   *   1. store.canonicalId (set on first onInit after upgrade)
-   *   2. data.id verbatim (matches new-style canonical ids directly, and
-   *      catches legacy USN/IP strings)
-   *   3. uuid- form derived from a legacy USN data.id (so a re-pair of a
-   *      device that was added pre-canonical via SSDP still dedupes against
-   *      a fresh probe that lands on the uuid fallback)
-   */
-  private collectExistingCanonicalIds(): Set<string> {
+  /** Every id an already-paired TV may be known by, for deduplication during pair. */
+  private collectExistingCanonicalIds(exclude: Homey.Device | null): Set<string> {
     const ids = new Set<string>();
     for (const d of this.getDevices()) {
+      if (exclude && d.getData().id === exclude.getData().id) continue;
       const stored = d.getStoreValue("canonicalId") as string | null;
-      if (stored) ids.add(stored);
-      const dataId = d.getData().id as string;
-      ids.add(dataId);
-      const fromUsn = legacyUsnToCanonicalId(dataId);
-      if (fromUsn) ids.add(fromUsn);
+      for (const id of [stored, d.getData().id as string]) {
+        if (id) for (const alias of canonicalIdAliases(id)) ids.add(alias);
+      }
     }
     return ids;
+  }
+
+  private isAlreadyPaired(candidate: DeviceDescriptor, existingIds: Set<string>): boolean {
+    return candidate.aliases.some((id) => existingIds.has(id));
   }
 
   private async handleCheckIpView(session: Homey.Driver.PairSession, ctx: PairContext): Promise<void> {
@@ -338,8 +337,8 @@ class PhilipsTvDriver extends Homey.Driver {
 
     try {
       const candidate = await this.deviceFromIp(ctx.ip);
-      const existingIds = this.collectExistingCanonicalIds();
-      if (existingIds.has(candidate.data.id)) {
+      const existingIds = this.collectExistingCanonicalIds(ctx.repairing);
+      if (this.isAlreadyPaired(candidate, existingIds)) {
         await session.showView("add_by_ip");
         await session.emit("alert", this.homey.__("error.device_not_found"));
         return;
@@ -499,6 +498,7 @@ class PhilipsTvDriver extends Homey.Driver {
       // getSystem() and know the serial / can fall back to USN.
       data: { id: ip, mac: null, credentials: {} },
       settings: { ipAddress: ip, apiVersion: 1, secure: false, port: 1925 },
+      aliases: [],
     };
 
     const probe = await probeTransport(ip, (...args) => this.trace("[probe-api]", ...args), true);
@@ -522,6 +522,7 @@ class PhilipsTvDriver extends Homey.Driver {
       mdnsName: hint?.mdnsName,
       ip,
     });
+    descriptor.aliases = [descriptor.data.id, ...(hint?.usn ? canonicalIdAliases(hint.usn) : [])];
     // network/devices needs credentials on some TVs; the device fills it in after pairing.
     const wake = await resolveWakeInfo(
       () => this.homey.arp.getMAC(ip),
