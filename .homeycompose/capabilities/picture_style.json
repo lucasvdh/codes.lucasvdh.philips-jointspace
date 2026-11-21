@@ -1,0 +1,151 @@
+{
+  "type": "enum",
+  "title": {
+    "en": "Picture style",
+    "nl": "Beeldstijl",
+    "de": "Bildstil",
+    "fr": "Style d'image"
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": "picker",
+  "uiQuickAction": false,
+  "icon": "assets/capabilities/picture_style.svg",
+  "values": [
+    {
+      "id": "personal",
+      "title": {
+        "en": "Personal",
+        "nl": "Persoonlijk",
+        "de": "Persönlich",
+        "fr": "Personnel"
+      }
+    },
+    {
+      "id": "vivid",
+      "title": {
+        "en": "Vivid",
+        "nl": "Levendig",
+        "de": "Lebhaft",
+        "fr": "Vif"
+      }
+    },
+    {
+      "id": "natural",
+      "title": {
+        "en": "Natural",
+        "nl": "Natuurlijk",
+        "de": "Natürlich",
+        "fr": "Naturel"
+      }
+    },
+    {
+      "id": "standard",
+      "title": {
+        "en": "Standard",
+        "nl": "Standaard",
+        "de": "Standard",
+        "fr": "Standard"
+      }
+    },
+    {
+      "id": "movie",
+      "title": {
+        "en": "Movie",
+        "nl": "Film",
+        "de": "Film",
+        "fr": "Film"
+      }
+    },
+    {
+      "id": "game",
+      "title": {
+        "en": "Game",
+        "nl": "Game",
+        "de": "Spiel",
+        "fr": "Jeu"
+      }
+    },
+    {
+      "id": "monitor",
+      "title": {
+        "en": "Monitor",
+        "nl": "Monitor",
+        "de": "Monitor",
+        "fr": "Moniteur"
+      }
+    },
+    {
+      "id": "eco",
+      "title": {
+        "en": "ECO",
+        "nl": "ECO",
+        "de": "ECO",
+        "fr": "ECO"
+      }
+    },
+    {
+      "id": "hdr_personal",
+      "title": {
+        "en": "HDR Personal",
+        "nl": "HDR Persoonlijk",
+        "de": "HDR Persönlich",
+        "fr": "HDR Personnel"
+      }
+    },
+    {
+      "id": "hdr_vivid",
+      "title": {
+        "en": "HDR Vivid",
+        "nl": "HDR Levendig",
+        "de": "HDR Lebhaft",
+        "fr": "HDR Vif"
+      }
+    },
+    {
+      "id": "hdr_natural",
+      "title": {
+        "en": "HDR Natural",
+        "nl": "HDR Natuurlijk",
+        "de": "HDR Natürlich",
+        "fr": "HDR Naturel"
+      }
+    },
+    {
+      "id": "hdr_movie",
+      "title": {
+        "en": "HDR Movie",
+        "nl": "HDR Film",
+        "de": "HDR Film",
+        "fr": "HDR Film"
+      }
+    },
+    {
+      "id": "hdr_game",
+      "title": {
+        "en": "HDR Game",
+        "nl": "HDR Game",
+        "de": "HDR Spiel",
+        "fr": "HDR Jeu"
+      }
+    },
+    {
+      "id": "isf_day",
+      "title": {
+        "en": "ISF Day",
+        "nl": "ISF Dag",
+        "de": "ISF Tag",
+        "fr": "ISF Jour"
+      }
+    },
+    {
+      "id": "isf_night",
+      "title": {
+        "en": "ISF Night",
+        "nl": "ISF Nacht",
+        "de": "ISF Nacht",
+        "fr": "ISF Nuit"
+      }
+    }
+  ]
+}

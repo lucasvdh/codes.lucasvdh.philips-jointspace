@@ -64,6 +64,7 @@ class PhilipsTvDriver extends Homey.Driver {
   private ambiHueChangedTrigger!: Homey.FlowCardTriggerDevice;
   private ambilightChangedTrigger!: Homey.FlowCardTriggerDevice;
   private ambilightModeChangedTrigger!: Homey.FlowCardTriggerDevice;
+  private pictureStyleChangedTrigger!: Homey.FlowCardTriggerDevice;
   private screenChangedTrigger!: Homey.FlowCardTriggerDevice;
   private currentSourceChangedTrigger!: Homey.FlowCardTriggerDevice;
 
@@ -73,6 +74,7 @@ class PhilipsTvDriver extends Homey.Driver {
     this.ambiHueChangedTrigger = this.homey.flow.getDeviceTriggerCard("ambihue_changed");
     this.ambilightChangedTrigger = this.homey.flow.getDeviceTriggerCard("ambilight_changed");
     this.ambilightModeChangedTrigger = this.homey.flow.getDeviceTriggerCard("ambilight_mode_changed");
+    this.pictureStyleChangedTrigger = this.homey.flow.getDeviceTriggerCard("picture_style_changed");
     this.screenChangedTrigger = this.homey.flow.getDeviceTriggerCard("screen_changed");
     this.currentSourceChangedTrigger = this.homey.flow.getDeviceTriggerCard("current_source_changed");
     this.log("Philips Jointspace driver initialised");
@@ -107,6 +109,10 @@ class PhilipsTvDriver extends Homey.Driver {
 
   triggerAmbilightModeChangedTrigger(device: Homey.Device, args: { mode: string }): Promise<void> {
     return this.ambilightModeChangedTrigger.trigger(device, args);
+  }
+
+  triggerPictureStyleChangedTrigger(device: Homey.Device, args: { style: string }): Promise<void> {
+    return this.pictureStyleChangedTrigger.trigger(device, args);
   }
 
   triggerScreenChangedTrigger(device: Homey.Device, args: { enabled: boolean }): Promise<void> {
