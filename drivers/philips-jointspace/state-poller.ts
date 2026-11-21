@@ -37,6 +37,8 @@ export interface StateChangeListener {
 const DEFAULT_POLL_INTERVAL_MS = 10_000;
 const POLL_REQUEST_SPACING_MS = 1_000;
 const NOTIFY_RETRY_BACKOFF_MS = 60_000;
+// A long-poll closed sooner than this without an answer is a fault, not "no changes".
+const NOTIFY_MIN_IDLE_MS = 10_000;
 
 interface NotifyHandler {
   (source: StateChangeSource, value: unknown): void;
@@ -111,16 +113,26 @@ export class StatePoller {
 
   private async runNotifyLoop(): Promise<void> {
     while (!this.stopped) {
+      const startedAt = Date.now();
       try {
         const state = await this.api.notifyChange(this.lastState);
         this.noteReachable();
         if (state) {
           this.lastState = state;
           this.parseNotifyState(state);
+          continue;
         }
+        const seconds = Math.round((Date.now() - startedAt) / 1000);
+        if (Date.now() - startedAt >= NOTIFY_MIN_IDLE_MS) {
+          if (this.debug) this.log(`notifyChange: no changes, TV ended the long-poll after ${seconds}s; polling again`);
+          continue;
+        }
+        this.log(`notifyChange: TV closed the connection after ${seconds}s without answering; retrying in ${NOTIFY_RETRY_BACKOFF_MS / 1000}s`);
+        await this.delay(NOTIFY_RETRY_BACKOFF_MS);
       } catch (err) {
         if (err instanceof ProtocolError) {
-          // TV closed the lingering connection - that's normal, loop again.
+          this.log(`notifyChange: ${err.message}; retrying in ${NOTIFY_RETRY_BACKOFF_MS / 1000}s`);
+          await this.delay(NOTIFY_RETRY_BACKOFF_MS);
           continue;
         }
         if (err instanceof OfflineError) {
