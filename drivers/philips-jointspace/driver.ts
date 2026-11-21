@@ -132,6 +132,9 @@ class PhilipsTvDriver extends Homey.Driver {
       await session.showView("add_my_device");
     });
     session.setHandler("getDevice", async () => ctx.selected);
+    session.setHandler("createDeviceFailed", async (message: string) => {
+      this.trace(`createDevice failed: ${message}`, JSON.stringify({ data: { ...ctx.selected?.data, credentials: "<redacted>" }, store: ctx.selected?.store }));
+    });
   }
 
   /**
