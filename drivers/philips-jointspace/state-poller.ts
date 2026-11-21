@@ -10,6 +10,7 @@ import {
   ScreenState,
 } from "./types";
 import { OfflineError, ProtocolError } from "./errors";
+import type { MenuCurrentResponse } from "./menu";
 
 export type StateChangeSource = "notify" | "poll";
 
@@ -21,6 +22,9 @@ export interface StateChangeListener {
   handleActivityChange(source: StateChangeSource, state: CurrentActivity): void;
   handleScreenStateChange(source: StateChangeSource, state: ScreenState): void;
   handleCurrentSourceChange(source: StateChangeSource, state: CurrentSource): void;
+  // Settings menu nodes behind dynamic capabilities (picture style, Ambilight style); empty to skip.
+  menuNodesToPoll?(): number[];
+  handleMenuValues?(source: StateChangeSource, values: MenuCurrentResponse): void;
   onPollFailure(error: Error): void;
   onPollSuccess?(): void;
   // Optional hook called whenever notifyChange succeeds. Use it to assert
@@ -210,6 +214,7 @@ export class StatePoller {
   private async pollOnce(): Promise<void> {
     if (this.stopped) return;
 
+    const menuNodes = this.listener.menuNodesToPoll?.() ?? [];
     const steps: Array<{ name: string; run: () => Promise<unknown>; apply: (value: unknown) => void; gateCapability?: string }> = [
       { name: "audio/volume",                   run: () => this.api.getAudioData(),     apply: (v) => this.listener.handleAudioChange("poll", v as AudioData) },
       { name: "HueLamp/power",                  run: () => this.api.getAmbiHue(),       apply: (v) => this.listener.handleAmbiHueChange("poll", v as AmbiHueState) },
@@ -217,6 +222,13 @@ export class StatePoller {
       { name: "powerstate",                     run: () => this.api.getPowerState(),    apply: (v) => this.listener.handlePowerStateChange("poll", v as PowerState) },
       { name: "sources/current",                run: () => this.api.getCurrentSource(), apply: (v) => this.listener.handleCurrentSourceChange("poll", v as CurrentSource), gateCapability: "current_source" },
     ];
+    if (menuNodes.length > 0) {
+      steps.push({
+        name: "menuitems/settings/current",
+        run: () => this.api.getMenuCurrent(menuNodes),
+        apply: (v) => this.listener.handleMenuValues?.("poll", v as MenuCurrentResponse),
+      });
+    }
 
     let anySucceeded = false;
     let transportError: Error | undefined;

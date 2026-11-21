@@ -1,0 +1,38 @@
+{
+  "id": "set_picture_style",
+  "title": {
+    "en": "Set picture style",
+    "nl": "Stel beeldstijl in",
+    "de": "Bildstil einstellen",
+    "fr": "Définir le style d'image"
+  },
+  "titleFormatted": {
+    "en": "Set picture style to [[style]]",
+    "nl": "Stel beeldstijl in op [[style]]",
+    "de": "Bildstil auf [[style]] einstellen",
+    "fr": "Définir le style d'image sur [[style]]"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=philips-jointspace"
+    },
+    {
+      "name": "style",
+      "type": "autocomplete",
+      "placeholder": {
+        "en": "Picture style",
+        "nl": "Beeldstijl",
+        "de": "Bildstil",
+        "fr": "Style d'image"
+      },
+      "title": {
+        "en": "Picture style",
+        "nl": "Beeldstijl",
+        "de": "Bildstil",
+        "fr": "Style d'image"
+      }
+    }
+  ]
+}
