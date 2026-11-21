@@ -43,13 +43,11 @@ import {
   UnauthenticatedError,
 } from "./errors";
 import { PairingStatus } from "./enums";
+import { JOINTSPACE_SHARED_KEY } from "./shared-key";
 import allPossibleInputs from "../../assets/json/allPossibleInputs.json";
 import initialNotifyState from "../../assets/json/notifyChange.json";
 
-const PAIR_SHARED_KEY = Buffer.from(
-  "ZmVay1EQVFOaZhwQ4Kv81ypLAZNczV9sG4KkseXWn1NEk6cXmPKO/MCa9sryslvLCFMnNe4Z4CPXzToowvhHvA==",
-  "base64",
-);
+const PAIR_SHARED_KEY = JOINTSPACE_SHARED_KEY;
 
 const HTTP_PORT = 1925;
 const HTTPS_PORT = 1926;
