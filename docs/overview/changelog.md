@@ -8,6 +8,28 @@ Here, you'll find a list of meaningful changes made to the app, with the most re
 
 <details>
 
+<summary>v3.9.0 - 2026-11</summary>
+
+#### Features
+
+* **Picture style** (issue [#83](https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues/83)). TVs that share their settings menu (`menuitems/settings`) get a `picture_style` capability, a "Set picture style" Flow action and a "Picture style changed" trigger. The options come from the TV itself, so each TV shows its own styles.
+* **Ambilight styles per TV.** On those TVs the Ambilight mode list only shows the styles that TV offers, and they are set through the same menu. TVs without the menu keep the fixed list.
+* The poller reads the menu values too, so picture style and Ambilight style follow changes made with the remote.
+* The diagnostic report shows the TV's settings menu: the options the app derives from it, the current values and the full menu tree.
+* Every action sent to the TV is logged with a `Sent:` line, without needing debug logging.
+
+#### Fixes
+
+* A TV that was already paired was offered as a new device, and its stored id changed on every restart. Some TVs encrypt their serial with a random IV per response; the app now decrypts it, so the id is stable. Repair no longer says the TV was already added.
+* New devices only keep the TV's id in their device data; credentials and MAC addresses moved to the store. Homey then recognises paired TVs itself.
+* Adding a device that Homey rejects now shows the error instead of a spinner, and logs it for the diagnostic report.
+* Ambilight modes whose display name differs per firmware (such as "Party" or `SPECTRUM_ANALYSER`) are recognised again, "Off" switches Ambilight off, and the "Football" style is available as `video_immersive`.
+* An idle `notifychange` long-poll that the TV closes is no longer logged as an error and no longer retried.
+
+</details>
+
+<details>
+
 <summary>v3.8.3 - 2026-11</summary>
 
 #### Fixes
