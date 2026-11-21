@@ -374,6 +374,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   async openApplication(app: SimplifiedApplication): Promise<void> {
     try {
       await this.api.launchActivity(app.intent);
+      this.log(`Sent: open app ${app.name}`);
     } catch (err) {
       this.error(`openApplication(${app.name}) failed`, err);
       throw err;
@@ -436,6 +437,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     };
     try {
       await this.api.launchActivity(intent);
+      this.log("Sent: open Google Assistant");
     } catch (err) {
       this.error("sendGoogleAssistantSearch failed", err);
       throw err;
@@ -445,6 +447,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   async setAmbiHue(state: boolean): Promise<void> {
     try {
       await this.api.setAmbiHue(state);
+      this.log(`Sent: AmbiHue ${state ? "on" : "off"}`);
     } catch (err) {
       this.error(`setAmbiHue(${state}) failed`, err);
       throw err;
@@ -457,6 +460,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   async setScreen(state: boolean): Promise<void> {
     try {
       await this.api.setScreenState(state ? "On" : "Off");
+      this.log(`Sent: screen ${state ? "on" : "off"}`);
     } catch (err) {
       this.error(`setScreen(${state}) failed`, err);
       throw err;
@@ -468,6 +472,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   async setAmbilight(state: boolean): Promise<void> {
     try {
       await this.api.setAmbilight(state);
+      this.log(`Sent: Ambilight ${state ? "on" : "off"}`);
       await this.driverApi()
         .triggerAmbilightChangedTrigger(this, { enabled: state })
         .catch(this.error.bind(this));
@@ -485,6 +490,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     }
     try {
       await this.api.setAmbilightConfiguration(configuration);
+      this.log(`Sent: Ambilight mode ${mode}`);
       await this.setStoreValue(STORE_LAST_AMBILIGHT_MODE, mode).catch(this.error.bind(this));
       await this.driverApi()
         .triggerAmbilightModeChangedTrigger(this, { mode })
@@ -526,6 +532,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   async setChannel(channel: SimplifiedChannel): Promise<void> {
     try {
       await this.api.setChannel(channel.ccid, this.channelListId);
+      this.log(`Sent: channel ${channel.name}`);
     } catch (err) {
       this.error(`setChannel(${channel.name}) failed`, err);
       throw err;
@@ -1015,6 +1022,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   private async onCapabilityScreenOnSet(value: boolean): Promise<void> {
     try {
       await this.api.setScreenState(value ? "On" : "Off");
+      this.log(`Sent: screen ${value ? "on" : "off"}`);
     } catch (err) {
       this.error(`setScreenState(${value}) failed`, err);
       throw err;
@@ -1107,6 +1115,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       const currentVolume = (this.getCapabilityValue("volume_set") as number | null) ?? fallback;
       try {
         await this.api.setVolume(currentVolume, value);
+        this.log(`Sent: mute ${value ? "on" : "off"}`);
       } catch (err) {
         this.error(`volume_mute(${value}) failed`, err);
         throw err;
@@ -1208,6 +1217,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
           },
         ],
       });
+      this.log(`Sent: AmbiHue ${value ? "on" : "off"} (menu setting)`);
     } catch (err) {
       this.error(`ambihue_onoff(${value}) failed`, err);
       throw err;
@@ -1217,6 +1227,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   private async sendKey(key: string): Promise<void> {
     try {
       await this.api.sendKey(key);
+      this.log(`Sent: key ${key}`);
     } catch (err) {
       this.error(`sendKey(${key}) failed:`, err);
     }
@@ -1225,6 +1236,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   private async setVolume(volume: number, mute = false): Promise<void> {
     try {
       await this.api.setVolume(volume, mute);
+      this.log(`Sent: volume ${volume}${mute ? " (muted)" : ""}`);
     } catch (err) {
       this.error(`setVolume(${volume}) failed:`, err);
     }
