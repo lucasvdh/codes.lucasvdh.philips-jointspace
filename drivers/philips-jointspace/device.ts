@@ -5,7 +5,7 @@ import Homey from "homey";
 import { JointspaceApi } from "./jointspace-api";
 import { StatePoller, StateChangeListener, StateChangeSource } from "./state-poller";
 import { AmbilightConfigurations, ambilightModeFromConfiguration, AmbilightModeKey } from "./enums";
-import { extractCanonicalId, extractSystemMetadata, isUnstableCanonicalId, extractTransportConfig, osHasAmbilightModeQuirk, osPollIntervalMs, osRequiresHttpsForAuthenticatedEndpoints, osSupportsGoogleAssistant } from "./quirks";
+import { extractCanonicalId, extractSystemMetadata, featureCapabilities, isUnstableCanonicalId, extractTransportConfig, osHasAmbilightModeQuirk, osPollIntervalMs, osRequiresHttpsForAuthenticatedEndpoints, osSupportsGoogleAssistant } from "./quirks";
 import {
   AmbiHueState,
   AmbilightConfiguration,
@@ -147,6 +147,8 @@ const STORE_CANONICAL_ID = "canonicalId";
 const STORE_WAKE_MACS = "wakeMacs";
 const STORE_WAKE_ON_LAN_ENABLED = "wakeOnLanEnabled";
 const STORE_MENU_CAPABILITIES = "menuCapabilities";
+// capability id -> whether /system says the TV has the feature (absent: unknown, keep)
+const STORE_FEATURE_CAPABILITIES = "featureCapabilities";
 // capability id -> the option list last applied with setCapabilityOptions
 const STORE_APPLIED_OPTIONS = "appliedCapabilityOptions";
 
@@ -154,6 +156,15 @@ const CAPABILITY_SCREEN_ON = "screen_on";
 const CAPABILITY_CURRENT_SOURCE = "current_source";
 const CAPABILITY_PICTURE_STYLE = "picture_style";
 const CAPABILITY_AMBILIGHT_MODE = "ambilight_mode";
+
+// Listeners for capabilities that come and go with the TV's features.
+const FEATURE_LISTENERS: Record<string, (device: PhilipsTvDevice, value: unknown) => Promise<unknown>> = {
+  ambilight_mode: (device, value) => device.setAmbilightMode(value as string),
+  ambilight_onoff: (device, value) => device.setAmbilight(value as boolean),
+  ambihue_onoff: (device, value) => device.setAmbiHueFromCapability(value as boolean),
+  key_toggle_ambilight: (device) => device.sendKeyFromCapability("key_toggle_ambilight"),
+  key_record: (device) => device.sendKeyFromCapability("key_record"),
+};
 
 class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   private api!: JointspaceApi;
@@ -183,6 +194,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   private failureTriggeredRefresh = false;
   private screenOnListenerRegistered = false;
   private pictureStyleListenerRegistered = false;
+  private readonly registeredListeners = new Set<string>();
   // Options the TV currently refuses (e.g. HDR styles without HDR content), from the last menu poll.
   private unavailableMenuOptions = new Set<string>();
 
@@ -213,6 +225,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     this.registerCapabilityListeners();
     await this.applyScreenStateCapability();
     await this.applyCurrentSourceCapability();
+    await this.applyFeatureCapabilities();
     await this.applyMenuCapabilities();
     await this.setVolumeSliderBounds();
 
@@ -242,6 +255,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     // Both calls are idempotent.
     await this.applyScreenStateCapability();
     await this.applyCurrentSourceCapability();
+    await this.applyFeatureCapabilities();
     await this.applyMenuCapabilities();
 
     const notifyChangeSupported = (this.getStoreValue(STORE_NOTIFY_CHANGE_SUPPORTED) as boolean | null) ?? true;
@@ -961,6 +975,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       await this.setStoreValue(STORE_NOTIFY_CHANGE_SUPPORTED, notifyChangeSupported);
       await this.setStoreValue(STORE_PAIRING_TYPE, pairingType);
       await this.backfillCanonicalId(system);
+      await this.setStoreValue(STORE_FEATURE_CAPABILITIES, featureCapabilities(system));
 
       await this.probeScreenStateSupport();
       await this.probeCurrentSourceSupport();
@@ -1109,6 +1124,38 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   }
 
 
+  // --- optional capabilities from /system's jsonfeatures ----------------
+
+  private featureSupport(): Record<string, boolean | null> {
+    return (this.getStoreValue(STORE_FEATURE_CAPABILITIES) as Record<string, boolean | null> | null) ?? {};
+  }
+
+  /** Removes capabilities for features the TV says it lacks (e.g. AmbiHue, recording), and restores them. */
+  private async applyFeatureCapabilities(): Promise<void> {
+    for (const [capabilityId, supported] of Object.entries(this.featureSupport())) {
+      if (supported === false && this.hasCapability(capabilityId)) {
+        this.log(`Removing ${capabilityId}: the TV doesn't report this feature`);
+        await this.removeCapability(capabilityId).catch((err: Error) =>
+          this.error(`removeCapability(${capabilityId}) failed:`, err),
+        );
+        this.registeredListeners.delete(capabilityId);
+      } else if (supported === true && !this.hasCapability(capabilityId)) {
+        await this.addCapability(capabilityId).catch((err: Error) =>
+          this.error(`addCapability(${capabilityId}) failed:`, err),
+        );
+      }
+    }
+    this.registerFeatureListeners();
+  }
+
+  private registerFeatureListeners(): void {
+    for (const [capabilityId, listener] of Object.entries(FEATURE_LISTENERS)) {
+      if (!this.hasCapability(capabilityId) || this.registeredListeners.has(capabilityId)) continue;
+      this.registerCapabilityListener(capabilityId, async (value: unknown) => { await listener(this, value); });
+      this.registeredListeners.add(capabilityId);
+    }
+  }
+
   // --- settings menu: picture style and the Ambilight style list --------
 
   private menuCapabilities(): MenuCapabilities | null {
@@ -1162,7 +1209,9 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     }
 
     // Without a menu the manifest's fixed Ambilight list stays in place.
-    if (menu?.ambilight) await this.applyInitialCapabilityValues(CAPABILITY_AMBILIGHT_MODE, menu.ambilight.options);
+    if (menu?.ambilight && this.hasCapability(CAPABILITY_AMBILIGHT_MODE)) {
+      await this.applyInitialCapabilityValues(CAPABILITY_AMBILIGHT_MODE, menu.ambilight.options);
+    }
   }
 
   /** The full list until the first menu poll narrows it to what the TV allows. */
@@ -1176,7 +1225,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     const unavailable = new Set<string>();
     const lists: Array<[string, MenuOption[] | undefined]> = [
       [CAPABILITY_PICTURE_STYLE, this.hasCapability(CAPABILITY_PICTURE_STYLE) ? menu.pictureStyle?.options : undefined],
-      [CAPABILITY_AMBILIGHT_MODE, menu.ambilight?.options],
+      [CAPABILITY_AMBILIGHT_MODE, this.hasCapability(CAPABILITY_AMBILIGHT_MODE) ? menu.ambilight?.options : undefined],
     ];
     for (const [capabilityId, options] of lists) {
       if (!options) continue;
@@ -1254,7 +1303,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       if (option) this.applyPictureStyle(option, source);
     }
 
-    if (menu.ambilight) {
+    if (menu.ambilight && this.hasCapability(CAPABILITY_AMBILIGHT_MODE)) {
       const mode = currentAmbilightMode(menu.ambilight, values);
       const current = this.getCapabilityValue(CAPABILITY_AMBILIGHT_MODE) as string | null;
       if (mode && mode !== current) {
@@ -1268,7 +1317,9 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   }
 
   private async migrateCapabilities(): Promise<void> {
+    const features = this.featureSupport();
     for (const capability of NEW_CAPABILITIES) {
+      if (features[capability] === false) continue;
       if (!this.hasCapability(capability)) {
         await this.addCapability(capability).catch((err: Error) =>
           this.error(`Failed to add capability ${capability}:`, err),
@@ -1286,7 +1337,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
 
   private registerCapabilityListeners(): void {
     this.registerMultipleCapabilityListener(
-      Object.keys(KEY_CAPABILITY_TO_TV_KEY),
+      Object.keys(KEY_CAPABILITY_TO_TV_KEY).filter((c) => !(c in FEATURE_LISTENERS)),
       async (capabilityValues: Record<string, unknown>) => {
         const [capability] = Object.keys(capabilityValues);
         const tvKey = KEY_CAPABILITY_TO_TV_KEY[capability];
@@ -1297,9 +1348,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     );
 
     this.registerCapabilityListener("onoff", (value: boolean) => this.onCapabilityOnOffSet(value));
-    this.registerCapabilityListener("ambilight_mode", (value: string) => this.setAmbilightMode(value));
-    this.registerCapabilityListener("ambilight_onoff", (value: boolean) => this.setAmbilight(value));
-    this.registerCapabilityListener("ambihue_onoff", (value: boolean) => this.onCapabilityAmbiHueOnOffSet(value));
+    this.registerFeatureListeners();
     this.registerCapabilityListener("speaker_next", () => this.sendKey("Next"));
     this.registerCapabilityListener("speaker_prev", () => this.sendKey("Previous"));
     this.registerCapabilityListener("volume_up", () => this.sendKey("VolumeUp"));
@@ -1416,6 +1465,14 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       this.error(`ambihue_onoff(${value}) failed`, err);
       throw err;
     }
+  }
+
+  setAmbiHueFromCapability(value: boolean): Promise<void> {
+    return this.onCapabilityAmbiHueOnOffSet(value);
+  }
+
+  sendKeyFromCapability(capabilityId: string): Promise<void> {
+    return this.sendKey(KEY_CAPABILITY_TO_TV_KEY[capabilityId]);
   }
 
   private async sendKey(key: string): Promise<void> {
