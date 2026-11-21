@@ -83,7 +83,7 @@ class PhilipsTV extends Homey.App {
           // strips unknown fields from the stored autocomplete result.
           const match = args.app?.id === state?.id || args.app?.name === state?.name;
           this.log(
-            `[trigger:specific_application_opened] args.app=${JSON.stringify(args.app)} state=${JSON.stringify(state)} match=${match}`,
+            `[trigger:specific_application_opened] flow app=${args.app?.name ?? "?"} (${args.app?.id ?? "?"}), opened=${state?.name ?? "?"} (${state?.id ?? "?"}), match=${match}`,
           );
           return match;
         },
