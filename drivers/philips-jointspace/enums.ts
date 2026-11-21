@@ -25,6 +25,7 @@ export const AmbilightConfigurations = {
   color_deep_water: { styleName: "FOLLOW_COLOR", isExpert: false, menuSetting: "DEEP_WATER", stringValue: "Deep Water" },
   video_standard: { styleName: "FOLLOW_VIDEO", isExpert: false, menuSetting: "STANDARD", stringValue: "Standard" },
   video_natural: { styleName: "FOLLOW_VIDEO", isExpert: false, menuSetting: "NATURAL", stringValue: "Natural" },
+  video_immersive: { styleName: "FOLLOW_VIDEO", isExpert: false, menuSetting: "IMMERSIVE", stringValue: "Immersive" },
   video_vivid: { styleName: "FOLLOW_VIDEO", isExpert: false, menuSetting: "VIVID", stringValue: "Vivid" },
   video_game: { styleName: "FOLLOW_VIDEO", isExpert: false, menuSetting: "GAME", stringValue: "Game" },
   video_comfort: { styleName: "FOLLOW_VIDEO", isExpert: false, menuSetting: "COMFORT", stringValue: "Comfort" },
@@ -43,10 +44,16 @@ export const AmbilightConfigurations = {
 
 export type AmbilightModeKey = keyof typeof AmbilightConfigurations;
 
+// Spellings some firmwares report for the same setting (49PUS6412: SPECTRUM_ANALYSER).
+const MENU_SETTING_ALIASES: Record<string, string> = {
+  SPECTRUM_ANALYSER: "SPECTRUM_ANALYZER",
+};
+
+// Matches on style and setting only: stringValue differs per firmware (MODE_RANDOM reads back as "Party").
 export function ambilightModeFromConfiguration(config: AmbilightConfiguration): AmbilightModeKey | undefined {
-  const target = JSON.stringify(config);
+  const setting = config.menuSetting ? (MENU_SETTING_ALIASES[config.menuSetting] ?? config.menuSetting) : undefined;
   for (const [key, value] of Object.entries(AmbilightConfigurations) as [AmbilightModeKey, AmbilightConfiguration][]) {
-    if (JSON.stringify(value) === target) return key;
+    if (value.styleName === config.styleName && value.menuSetting === setting) return key;
   }
   return undefined;
 }

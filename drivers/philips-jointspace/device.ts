@@ -483,6 +483,11 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   }
 
   async setAmbilightMode(mode: string): Promise<void> {
+    if (mode === "off") {
+      await this.setAmbilight(false);
+      await this.setCapabilityValue("ambilight_mode", mode).catch(this.error.bind(this));
+      return;
+    }
     const configuration = AmbilightConfigurations[mode as AmbilightModeKey];
     if (!configuration) {
       this.log("Unknown ambilight mode requested:", mode);
