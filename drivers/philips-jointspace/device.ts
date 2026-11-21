@@ -24,6 +24,7 @@ import { activityLog, deviceScope } from "./activity-log";
 import { mergeMacs, resolveWakeInfo, sendMagicPackets, wakeUntilReachable } from "./wake";
 import {
   AMBILIGHT_OFF,
+  availableOptions,
   currentAmbilightMode,
   currentPictureStyle,
   extractMenuCapabilities,
@@ -182,6 +183,8 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   private failureTriggeredRefresh = false;
   private screenOnListenerRegistered = false;
   private pictureStyleListenerRegistered = false;
+  // Options the TV currently refuses (e.g. HDR styles without HDR content), from the last menu poll.
+  private unavailableMenuOptions = new Set<string>();
 
   error(...args: unknown[]): void {
     super.error(...args);
@@ -1150,7 +1153,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
         this.registerCapabilityListener(CAPABILITY_PICTURE_STYLE, (value: string) => this.setPictureStyle(value));
         this.pictureStyleListenerRegistered = true;
       }
-      await this.applyCapabilityValues(CAPABILITY_PICTURE_STYLE, picture.options);
+      await this.applyInitialCapabilityValues(CAPABILITY_PICTURE_STYLE, picture.options);
     } else if (menu && this.hasCapability(CAPABILITY_PICTURE_STYLE)) {
       await this.removeCapability(CAPABILITY_PICTURE_STYLE).catch((err: Error) =>
         this.error(`removeCapability(${CAPABILITY_PICTURE_STYLE}) failed:`, err),
@@ -1159,7 +1162,29 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     }
 
     // Without a menu the manifest's fixed Ambilight list stays in place.
-    if (menu?.ambilight) await this.applyCapabilityValues(CAPABILITY_AMBILIGHT_MODE, menu.ambilight.options);
+    if (menu?.ambilight) await this.applyInitialCapabilityValues(CAPABILITY_AMBILIGHT_MODE, menu.ambilight.options);
+  }
+
+  /** The full list until the first menu poll narrows it to what the TV allows. */
+  private async applyInitialCapabilityValues(capabilityId: string, options: MenuOption[]): Promise<void> {
+    const applied = (this.getStoreValue(STORE_APPLIED_OPTIONS) as Record<string, string> | null) ?? {};
+    if (applied[capabilityId]) return;
+    await this.applyCapabilityValues(capabilityId, options);
+  }
+
+  private async applyAvailableOptions(menu: MenuCapabilities, values: MenuCurrentResponse): Promise<void> {
+    const unavailable = new Set<string>();
+    const lists: Array<[string, MenuOption[] | undefined]> = [
+      [CAPABILITY_PICTURE_STYLE, this.hasCapability(CAPABILITY_PICTURE_STYLE) ? menu.pictureStyle?.options : undefined],
+      [CAPABILITY_AMBILIGHT_MODE, menu.ambilight?.options],
+    ];
+    for (const [capabilityId, options] of lists) {
+      if (!options) continue;
+      const available = availableOptions(options, values);
+      for (const o of options) if (!available.includes(o)) unavailable.add(`${capabilityId}:${o.id}`);
+      if (available.length > 0) await this.applyCapabilityValues(capabilityId, available);
+    }
+    this.unavailableMenuOptions = unavailable;
   }
 
   /** Limits an enum capability to the options this TV offers. setCapabilityOptions is expensive, so only on change. */
@@ -1190,10 +1215,9 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
 
   /** For the flow card autocomplete. */
   getPictureStyleOptions(): Array<{ id: string; name: string }> {
-    return (this.menuCapabilities()?.pictureStyle?.options ?? []).map((o) => ({
-      id: o.id,
-      name: this.optionName(CAPABILITY_PICTURE_STYLE, o),
-    }));
+    return (this.menuCapabilities()?.pictureStyle?.options ?? [])
+      .filter((o) => !this.unavailableMenuOptions.has(`${CAPABILITY_PICTURE_STYLE}:${o.id}`))
+      .map((o) => ({ id: o.id, name: this.optionName(CAPABILITY_PICTURE_STYLE, o) }));
   }
 
   async setPictureStyle(id: string): Promise<void> {
@@ -1222,6 +1246,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   handleMenuValues(source: StateChangeSource, values: MenuCurrentResponse): void {
     const menu = this.menuCapabilities();
     if (!menu) return;
+    void this.applyAvailableOptions(menu, values).catch(this.error.bind(this));
 
     if (menu.pictureStyle && this.hasCapability(CAPABILITY_PICTURE_STYLE)) {
       const id = currentPictureStyle(menu.pictureStyle, values);
