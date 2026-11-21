@@ -1966,6 +1966,15 @@
           }
         },
         {
+          "id": "video_immersive",
+          "title": {
+            "en": "Video immersive",
+            "nl": "Video meeslepend",
+            "de": "Video immersiv",
+            "fr": "Vidéo immersive"
+          }
+        },
+        {
           "id": "video_vivid",
           "title": {
             "en": "Video vivid",
