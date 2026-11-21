@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import {
+  availableOptions,
   currentAmbilightMode,
   currentPictureStyle,
   extractMenuCapabilities,
@@ -79,4 +80,25 @@ test("a TV without the menu has no dynamic capabilities", () => {
     pictureStyle: null,
     ambilight: null,
   });
+});
+
+test("hides the options the TV marks unavailable", () => {
+  const { pictureStyle, ambilight } = extractMenuCapabilities(structure);
+  const sdr: MenuCurrentResponse = {
+    values: [{
+      value: {
+        Nodeid: 2131230838,
+        data: {
+          selected_item: 2,
+          enum_values: [9, 10, 11, 12, 13].map((enum_id) => ({ enum_id, string_id: "", available: false })),
+        },
+      },
+    }],
+  };
+  assert.deepEqual(
+    availableOptions(pictureStyle!.options, sdr).map((o) => o.id),
+    ["personal", "vivid", "natural", "standard", "movie", "game", "monitor", "isf_day", "isf_night"],
+  );
+  // No availability reported for a node: keep every option.
+  assert.equal(availableOptions(ambilight!.options, sdr).length, ambilight!.options.length);
 });

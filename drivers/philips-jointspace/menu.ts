@@ -208,6 +208,15 @@ export function currentAmbilightMode(capability: AmbilightMenuCapability, respon
   return capability.options.find((o) => o.nodeId === active && o.enumId === selected)?.id ?? null;
 }
 
+/** The options the TV allows right now: HDR picture styles, for example, only while HDR content plays. */
+export function availableOptions(options: MenuOption[], response: MenuCurrentResponse): MenuOption[] {
+  return options.filter((o) => {
+    if (o.enumId < 0) return true;
+    const entry = valueOf(response, o.nodeId)?.data?.enum_values?.find((e) => e.enum_id === o.enumId);
+    return entry?.available !== false;
+  });
+}
+
 /** Node ids to ask menuitems/settings/current for, to read every dynamic capability. */
 export function menuNodesToRead(capabilities: MenuCapabilities): number[] {
   const ids = new Set<number>();
