@@ -1,0 +1,240 @@
+{
+ "node": {
+  "node_id": 2131230722,
+  "type": "PARENT_NODE",
+  "context": "Setup_Menu",
+  "string_id": "org.droidtv.ui.strings.R.string.MAIN_VB_SETUP",
+  "data": {
+   "nodes": [
+    {
+     "node_id": 2131230723,
+     "type": "PARENT_NODE",
+     "context": "picture",
+     "data": {
+      "nodes": [
+       {
+        "node_id": 2131230838,
+        "string_id": "org.droidtv.ui.strings.R.string.MAIN_PICTURE_STYLE",
+        "context": "picture_style",
+        "data": {
+         "enums": [
+          {
+           "enum_id": 1,
+           "string_id": "org.droidtv.ui.strings.R.string.MAIN_PERSONAL"
+          },
+          {
+           "enum_id": 2,
+           "string_id": "org.droidtv.ui.strings.R.string.MAIN_VIVID"
+          },
+          {
+           "enum_id": 3,
+           "string_id": "org.droidtv.ui.strings.R.string.MAIN_NATURAL"
+          },
+          {
+           "enum_id": 4,
+           "string_id": "org.droidtv.ui.strings.R.string.MAIN_STANDARD",
+           "icon": "org.droidtv.ui.tvwidget2k15.R.drawable.eco_16x12_146"
+          },
+          {
+           "enum_id": 5,
+           "string_id": "org.droidtv.ui.strings.R.string.MAIN_MOVIE"
+          },
+          {
+           "enum_id": 6,
+           "string_id": "org.droidtv.ui.strings.R.string.MAIN_GAME"
+          },
+          {
+           "enum_id": 14,
+           "string_id": "org.droidtv.ui.strings.R.string.MAIN_MONITOR"
+          },
+          {
+           "enum_id": 13,
+           "string_id": "org.droidtv.ui.strings.R.string.MAIN_HDR_PERSONAL"
+          },
+          {
+           "enum_id": 9,
+           "string_id": "org.droidtv.ui.strings.R.string.MAIN_HDR_VIVID"
+          },
+          {
+           "enum_id": 10,
+           "string_id": "org.droidtv.ui.strings.R.string.MAIN_HDR_NATURAL"
+          },
+          {
+           "enum_id": 11,
+           "string_id": "org.droidtv.ui.strings.R.string.MAIN_HDR_MOVIE"
+          },
+          {
+           "enum_id": 12,
+           "string_id": "org.droidtv.ui.strings.R.string.MAIN_HDR_GAME"
+          },
+          {
+           "enum_id": 7,
+           "string_id": "org.droidtv.ui.strings.R.string.MAIN_ISF_DAY",
+           "icon": "org.droidtv.ui.tvwidget2k15.R.drawable.isf_16x12_250"
+          },
+          {
+           "enum_id": 8,
+           "string_id": "org.droidtv.ui.strings.R.string.MAIN_ISF_NIGHT",
+           "icon": "org.droidtv.ui.tvwidget2k15.R.drawable.isf_16x12_250"
+          }
+         ]
+        },
+        "type": "LIST_NODE"
+       }
+      ]
+     }
+    },
+    {
+     "node_id": 2131230761,
+     "type": "PARENT_NODE",
+     "context": "ambilight",
+     "data": {
+      "nodes": [
+       {
+        "node_id": 2131230762,
+        "type": "PARENT_NODE",
+        "string_id": "org.droidtv.ui.strings.R.string.MAIN_AMBILIGHT_STYLE",
+        "context": "ambilight_style",
+        "data": {
+         "nodes": [
+          {
+           "node_id": 2131230763,
+           "type": "PARENT_NODE",
+           "string_id": "org.droidtv.ui.strings.R.string.MAIN_AMBILIGHT_STYLE_OFF",
+           "context": "ambilight_off",
+           "data": {}
+          },
+          {
+           "node_id": 2131230764,
+           "string_id": "org.droidtv.ui.strings.R.string.MAIN_FOLLOW_VIDEO",
+           "context": "ambilight_follow_video",
+           "data": {
+            "enums": [
+             {
+              "enum_id": 1,
+              "string_id": "org.droidtv.ui.strings.R.string.MAIN_AMBILIGHT_STANDARD"
+             },
+             {
+              "enum_id": 2,
+              "string_id": "org.droidtv.ui.strings.R.string.MAIN_AMBILIGHT_NATURAL"
+             },
+             {
+              "enum_id": 3,
+              "string_id": "org.droidtv.ui.strings.R.string.MAIN_AMBILIGHT_FOOTBALL"
+             },
+             {
+              "enum_id": 4,
+              "string_id": "org.droidtv.ui.strings.R.string.MAIN_AMBILIGHT_VIVID"
+             },
+             {
+              "enum_id": 8,
+              "string_id": "org.droidtv.ui.strings.R.string.MAIN_AMBILIGHT_VIVID"
+             },
+             {
+              "enum_id": 5,
+              "string_id": "org.droidtv.ui.strings.R.string.MAIN_AMBILIGHT_GAME"
+             },
+             {
+              "enum_id": 6,
+              "string_id": "org.droidtv.ui.strings.R.string.MAIN_AMBILIGHT_COMFORT"
+             },
+             {
+              "enum_id": 7,
+              "string_id": "org.droidtv.ui.strings.R.string.MAIN_AMBILIGHT_RELAX"
+             }
+            ]
+           },
+           "type": "LIST_NODE"
+          },
+          {
+           "node_id": 2131230765,
+           "string_id": "org.droidtv.ui.strings.R.string.MAIN_FOLLOW_AUDIO",
+           "context": "ambilight_follow_audio",
+           "data": {
+            "enums": [
+             {
+              "enum_id": 101,
+              "string_id": "org.droidtv.ui.strings.R.string.MAIN_FOLLOW_AUDIO_STYLE_1"
+             },
+             {
+              "enum_id": 102,
+              "string_id": "org.droidtv.ui.strings.R.string.MAIN_FOLLOW_AUDIO_STYLE_2"
+             },
+             {
+              "enum_id": 103,
+              "string_id": "org.droidtv.ui.strings.R.string.MAIN_FOLLOW_AUDIO_STYLE_3"
+             },
+             {
+              "enum_id": 104,
+              "string_id": "org.droidtv.ui.strings.R.string.MAIN_FOLLOW_AUDIO_STYLE_4"
+             },
+             {
+              "enum_id": 106,
+              "string_id": "org.droidtv.ui.strings.R.string.MAIN_FOLLOW_AUDIO_STYLE_5"
+             },
+             {
+              "enum_id": 107,
+              "string_id": "org.droidtv.ui.strings.R.string.MAIN_FOLLOW_AUDIO_STYLE_6"
+             },
+             {
+              "enum_id": 110,
+              "string_id": "org.droidtv.ui.strings.R.string.MAIN_FOLLOW_AUDIO_STYLE_7"
+             }
+            ]
+           },
+           "type": "LIST_NODE"
+          },
+          {
+           "node_id": 2131230766,
+           "string_id": "org.droidtv.ui.strings.R.string.MAIN_FOLLOW_COLOUR",
+           "context": "ambilight_follow_color",
+           "data": {
+            "enums": [
+             {
+              "enum_id": 201,
+              "string_id": "org.droidtv.ui.strings.R.string.MAIN_LOUNGE_LIGHT_MODE_2"
+             },
+             {
+              "enum_id": 202,
+              "string_id": "org.droidtv.ui.strings.R.string.MAIN_LOUNGE_LIGHT_MODE_3"
+             },
+             {
+              "enum_id": 203,
+              "string_id": "org.droidtv.ui.strings.R.string.MAIN_LOUNGE_LIGHT_MODE_1"
+             },
+             {
+              "enum_id": 207,
+              "string_id": "org.droidtv.ui.strings.R.string.MAIN_WARM_WHITE"
+             },
+             {
+              "enum_id": 204,
+              "string_id": "org.droidtv.ui.strings.R.string.MAIN_COOL_WHITE"
+             }
+            ]
+           },
+           "type": "LIST_NODE"
+          },
+          {
+           "node_id": 2131230767,
+           "type": "PARENT_NODE",
+           "string_id": "org.droidtv.ui.strings.R.string.MAIN_FOLLOW_FLAG",
+           "context": "ambilight_follow_flag",
+           "data": {}
+          },
+          {
+           "node_id": 2131230768,
+           "type": "PARENT_NODE",
+           "string_id": "org.droidtv.ui.strings.R.string.MAIN_FOLLOW_APP",
+           "context": "ambilight_follow_app",
+           "data": {}
+          }
+         ]
+        }
+       }
+      ]
+     }
+    }
+   ]
+  }
+ }
+}
