@@ -9,6 +9,7 @@ import { PairingStatus } from "./enums";
 import {
   currentAmbilightMode,
   currentPictureStyle,
+  currentSliderValue,
   describeMenuTree,
   extractMenuCapabilities,
   MenuCurrentResponse,
@@ -832,6 +833,10 @@ function renderMenuSection(report: DiagnosticReport): string[] {
     lines.push(`  - Current: ${selected ? `\`${selected}\`` : "unknown"}`);
   } else {
     lines.push("- **Ambilight style**: not in the menu");
+  }
+  for (const [capabilityId, slider] of Object.entries(capabilities.sliders ?? {})) {
+    const value = current ? currentSliderValue(slider, current) : null;
+    lines.push(`- **${capabilityId}** (node ${slider.nodeId}): ${slider.min} to ${slider.max}, step ${slider.step}, current ${value ?? "unknown"}`);
   }
   lines.push("");
   lines.push("<details><summary>Full menu tree</summary>");

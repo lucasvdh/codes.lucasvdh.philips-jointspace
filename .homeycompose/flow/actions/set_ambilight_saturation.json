@@ -1,0 +1,41 @@
+{
+  "id": "set_ambilight_saturation",
+  "title": {
+    "en": "Set Ambilight saturation",
+    "nl": "Stel Ambilight-verzadiging in",
+    "de": "Ambilight-Sättigung einstellen",
+    "fr": "Définir la saturation Ambilight"
+  },
+  "titleFormatted": {
+    "en": "Set Ambilight saturation to [[value]]",
+    "nl": "Stel Ambilight-verzadiging in op [[value]]",
+    "de": "Ambilight-Sättigung auf [[value]] einstellen",
+    "fr": "Définir la saturation Ambilight sur [[value]]"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=philips-jointspace"
+    },
+    {
+      "name": "value",
+      "type": "number",
+      "title": {
+        "en": "Saturation",
+        "nl": "Verzadiging",
+        "de": "Sättigung",
+        "fr": "Saturation"
+      },
+      "min": -2,
+      "max": 2,
+      "step": 1,
+      "placeholder": {
+        "en": "Saturation",
+        "nl": "Verzadiging",
+        "de": "Sättigung",
+        "fr": "Saturation"
+      }
+    }
+  ]
+}

@@ -14,7 +14,8 @@ Here, you'll find a list of meaningful changes made to the app, with the most re
 
 * **Picture style** (issue [#83](https://github.com/lucasvdh/codes.lucasvdh.philips-jointspace/issues/83)). TVs that share their settings menu (`menuitems/settings`) get a `picture_style` capability, a "Set picture style" Flow action and a "Picture style changed" trigger. The options come from the TV itself, so each TV shows its own styles.
 * **Ambilight styles per TV.** On those TVs the Ambilight mode list only shows the styles that TV offers, and they are set through the same menu. TVs without the menu keep the fixed list.
-* The poller reads the menu values too, so picture style and Ambilight style follow changes made with the remote.
+* **Ambilight brightness and saturation** as sliders, with the range the TV reports, plus Flow actions to set them.
+* The poller reads the menu values too, so picture style, Ambilight style, brightness and saturation follow changes made with the remote.
 * The diagnostic report shows the TV's settings menu: the options the app derives from it, the current values and the full menu tree.
 * Every action sent to the TV is logged with a `Sent:` line, without needing debug logging.
 
