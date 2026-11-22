@@ -530,6 +530,8 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     if (menuOption) {
       await this.api.setMenuListValue(menuOption.nodeId, menuOption.enumId);
       this.log(`Sent: Ambilight mode ${mode} (menu)`);
+      // The menu reports the new mode right away; a cached mode from the config path would only override it.
+      await this.setStoreValue(STORE_LAST_AMBILIGHT_MODE, null).catch(this.error.bind(this));
       await this.setCapabilityValue(CAPABILITY_AMBILIGHT_MODE, mode).catch(this.error.bind(this));
       await this.driverApi().triggerAmbilightModeChangedTrigger(this, { mode }).catch(this.error.bind(this));
       return;
@@ -669,6 +671,9 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
         .triggerAmbilightChangedTrigger(this, { enabled })
         .catch(this.error.bind(this));
     }
+
+    // With the menu, handleMenuValues reads the mode; two sources would flip the capability back and forth.
+    if (this.menuCapabilities()?.ambilight) return;
 
     const reportedMode = ambilightModeFromConfiguration(state);
     const newMode = this.applyAmbilightModeQuirk(reportedMode);
