@@ -3,6 +3,7 @@ import { PairingStatus } from "./enums";
 import { HttpsUnavailableError, PairingError } from "./errors";
 import { JointspaceApi, LogFn } from "./jointspace-api";
 import {
+  canonicalIdAliases,
   extractOsType,
   extractPairingType,
   extractTransportConfig,
@@ -125,4 +126,23 @@ export function singleFlight<T>(task: () => Promise<T>): () => Promise<T> {
     }
     return inFlight;
   };
+}
+
+/** Every id the already-paired TVs may be known by. `excludeDataId` is the device being repaired. */
+export function existingCanonicalIds(
+  devices: Array<{ dataId: string; canonicalId: string | null }>,
+  excludeDataId: string | null,
+): Set<string> {
+  const ids = new Set<string>();
+  for (const d of devices) {
+    if (excludeDataId !== null && d.dataId === excludeDataId) continue;
+    for (const id of [d.canonicalId, d.dataId]) {
+      if (id) for (const alias of canonicalIdAliases(id)) ids.add(alias);
+    }
+  }
+  return ids;
+}
+
+export function isAlreadyPaired(candidateAliases: string[], existing: Set<string>): boolean {
+  return candidateAliases.some((id) => existing.has(id));
 }

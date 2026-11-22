@@ -4,6 +4,8 @@ import assert from "node:assert/strict";
 import {
   classifyPinError,
   describePairingError,
+  existingCanonicalIds,
+  isAlreadyPaired,
   resolveTransport,
   singleFlight,
 } from "../drivers/philips-jointspace/pairing-logic";
@@ -92,4 +94,28 @@ test("singleFlight runs again after the previous run settled, also after a rejec
 
   await assert.rejects(run(), /first fails/);
   assert.equal(await run(), 2);
+});
+
+// --- deduplication against already-paired TVs ----------------------------
+
+
+const USN = "uuid:F00DBABE-AA5E-BABA-DADA-2CD9745F1469::urn:schemas-upnp-org:device:MediaRenderer:3";
+// A 49PUS6412 paired via SSDP before canonical ids; its store held a ciphertext id with a random IV.
+const LEGACY_DEVICE = { dataId: USN, canonicalId: "enc-serial-NVYBOEc+lUZTKf2+NWdt1jZm/7nUeQxkZSbZ5FWlBZw=" };
+// The same TV, freshly probed: decrypted serial plus the uuid from its USN.
+const CANDIDATE = ["serial-FZ5A1823065423", "uuid-F00DBABE-AA5E-BABA-DADA-2CD9745F1469"];
+
+test("a TV paired under a legacy id is recognised by its serial and its USN", () => {
+  const existing = existingCanonicalIds([LEGACY_DEVICE], null);
+  assert.ok(existing.has("serial-FZ5A1823065423"));
+  assert.ok(existing.has("uuid-F00DBABE-AA5E-BABA-DADA-2CD9745F1469"));
+  assert.equal(isAlreadyPaired(CANDIDATE, existing), true);
+  assert.equal(isAlreadyPaired(["serial-OTHER"], existing), false);
+});
+
+test("repair does not hide the device being repaired, but still hides others", () => {
+  const other = { dataId: "serial-FZ1T2631035890-bcc2d9350049", canonicalId: null };
+  const existing = existingCanonicalIds([LEGACY_DEVICE, other], USN);
+  assert.equal(isAlreadyPaired(CANDIDATE, existing), false);
+  assert.equal(isAlreadyPaired(["serial-FZ1T2631035890-bcc2d9350049"], existing), true);
 });

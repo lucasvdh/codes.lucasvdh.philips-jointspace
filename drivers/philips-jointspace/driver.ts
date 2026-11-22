@@ -20,7 +20,15 @@ import {
   PairingState,
 } from "./types";
 import { canonicalIdAliases, extractCanonicalId, extractPairingType } from "./quirks";
-import { classifyPinError, describePairingError, PAIR_DEVICE_INFO, probeTransport, singleFlight } from "./pairing-logic";
+import {
+  classifyPinError,
+  describePairingError,
+  existingCanonicalIds,
+  isAlreadyPaired,
+  PAIR_DEVICE_INFO,
+  probeTransport,
+  singleFlight,
+} from "./pairing-logic";
 import { activityLog, PAIRING_SCOPE } from "./activity-log";
 import { resolveWakeInfo } from "./wake";
 
@@ -320,19 +328,15 @@ class PhilipsTvDriver extends Homey.Driver {
 
   /** Every id an already-paired TV may be known by, for deduplication during pair. */
   private collectExistingCanonicalIds(exclude: Homey.Device | null): Set<string> {
-    const ids = new Set<string>();
-    for (const d of this.getDevices()) {
-      if (exclude && d.getData().id === exclude.getData().id) continue;
-      const stored = d.getStoreValue("canonicalId") as string | null;
-      for (const id of [stored, d.getData().id as string]) {
-        if (id) for (const alias of canonicalIdAliases(id)) ids.add(alias);
-      }
-    }
-    return ids;
+    const devices = this.getDevices().map((d) => ({
+      dataId: d.getData().id as string,
+      canonicalId: d.getStoreValue("canonicalId") as string | null,
+    }));
+    return existingCanonicalIds(devices, exclude ? (exclude.getData().id as string) : null);
   }
 
   private isAlreadyPaired(candidate: DeviceDescriptor, existingIds: Set<string>): boolean {
-    return candidate.aliases.some((id) => existingIds.has(id));
+    return isAlreadyPaired(candidate.aliases, existingIds);
   }
 
   private async handleCheckIpView(session: Homey.Driver.PairSession, ctx: PairContext): Promise<void> {
