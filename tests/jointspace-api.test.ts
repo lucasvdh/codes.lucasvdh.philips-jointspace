@@ -29,6 +29,8 @@ before(async () => {
       seen.push(key);
       const handler = routes.get(key);
       const result = handler ? handler(req, body) : { status: 404, text: "Not Found" };
+      // status 0: the handler closed the connection without an answer.
+      if (result.status === 0) return;
       if (result.json !== undefined) {
         res.writeHead(result.status, { "Content-Type": "application/json" });
         res.end(JSON.stringify(result.json));
@@ -177,4 +179,22 @@ test("IP report stops at the first accepted pair/request and never leaks the aut
   const md = renderMarkdown(report);
   assert.doesNotMatch(md, /super-secret/);
   assert.match(md, /The TV accepts the pairing request the app sends/);
+});
+
+test("notifychange: a TV that closes the idle long-poll means no changes, without retry or error log", async () => {
+  route("POST", "/6/notifychange", (req) => {
+    req.socket.destroy();
+    return { status: 0 };
+  });
+  const logs: string[] = [];
+  const api = new JointspaceApi(
+    { host: HOST, apiVersion: 6, secured: false, port: 1925 },
+    { log: (...args) => logs.push(args.join(" ")) },
+  );
+  const before = seen.filter((k) => k === "POST /6/notifychange").length;
+
+  assert.equal(await api.notifyChange(), null);
+  assert.equal(seen.filter((k) => k === "POST /6/notifychange").length - before, 1, "not retried");
+  assert.deepEqual(logs.filter((l) => l.includes("notifychange")), []);
+  routes.delete("POST /6/notifychange");
 });

@@ -22,6 +22,7 @@ import {
 import { ForbiddenError, NotFoundError } from "./errors";
 import { activityLog, deviceScope } from "./activity-log";
 import { mergeMacs, resolveWakeInfo, sendMagicPackets, wakeUntilReachable } from "./wake";
+import { ambilightModeFromConfigPoll, featureCapabilityChanges, snapSliderValue } from "./capabilities";
 import {
   AMBILIGHT_OFF,
   availableOptions,
@@ -673,10 +674,13 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     }
 
     // With the menu, handleMenuValues reads the mode; two sources would flip the capability back and forth.
-    if (this.menuCapabilities()?.ambilight) return;
-
-    const reportedMode = ambilightModeFromConfiguration(state);
-    const newMode = this.applyAmbilightModeQuirk(reportedMode);
+    const { mode: newMode, clearCache } = ambilightModeFromConfigPoll({
+      menuHasAmbilight: Boolean(this.menuCapabilities()?.ambilight),
+      reported: ambilightModeFromConfiguration(state),
+      cached: this.getStoreValue(STORE_LAST_AMBILIGHT_MODE) as string | null,
+      osHasQuirk: osHasAmbilightModeQuirk(this.getStoreValue(STORE_OS_TYPE) as string | null),
+    });
+    if (clearCache) void this.setStoreValue(STORE_LAST_AMBILIGHT_MODE, null).catch(this.error.bind(this));
     const currentMode = this.getCapabilityValue("ambilight_mode") as string | null;
     if (newMode && newMode !== currentMode) {
       this.log(`Ambilight mode ${currentMode ?? "?"} -> ${newMode} (${source})`);
@@ -685,26 +689,6 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
         .triggerAmbilightModeChangedTrigger(this, { mode: newMode })
         .catch(this.error.bind(this));
     }
-  }
-
-  /**
-   * On MSAF/Linux firmware the TV doesn't echo back the new mode after a set,
-   * so the reported mode lags behind reality. If we have a locally cached
-   * "last set" mode and we know this TV has the quirk, prefer the local value.
-   * The cache is cleared the next time the user changes mode or when the TV
-   * reports the same mode the user set (firmware caught up).
-   */
-  private applyAmbilightModeQuirk(reportedMode: AmbilightModeKey | undefined): AmbilightModeKey | undefined {
-    const osType = this.getStoreValue(STORE_OS_TYPE) as string | null;
-    if (!osHasAmbilightModeQuirk(osType)) return reportedMode;
-    const cached = this.getStoreValue(STORE_LAST_AMBILIGHT_MODE) as AmbilightModeKey | null;
-    if (!cached) return reportedMode;
-    if (reportedMode === cached) {
-      // Firmware caught up; clear the cache so we trust TV reports again.
-      void this.setStoreValue(STORE_LAST_AMBILIGHT_MODE, null).catch(this.error.bind(this));
-      return reportedMode;
-    }
-    return cached;
   }
 
   handleActivityChange(source: StateChangeSource, state: CurrentActivity): void {
@@ -1139,18 +1123,18 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
 
   /** Removes capabilities for features the TV says it lacks (e.g. AmbiHue, recording), and restores them. */
   private async applyFeatureCapabilities(): Promise<void> {
-    for (const [capabilityId, supported] of Object.entries(this.featureSupport())) {
-      if (supported === false && this.hasCapability(capabilityId)) {
-        this.log(`Removing ${capabilityId}: the TV doesn't report this feature`);
-        await this.removeCapability(capabilityId).catch((err: Error) =>
-          this.error(`removeCapability(${capabilityId}) failed:`, err),
-        );
-        this.registeredListeners.delete(capabilityId);
-      } else if (supported === true && !this.hasCapability(capabilityId)) {
-        await this.addCapability(capabilityId).catch((err: Error) =>
-          this.error(`addCapability(${capabilityId}) failed:`, err),
-        );
-      }
+    const { add, remove } = featureCapabilityChanges(this.featureSupport(), (id) => this.hasCapability(id));
+    for (const capabilityId of remove) {
+      this.log(`Removing ${capabilityId}: the TV doesn't report this feature`);
+      await this.removeCapability(capabilityId).catch((err: Error) =>
+        this.error(`removeCapability(${capabilityId}) failed:`, err),
+      );
+      this.registeredListeners.delete(capabilityId);
+    }
+    for (const capabilityId of add) {
+      await this.addCapability(capabilityId).catch((err: Error) =>
+        this.error(`addCapability(${capabilityId}) failed:`, err),
+      );
     }
     this.registerFeatureListeners();
   }
@@ -1264,8 +1248,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   async setAmbilightSlider(capabilityId: string, value: number): Promise<void> {
     const slider = this.menuCapabilities()?.sliders?.[capabilityId];
     if (!slider || !this.hasCapability(capabilityId)) throw new Error(`This TV has no ${capabilityId}`);
-    const rounded = Math.round(value / slider.step) * slider.step;
-    const clamped = Math.min(Math.max(rounded, slider.min), slider.max);
+    const clamped = snapSliderValue(slider, value);
     await this.api.setMenuSliderValue(slider.nodeId, clamped);
     this.log(`Sent: ${capabilityId} ${clamped}`);
     await this.setCapabilityValue(capabilityId, clamped).catch(this.error.bind(this));

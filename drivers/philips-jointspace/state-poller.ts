@@ -120,6 +120,7 @@ export class StatePoller {
       const startedAt = Date.now();
       try {
         const state = await this.api.notifyChange(this.lastState);
+        if (this.stopped) return;
         this.noteReachable();
         if (state) {
           this.lastState = state;
