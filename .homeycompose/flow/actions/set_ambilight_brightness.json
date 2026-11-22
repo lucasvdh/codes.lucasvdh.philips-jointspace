@@ -1,0 +1,41 @@
+{
+  "id": "set_ambilight_brightness",
+  "title": {
+    "en": "Set Ambilight brightness",
+    "nl": "Stel Ambilight-helderheid in",
+    "de": "Ambilight-Helligkeit einstellen",
+    "fr": "Définir la luminosité Ambilight"
+  },
+  "titleFormatted": {
+    "en": "Set Ambilight brightness to [[value]]",
+    "nl": "Stel Ambilight-helderheid in op [[value]]",
+    "de": "Ambilight-Helligkeit auf [[value]] einstellen",
+    "fr": "Définir la luminosité Ambilight sur [[value]]"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=philips-jointspace"
+    },
+    {
+      "name": "value",
+      "type": "number",
+      "title": {
+        "en": "Brightness",
+        "nl": "Helderheid",
+        "de": "Helligkeit",
+        "fr": "Luminosité"
+      },
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "placeholder": {
+        "en": "Brightness",
+        "nl": "Helderheid",
+        "de": "Helligkeit",
+        "fr": "Luminosité"
+      }
+    }
+  ]
+}

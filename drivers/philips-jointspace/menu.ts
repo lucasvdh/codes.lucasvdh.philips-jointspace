@@ -61,10 +61,25 @@ export interface AmbilightMenuCapability {
   options: MenuOption[];
 }
 
+export interface MenuSlider {
+  nodeId: number;
+  min: number;
+  max: number;
+  step: number;
+}
+
 export interface MenuCapabilities {
   pictureStyle: MenuListCapability | null;
   ambilight: AmbilightMenuCapability | null;
+  // capability id -> slider node; missing in capabilities stored before 3.9.0
+  sliders?: Record<string, MenuSlider>;
 }
+
+// Slider node context -> capability id.
+const SLIDER_CAPABILITIES: Record<string, string> = {
+  ambilight_brightness: "ambilight_brightness",
+  ambilight_saturation: "ambilight_saturation",
+};
 
 export const AMBILIGHT_OFF = "off";
 
@@ -156,7 +171,7 @@ function listOptions(node: MenuNode, idFor: (key: string) => string): MenuOption
 
 export function extractMenuCapabilities(structure: MenuStructure | null | undefined): MenuCapabilities {
   const root = structure?.node;
-  if (!root) return { pictureStyle: null, ambilight: null };
+  if (!root) return { pictureStyle: null, ambilight: null, sliders: {} };
 
   const pictureNode = findMenuNode(root, "picture_style");
   const pictureStyle = pictureNode?.type === "LIST_NODE"
@@ -185,7 +200,20 @@ export function extractMenuCapabilities(structure: MenuStructure | null | undefi
     }
   }
 
-  return { pictureStyle, ambilight };
+  const sliders: Record<string, MenuSlider> = {};
+  for (const [context, capabilityId] of Object.entries(SLIDER_CAPABILITIES)) {
+    const node = findMenuNode(root, context);
+    const data = node?.data?.slider_data as { min?: number; max?: number; step_size?: number } | undefined;
+    if (node?.type !== "SLIDER_NODE" || typeof data?.min !== "number" || typeof data?.max !== "number") continue;
+    sliders[capabilityId] = { nodeId: node.node_id, min: data.min, max: data.max, step: data.step_size ?? 1 };
+  }
+
+  return { pictureStyle, ambilight, sliders };
+}
+
+export function currentSliderValue(slider: MenuSlider, response: MenuCurrentResponse): number | null {
+  const value = valueOf(response, slider.nodeId)?.data?.value;
+  return typeof value === "number" ? value : null;
 }
 
 function valueOf(response: MenuCurrentResponse | null | undefined, nodeId: number): MenuCurrentValue | undefined {
@@ -225,6 +253,7 @@ export function menuNodesToRead(capabilities: MenuCapabilities): number[] {
     ids.add(capabilities.ambilight.styleNodeId);
     for (const id of Object.keys(capabilities.ambilight.groups)) ids.add(Number(id));
   }
+  for (const slider of Object.values(capabilities.sliders ?? {})) ids.add(slider.nodeId);
   return [...ids];
 }
 

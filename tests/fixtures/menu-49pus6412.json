@@ -230,6 +230,32 @@
           }
          ]
         }
+       },
+       {
+        "node_id": 2131230769,
+        "string_id": "org.droidtv.ui.strings.R.string.MAIN_AMBILIGHT_BRIGHTNESS",
+        "context": "ambilight_brightness",
+        "data": {
+         "slider_data": {
+          "min": 0,
+          "max": 10,
+          "step_size": 1
+         }
+        },
+        "type": "SLIDER_NODE"
+       },
+       {
+        "node_id": 2131230771,
+        "string_id": "org.droidtv.ui.strings.R.string.MAIN_AMBILIGHT_SATURATION",
+        "context": "ambilight_saturation",
+        "data": {
+         "slider_data": {
+          "min": -2,
+          "max": 2,
+          "step_size": 1
+         }
+        },
+        "type": "SLIDER_NODE"
        }
       ]
      }

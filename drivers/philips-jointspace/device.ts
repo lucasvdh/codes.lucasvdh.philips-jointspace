@@ -27,6 +27,7 @@ import {
   availableOptions,
   currentAmbilightMode,
   currentPictureStyle,
+  currentSliderValue,
   extractMenuCapabilities,
   MenuCapabilities,
   MenuCurrentResponse,
@@ -156,6 +157,7 @@ const CAPABILITY_SCREEN_ON = "screen_on";
 const CAPABILITY_CURRENT_SOURCE = "current_source";
 const CAPABILITY_PICTURE_STYLE = "picture_style";
 const CAPABILITY_AMBILIGHT_MODE = "ambilight_mode";
+const SLIDER_CAPABILITIES = ["ambilight_brightness", "ambilight_saturation"] as const;
 
 // Listeners for capabilities that come and go with the TV's features.
 const FEATURE_LISTENERS: Record<string, (device: PhilipsTvDevice, value: unknown) => Promise<unknown>> = {
@@ -1212,6 +1214,56 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     if (menu?.ambilight && this.hasCapability(CAPABILITY_AMBILIGHT_MODE)) {
       await this.applyInitialCapabilityValues(CAPABILITY_AMBILIGHT_MODE, menu.ambilight.options);
     }
+
+    if (menu) await this.applySliderCapabilities(menu);
+  }
+
+  /** Ambilight brightness and saturation, with the range this TV reports. */
+  private async applySliderCapabilities(menu: MenuCapabilities): Promise<void> {
+    const sliders = this.featureSupport().ambilight_onoff === false ? {} : (menu.sliders ?? {});
+    const applied = (this.getStoreValue(STORE_APPLIED_OPTIONS) as Record<string, string> | null) ?? {};
+    for (const capabilityId of SLIDER_CAPABILITIES) {
+      const slider = sliders[capabilityId];
+      if (!slider) {
+        if (this.hasCapability(capabilityId)) {
+          await this.removeCapability(capabilityId).catch((err: Error) =>
+            this.error(`removeCapability(${capabilityId}) failed:`, err),
+          );
+          this.registeredListeners.delete(capabilityId);
+        }
+        continue;
+      }
+      if (!this.hasCapability(capabilityId)) {
+        await this.addCapability(capabilityId).catch((err: Error) =>
+          this.error(`addCapability(${capabilityId}) failed:`, err),
+        );
+      }
+      if (!this.hasCapability(capabilityId)) continue;
+      const options = { min: slider.min, max: slider.max, step: slider.step, decimals: 0 };
+      const signature = JSON.stringify(options);
+      if (applied[capabilityId] !== signature) {
+        await this.setCapabilityOptions(capabilityId, options)
+          .then(() => this.setStoreValue(STORE_APPLIED_OPTIONS, {
+            ...((this.getStoreValue(STORE_APPLIED_OPTIONS) as Record<string, string> | null) ?? {}),
+            [capabilityId]: signature,
+          }))
+          .catch((err: Error) => this.error(`setCapabilityOptions(${capabilityId}) failed:`, err));
+      }
+      if (!this.registeredListeners.has(capabilityId)) {
+        this.registerCapabilityListener(capabilityId, async (value: number) => { await this.setAmbilightSlider(capabilityId, value); });
+        this.registeredListeners.add(capabilityId);
+      }
+    }
+  }
+
+  async setAmbilightSlider(capabilityId: string, value: number): Promise<void> {
+    const slider = this.menuCapabilities()?.sliders?.[capabilityId];
+    if (!slider || !this.hasCapability(capabilityId)) throw new Error(`This TV has no ${capabilityId}`);
+    const rounded = Math.round(value / slider.step) * slider.step;
+    const clamped = Math.min(Math.max(rounded, slider.min), slider.max);
+    await this.api.setMenuSliderValue(slider.nodeId, clamped);
+    this.log(`Sent: ${capabilityId} ${clamped}`);
+    await this.setCapabilityValue(capabilityId, clamped).catch(this.error.bind(this));
   }
 
   /** The full list until the first menu poll narrows it to what the TV allows. */
@@ -1301,6 +1353,16 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       const id = currentPictureStyle(menu.pictureStyle, values);
       const option = id ? menu.pictureStyle.options.find((o) => o.id === id) : undefined;
       if (option) this.applyPictureStyle(option, source);
+    }
+
+    for (const [capabilityId, slider] of Object.entries(menu.sliders ?? {})) {
+      if (!this.hasCapability(capabilityId)) continue;
+      const value = currentSliderValue(slider, values);
+      const current = this.getCapabilityValue(capabilityId) as number | null;
+      if (value != null && value !== current) {
+        this.log(`${capabilityId} ${current ?? "?"} -> ${value} (${source})`);
+        this.setCapabilityValue(capabilityId, value).catch(this.error.bind(this));
+      }
     }
 
     if (menu.ambilight && this.hasCapability(CAPABILITY_AMBILIGHT_MODE)) {
