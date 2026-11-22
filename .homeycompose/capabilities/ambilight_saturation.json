@@ -1,0 +1,17 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Ambilight saturation",
+    "nl": "Ambilight-verzadiging",
+    "de": "Ambilight-Sättigung",
+    "fr": "Saturation Ambilight"
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": "slider",
+  "min": -2,
+  "max": 2,
+  "step": 1,
+  "decimals": 0,
+  "icon": "assets/capabilities/ambilight.svg"
+}

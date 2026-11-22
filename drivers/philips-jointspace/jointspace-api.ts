@@ -527,6 +527,10 @@ export class JointspaceApi {
     await this.setSetting({ values: [{ value: { Nodeid: nodeId, data: { selected_item: enumId } } }] });
   }
 
+  async setMenuSliderValue(nodeId: number, value: number): Promise<void> {
+    await this.setSetting({ values: [{ value: { Nodeid: nodeId, data: { value } } }] });
+  }
+
   // --- channels --------------------------------------------------------
 
   async getChannelLists(): Promise<ChannelDbTv> {
