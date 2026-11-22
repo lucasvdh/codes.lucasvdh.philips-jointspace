@@ -7,6 +7,7 @@ import {
   availableOptions,
   currentAmbilightMode,
   currentPictureStyle,
+  currentSliderValue,
   extractMenuCapabilities,
   humanizeMenuKey,
   MenuCurrentResponse,
@@ -71,14 +72,15 @@ test("reads the current picture style and Ambilight style", () => {
   assert.equal(currentPictureStyle(capabilities.pictureStyle!, values), "movie");
   assert.equal(currentAmbilightMode(capabilities.ambilight!, values), "color_warm_white");
   assert.equal(currentAmbilightMode(capabilities.ambilight!, current([[2131230762, { activenode_id: 2131230763 }]])), "off");
-  assert.deepEqual(menuNodesToRead(capabilities), [2131230838, 2131230762, 2131230764, 2131230765, 2131230766]);
+  assert.deepEqual(menuNodesToRead(capabilities), [2131230838, 2131230762, 2131230764, 2131230765, 2131230766, 2131230769, 2131230771]);
 });
 
 test("a TV without the menu has no dynamic capabilities", () => {
-  assert.deepEqual(extractMenuCapabilities(null), { pictureStyle: null, ambilight: null });
+  assert.deepEqual(extractMenuCapabilities(null), { pictureStyle: null, ambilight: null, sliders: {} });
   assert.deepEqual(extractMenuCapabilities({ node: { node_id: 1, type: "PARENT_NODE", data: { nodes: [] } } }), {
     pictureStyle: null,
     ambilight: null,
+    sliders: {},
   });
 });
 
@@ -101,4 +103,21 @@ test("hides the options the TV marks unavailable", () => {
   );
   // No availability reported for a node: keep every option.
   assert.equal(availableOptions(ambilight!.options, sdr).length, ambilight!.options.length);
+});
+
+test("Ambilight brightness and saturation come with the range the TV reports", () => {
+  const { sliders } = extractMenuCapabilities(structure);
+  assert.deepEqual(sliders, {
+    ambilight_brightness: { nodeId: 2131230769, min: 0, max: 10, step: 1 },
+    ambilight_saturation: { nodeId: 2131230771, min: -2, max: 2, step: 1 },
+  });
+  const values: MenuCurrentResponse = {
+    values: [
+      { value: { Nodeid: 2131230769, data: { value: 8 } } },
+      { value: { Nodeid: 2131230771, data: { value: -1 } } },
+    ],
+  };
+  assert.equal(currentSliderValue(sliders!.ambilight_brightness, values), 8);
+  assert.equal(currentSliderValue(sliders!.ambilight_saturation, values), -1);
+  assert.ok(menuNodesToRead(extractMenuCapabilities(structure)).includes(2131230771));
 });

@@ -1,0 +1,17 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Ambilight brightness",
+    "nl": "Ambilight-helderheid",
+    "de": "Ambilight-Helligkeit",
+    "fr": "Luminosité Ambilight"
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": "slider",
+  "min": 0,
+  "max": 10,
+  "step": 1,
+  "decimals": 0,
+  "icon": "assets/capabilities/ambilight.svg"
+}
