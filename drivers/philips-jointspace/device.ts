@@ -267,20 +267,24 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     await this.applyFeatureCapabilities();
     await this.applyMenuCapabilities();
 
+    this.scheduleSystemReprobe();
+    this.startPoller();
+    this.log("Initialised");
+  }
+
+  /** Notify-only or full polling, and the interval, depend on the TV's store values. */
+  private startPoller(): void {
+    this.poller?.stop();
     const notifyChangeSupported = (this.getStoreValue(STORE_NOTIFY_CHANGE_SUPPORTED) as boolean | null) ?? true;
     const osType = this.getStoreValue(STORE_OS_TYPE) as string | null;
-    const pollIntervalMs = osPollIntervalMs(osType);
     this.poller = new StatePoller(
       this.api,
       this,
       (...args) => this.log(`[poller]`, ...args),
       this.homey,
-      { notifyChangeSupported, pollIntervalMs, debug },
+      { notifyChangeSupported, pollIntervalMs: osPollIntervalMs(osType), debug: this.homey.env?.DEBUG === "true" },
     );
-
-    this.scheduleSystemReprobe();
     this.poller.start();
-    this.log("Initialised");
   }
 
   async onDeleted(): Promise<void> {
@@ -328,11 +332,13 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     this.api.updateConfig(this.buildApiConfig());
     this.applications = null;
     this.channels = null;
+    this.unavailableMenuOptions.clear();
     await this.refreshSystemMetadata();
     await this.applyScreenStateCapability();
     await this.applyCurrentSourceCapability();
     await this.applyFeatureCapabilities();
     await this.applyMenuCapabilities();
+    this.startPoller();
   }
 
   // --- public surface used by app.ts flow listeners ----------------------
@@ -548,7 +554,12 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     }
     const menuOption = this.menuOption(this.menuCapabilities()?.ambilight?.options, mode);
     if (menuOption) {
-      await this.api.setMenuListValue(menuOption.nodeId, menuOption.enumId);
+      try {
+        await this.api.setMenuListValue(menuOption.nodeId, menuOption.enumId);
+      } catch (err) {
+        this.error(`setAmbilightMode(${mode}) failed`, err);
+        throw err;
+      }
       this.logToReport(`Sent: Ambilight mode ${mode} (menu)`);
       // The menu reports the new mode right away; a cached mode from the config path would only override it.
       await this.setStoreValue(STORE_LAST_AMBILIGHT_MODE, null).catch(this.error.bind(this));
@@ -1330,6 +1341,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
 
   /** For the flow card autocomplete: the TV's own styles, or the fixed list for TVs without the menu. */
   getAmbilightModeOptions(): Array<{ id: string; name: string }> {
+    if (!this.hasCapability(CAPABILITY_AMBILIGHT_MODE)) return [];
     const menuOptions = this.menuCapabilities()?.ambilight?.options;
     if (menuOptions) {
       return menuOptions

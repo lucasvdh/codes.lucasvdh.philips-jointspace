@@ -269,7 +269,8 @@ class PhilipsTvDriver extends Homey.Driver {
     });
     this.log(`Repair applied to device ${device.getName()}: new IP ${settings.ipAddress}, port ${settings.port}, secure ${settings.secure}`);
     // setSettings doesn't call onSettings, so the running device has to be told.
-    await (device as Homey.Device & { applyRepair?: () => Promise<void> }).applyRepair?.()
+    // Not awaited: re-probing a slow TV would keep the Repair screen waiting.
+    void (device as Homey.Device & { applyRepair?: () => Promise<void> }).applyRepair?.()
       .catch((err: Error) => this.error("applyRepair failed:", err));
   }
 
