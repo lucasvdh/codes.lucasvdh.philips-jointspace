@@ -94,6 +94,8 @@ const AMBILIGHT_MODE_IDS: Record<string, Record<string, string>> = {
     MAIN_AMBILIGHT_GAME: "video_game",
     MAIN_AMBILIGHT_COMFORT: "video_comfort",
     MAIN_AMBILIGHT_RELAX: "video_relax",
+    // 2026 Linux TVs (48OLED911, #83), matched to the TV's menu by position
+    MAIN_AMBILIGHT_STYLE_VIDEO_1_2K20: "video_standard",
   },
   ambilight_follow_audio: {
     MAIN_FOLLOW_AUDIO_STYLE_1: "audio_adapt_brightness",
@@ -146,9 +148,21 @@ export function menuOptionId(key: string): string {
 
 const UPPERCASE_WORDS = new Set(["hdr", "isf", "ai", "tv", "pc"]);
 
+// Keys whose generated title doesn't match what the TV shows (#83).
+const KNOWN_TITLES: Record<string, string> = {
+  MISC_AI: "AI",
+  MAIN_AMBILIGHT_STYLE_VIDEO_3_2K20: "Sport",
+  MAIN_AMBILIGHT_GAME_2K23: "Game",
+  MAIN_AMBILIGHT_STYLE_AUDIO_1_2K20: "Music 1",
+  MAIN_FOLLOW_AUDIO_STYLE_3_2K23: "Music 2",
+  MAIN_AMBILIGHT_STYLE_AUDIO_3_2K20: "Music 3",
+};
+
 /** `MAIN_HDR_VIVID` -> `HDR Vivid` */
 export function humanizeMenuKey(key: string): string {
+  if (KNOWN_TITLES[key]) return KNOWN_TITLES[key];
   return menuOptionId(key)
+    .replace(/_2k\d\d$/, "")
     .split("_")
     .filter(Boolean)
     .map((w) => (UPPERCASE_WORDS.has(w) ? w.toUpperCase() : w.charAt(0).toUpperCase() + w.slice(1)))

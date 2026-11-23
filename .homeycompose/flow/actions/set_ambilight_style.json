@@ -1,0 +1,39 @@
+{
+  "id": "set_ambilight_style",
+  "highlight": true,
+  "title": {
+    "en": "Set Ambilight style",
+    "nl": "Stel Ambilight-stijl in",
+    "de": "Ambilight-Stil einstellen",
+    "fr": "Définir le style Ambilight"
+  },
+  "titleFormatted": {
+    "en": "Set Ambilight style to [[style]]",
+    "nl": "Stel Ambilight-stijl in op [[style]]",
+    "de": "Ambilight-Stil auf [[style]] einstellen",
+    "fr": "Définir le style Ambilight sur [[style]]"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=philips-jointspace"
+    },
+    {
+      "name": "style",
+      "type": "autocomplete",
+      "placeholder": {
+        "en": "Ambilight style",
+        "nl": "Ambilight-stijl",
+        "de": "Ambilight-Stil",
+        "fr": "Style Ambilight"
+      },
+      "title": {
+        "en": "Ambilight style",
+        "nl": "Ambilight-stijl",
+        "de": "Ambilight-Stil",
+        "fr": "Style Ambilight"
+      }
+    }
+  ]
+}
