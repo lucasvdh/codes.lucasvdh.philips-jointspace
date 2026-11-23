@@ -2,7 +2,7 @@ import type Homey from "homey";
 import * as net from "net";
 import { JointspaceApi } from "./jointspace-api";
 import { analyseReport } from "./diagnostic-analysis";
-import { ActivityEntry, activityLog, deviceScope, PAIRING_SCOPE } from "./activity-log";
+import { ActivityEntry, activityLog, commandScope, deviceScope, PAIRING_SCOPE } from "./activity-log";
 import { PAIR_DEVICE_INFO, probeTransport } from "./pairing-logic";
 import { extractOsType, extractPairingType, extractSecuredTransport } from "./quirks";
 import { PairingStatus } from "./enums";
@@ -169,7 +169,8 @@ export async function generateDeviceReport(opts: {
     ports,
     probes,
     activity: [
-      { title: "Device log (commands, errors and failed requests)", entries: recentActivity(deviceScope(snapshot.id)) },
+      { title: "Device log (errors and failed requests)", entries: recentActivity(deviceScope(snapshot.id)) },
+      { title: "Commands and power/screen changes", entries: recentActivity(commandScope(snapshot.id)) },
       { title: "Last pairing / repair attempts", entries: recentActivity(PAIRING_SCOPE) },
     ],
   };

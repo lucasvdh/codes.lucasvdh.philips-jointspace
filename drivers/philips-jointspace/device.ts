@@ -20,7 +20,7 @@ import {
   ScreenState,
 } from "./types";
 import { ForbiddenError, NotFoundError } from "./errors";
-import { activityLog, deviceScope } from "./activity-log";
+import { activityLog, commandScope, deviceScope } from "./activity-log";
 import { mergeMacs, resolveWakeInfo, sendMagicPackets, wakeUntilReachable } from "./wake";
 import { ambilightModeFromConfigPoll, featureCapabilityChanges, snapSliderValue } from "./capabilities";
 import {
@@ -209,7 +209,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   /** Commands and power/screen changes also go into the diagnostic report. */
   private logToReport(...args: unknown[]): void {
     this.log(...args);
-    activityLog.add(deviceScope(String(this.getData().id)), ...args);
+    activityLog.add(commandScope(String(this.getData().id)), ...args);
   }
 
   async onInit(): Promise<void> {

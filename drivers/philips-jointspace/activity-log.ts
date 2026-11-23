@@ -6,13 +6,14 @@ export interface ActivityEntry {
   message: string;
 }
 
-const MAX_ENTRIES = 400;
+// Per scope, so one chatty device can't push out another device's errors or the pairing log.
+const MAX_ENTRIES_PER_SCOPE = 400;
 const MAX_MESSAGE_LENGTH = 500;
 
 export class ActivityLog {
   private entries: ActivityEntry[] = [];
 
-  constructor(private readonly maxEntries = MAX_ENTRIES) {}
+  constructor(private readonly maxEntriesPerScope = MAX_ENTRIES_PER_SCOPE) {}
 
   add(scope: string, ...args: unknown[]): void {
     const message = args.map(formatArg).join(" ");
@@ -21,7 +22,9 @@ export class ActivityLog {
       scope,
       message: message.length > MAX_MESSAGE_LENGTH ? `${message.slice(0, MAX_MESSAGE_LENGTH)}…` : message,
     });
-    if (this.entries.length > this.maxEntries) this.entries.splice(0, this.entries.length - this.maxEntries);
+    if (this.entries.filter((e) => e.scope === scope).length > this.maxEntriesPerScope) {
+      this.entries.splice(this.entries.findIndex((e) => e.scope === scope), 1);
+    }
   }
 
   list(scope?: string): ActivityEntry[] {
@@ -44,5 +47,7 @@ function formatArg(arg: unknown): string {
 
 export const PAIRING_SCOPE = "pairing";
 export const deviceScope = (deviceId: string) => `device:${deviceId}`;
+// Commands and state changes, apart from errors so a busy volume slider can't push those out.
+export const commandScope = (deviceId: string) => `commands:${deviceId}`;
 
 export const activityLog = new ActivityLog();
