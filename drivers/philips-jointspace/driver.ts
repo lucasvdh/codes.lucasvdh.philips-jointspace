@@ -247,12 +247,6 @@ class PhilipsTvDriver extends Homey.Driver {
     credentials: JointspaceCredentials | null,
   ): Promise<void> {
     const { settings } = descriptor;
-    // Write store FIRST: credentials and reset cached metadata. setSettings
-    // below triggers onSettings on the device, which rebuilds the API config
-    // by calling buildApiConfig() which reads credentials from the store.
-    // If we updated settings before credentials, that rebuild would read the
-    // STALE credentials and the device would 401 against the new TV until
-    // the next restart.
     await device.setStoreValue("credentials", credentials ? { user: credentials.user, pass: credentials.pass } : null);
     await device.setStoreValue("osType", null);
     await device.setStoreValue("notifyChangeSupported", null);
@@ -274,6 +268,9 @@ class PhilipsTvDriver extends Homey.Driver {
       port: settings.port,
     });
     this.log(`Repair applied to device ${device.getName()}: new IP ${settings.ipAddress}, port ${settings.port}, secure ${settings.secure}`);
+    // setSettings doesn't call onSettings, so the running device has to be told.
+    await (device as Homey.Device & { applyRepair?: () => Promise<void> }).applyRepair?.()
+      .catch((err: Error) => this.error("applyRepair failed:", err));
   }
 
   // --- pair view handlers ----------------------------------------------
