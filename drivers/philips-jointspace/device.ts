@@ -316,6 +316,19 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     }
   }
 
+  /** Called by the driver after a Repair: setSettings/setStoreValue from the driver don't reach onSettings. */
+  async applyRepair(): Promise<void> {
+    this.deviceSettings = this.getSettings() as DeviceSettings;
+    this.api.updateConfig(this.buildApiConfig());
+    this.applications = null;
+    this.channels = null;
+    await this.refreshSystemMetadata();
+    await this.applyScreenStateCapability();
+    await this.applyCurrentSourceCapability();
+    await this.applyFeatureCapabilities();
+    await this.applyMenuCapabilities();
+  }
+
   // --- public surface used by app.ts flow listeners ----------------------
 
   getJointspaceClient(): JointspaceApi {
