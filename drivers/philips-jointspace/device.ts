@@ -539,8 +539,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     }
     const configuration = AmbilightConfigurations[mode as AmbilightModeKey];
     if (!configuration) {
-      this.log("Unknown ambilight mode requested:", mode);
-      return;
+      throw new Error(`This TV has no Ambilight style "${mode}"`);
     }
     try {
       await this.api.setAmbilightConfiguration(configuration);
@@ -550,7 +549,8 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
         .triggerAmbilightModeChangedTrigger(this, { mode })
         .catch(this.error.bind(this));
     } catch (err) {
-      this.log("setAmbilightMode failed", err);
+      this.error("setAmbilightMode failed", err);
+      throw err;
     }
   }
 
@@ -1307,6 +1307,20 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     return (this.menuCapabilities()?.pictureStyle?.options ?? [])
       .filter((o) => !this.unavailableMenuOptions.has(`${CAPABILITY_PICTURE_STYLE}:${o.id}`))
       .map((o) => ({ id: o.id, name: this.optionName(CAPABILITY_PICTURE_STYLE, o) }));
+  }
+
+  /** For the flow card autocomplete: the TV's own styles, or the fixed list for TVs without the menu. */
+  getAmbilightModeOptions(): Array<{ id: string; name: string }> {
+    const menuOptions = this.menuCapabilities()?.ambilight?.options;
+    if (menuOptions) {
+      return menuOptions
+        .filter((o) => !this.unavailableMenuOptions.has(`${CAPABILITY_AMBILIGHT_MODE}:${o.id}`))
+        .map((o) => ({ id: o.id, name: this.optionName(CAPABILITY_AMBILIGHT_MODE, o) }));
+    }
+    const manifest = this.homey.manifest as { capabilities?: Record<string, { values?: Array<{ id: string; title: Record<string, string> }> }> };
+    const language = this.homey.i18n.getLanguage();
+    return (manifest.capabilities?.[CAPABILITY_AMBILIGHT_MODE]?.values ?? [])
+      .map((v) => ({ id: v.id, name: v.title[language] ?? v.title.en ?? v.id }));
   }
 
   async setPictureStyle(id: string): Promise<void> {

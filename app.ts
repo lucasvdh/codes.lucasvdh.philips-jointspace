@@ -39,6 +39,7 @@ interface PhilipsTvDeviceLike {
   setPictureStyle(id: string): Promise<unknown>;
   setAmbilightSlider(capabilityId: string, value: number): Promise<unknown>;
   getPictureStyleOptions(): AutocompleteResult[];
+  getAmbilightModeOptions(): AutocompleteResult[];
   setScreen(state: boolean): Promise<unknown>;
   getApplications(): Promise<ApplicationDescriptor[]>;
   getChannels(): Promise<ChannelDescriptor[]>;
@@ -127,6 +128,16 @@ class PhilipsTV extends Homey.App {
       .registerRunListener(async ({ device, mode }: { device: PhilipsTvDeviceLike; mode: string }) =>
         device.setAmbilightMode(mode)
       );
+
+    this.homey.flow
+      .getActionCard("set_ambilight_style")
+      .registerRunListener(async ({ device, style }: { device: PhilipsTvDeviceLike; style: AutocompleteResult }) =>
+        device.setAmbilightMode(style.id)
+      )
+      .registerArgumentAutocompleteListener("style", async (query: string, { device }: { device: PhilipsTvDeviceLike }) => {
+        const q = query.toLowerCase();
+        return device.getAmbilightModeOptions().filter((o) => o.name.toLowerCase().includes(q));
+      });
 
     this.homey.flow
       .getActionCard("set_picture_style")

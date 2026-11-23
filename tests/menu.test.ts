@@ -121,3 +121,31 @@ test("Ambilight brightness and saturation come with the range the TV reports", (
   assert.equal(currentSliderValue(sliders!.ambilight_saturation, values), -1);
   assert.ok(menuNodesToRead(extractMenuCapabilities(structure)).includes(2131230771));
 });
+
+test("2026 Linux TV Ambilight styles get the titles the TV shows (#83)", () => {
+  const list = (node_id: number, context: string, keys: Array<[number, string]>) => ({
+    node_id, type: "LIST_NODE", context, data: { enums: keys.map(([enum_id, string_id]) => ({ enum_id, string_id })) },
+  });
+  const oled911: MenuStructure = {
+    node: { node_id: 1, type: "PARENT_NODE", context: "Setup_Menu", data: { nodes: [{
+      node_id: 200, type: "PARENT_NODE", context: "ambilight_style", data: { nodes: [
+        { node_id: 210, type: "PARENT_NODE", context: "ambilight_off", data: {} },
+        list(220, "ambilight_follow_video", [
+          [221, "MISC_AI"], [222, "MAIN_AMBILIGHT_STYLE_VIDEO_1_2K20"], [223, "MAIN_AMBILIGHT_STYLE_VIDEO_3_2K20"],
+          [224, "MAIN_AMBILIGHT_CINEMA"], [225, "MAIN_AMBILIGHT_GAME_2K23"],
+        ]),
+        list(240, "ambilight_lounge_light", [[241, "MAIN_AMBILIGHT_FIXED_COLOUR"]]),
+      ] },
+    }] } },
+  };
+  const options = extractMenuCapabilities(oled911).ambilight!.options;
+  assert.deepEqual(options.map((o) => `${o.id}=${o.fallbackTitle}`), [
+    "off=Off",
+    "video_misc_ai=AI",
+    "video_standard=Style Video 1",
+    "video_style_video_3_2k20=Sport",
+    "video_cinema=Cinema",
+    "video_game_2k23=Game",
+    "lounge_light_fixed_colour=Fixed Colour",
+  ]);
+});

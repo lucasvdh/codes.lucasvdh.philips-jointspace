@@ -1,6 +1,6 @@
 {
-  "highlight": true,
   "id": "set_ambilight_mode",
+  "deprecated": true,
   "title": {
     "en": "Set Ambilight mode",
     "nl": "Stel Ambilight mode in",
