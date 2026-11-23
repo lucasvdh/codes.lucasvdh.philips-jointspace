@@ -202,6 +202,14 @@ test("ActivityLog keeps only the newest entries and formats errors", () => {
   assert.deepEqual(log.list("device:x"), []);
 });
 
+test("ActivityLog caps each scope on its own", () => {
+  const log = new ActivityLog(2);
+  log.add("pairing", "pair");
+  for (const n of [1, 2, 3, 4]) log.add("commands:x", `volume ${n}`);
+  assert.deepEqual(log.list("pairing").map((e) => e.message), ["pair"]);
+  assert.deepEqual(log.list("commands:x").map((e) => e.message), ["volume 3", "volume 4"]);
+});
+
 test("paired report flags a TV the app cannot wake (#81)", () => {
   const ids = (device: { mac?: string | null; store: Record<string, unknown> }) =>
     analyseReport({ scope: "paired-device", probes: [ok("system")], device }).map((f) => f.id);
