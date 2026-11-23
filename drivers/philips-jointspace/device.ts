@@ -206,6 +206,12 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     activityLog.add(deviceScope(String(this.getData().id)), ...args);
   }
 
+  /** Commands and power/screen changes also go into the diagnostic report. */
+  private logToReport(...args: unknown[]): void {
+    this.log(...args);
+    activityLog.add(deviceScope(String(this.getData().id)), ...args);
+  }
+
   async onInit(): Promise<void> {
     this.deviceData = this.getData() as DeviceData;
     this.deviceSettings = this.getSettings() as DeviceSettings;
@@ -426,7 +432,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   async openApplication(app: SimplifiedApplication): Promise<void> {
     try {
       await this.api.launchActivity(app.intent);
-      this.log(`Sent: open app ${app.name}`);
+      this.logToReport(`Sent: open app ${app.name}`);
     } catch (err) {
       this.error(`openApplication(${app.name}) failed`, err);
       throw err;
@@ -489,7 +495,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     };
     try {
       await this.api.launchActivity(intent);
-      this.log("Sent: open Google Assistant");
+      this.logToReport("Sent: open Google Assistant");
     } catch (err) {
       this.error("sendGoogleAssistantSearch failed", err);
       throw err;
@@ -499,7 +505,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   async setAmbiHue(state: boolean): Promise<void> {
     try {
       await this.api.setAmbiHue(state);
-      this.log(`Sent: AmbiHue ${state ? "on" : "off"}`);
+      this.logToReport(`Sent: AmbiHue ${state ? "on" : "off"}`);
     } catch (err) {
       this.error(`setAmbiHue(${state}) failed`, err);
       throw err;
@@ -512,7 +518,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   async setScreen(state: boolean): Promise<void> {
     try {
       await this.api.setScreenState(state ? "On" : "Off");
-      this.log(`Sent: screen ${state ? "on" : "off"}`);
+      this.logToReport(`Sent: screen ${state ? "on" : "off"}`);
     } catch (err) {
       this.error(`setScreen(${state}) failed`, err);
       throw err;
@@ -524,7 +530,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   async setAmbilight(state: boolean): Promise<void> {
     try {
       await this.api.setAmbilight(state);
-      this.log(`Sent: Ambilight ${state ? "on" : "off"}`);
+      this.logToReport(`Sent: Ambilight ${state ? "on" : "off"}`);
       await this.driverApi()
         .triggerAmbilightChangedTrigger(this, { enabled: state })
         .catch(this.error.bind(this));
@@ -543,7 +549,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     const menuOption = this.menuOption(this.menuCapabilities()?.ambilight?.options, mode);
     if (menuOption) {
       await this.api.setMenuListValue(menuOption.nodeId, menuOption.enumId);
-      this.log(`Sent: Ambilight mode ${mode} (menu)`);
+      this.logToReport(`Sent: Ambilight mode ${mode} (menu)`);
       // The menu reports the new mode right away; a cached mode from the config path would only override it.
       await this.setStoreValue(STORE_LAST_AMBILIGHT_MODE, null).catch(this.error.bind(this));
       await this.setCapabilityValue(CAPABILITY_AMBILIGHT_MODE, mode).catch(this.error.bind(this));
@@ -556,7 +562,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     }
     try {
       await this.api.setAmbilightConfiguration(configuration);
-      this.log(`Sent: Ambilight mode ${mode}`);
+      this.logToReport(`Sent: Ambilight mode ${mode}`);
       await this.setStoreValue(STORE_LAST_AMBILIGHT_MODE, mode).catch(this.error.bind(this));
       await this.driverApi()
         .triggerAmbilightModeChangedTrigger(this, { mode })
@@ -599,7 +605,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   async setChannel(channel: SimplifiedChannel): Promise<void> {
     try {
       await this.api.setChannel(channel.ccid, this.channelListId);
-      this.log(`Sent: channel ${channel.name}`);
+      this.logToReport(`Sent: channel ${channel.name}`);
     } catch (err) {
       this.error(`setChannel(${channel.name}) failed`, err);
       throw err;
@@ -631,7 +637,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     const on = state.powerstate === "On";
     const wasOn = this.getCapabilityValue("onoff") as boolean | null;
     if (wasOn !== on) {
-      this.log(`Power state -> ${on} (${source})`);
+      this.logToReport(`Power state -> ${on} (${source})`);
       this.setCapabilityValue("onoff", on).catch(this.error.bind(this));
       // When the TV turns off, the previously-running app is no longer
       // active - reset the capability so flows checking "current app is X"
@@ -776,7 +782,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     // for this endpoint isn't officially documented).
     const on = state.screenstate === "On" || state.screenstate === "screenOn";
     if (this.getCapabilityValue(CAPABILITY_SCREEN_ON) !== on) {
-      this.log(`Screen state -> ${on ? "on" : "off"} (${source})`);
+      this.logToReport(`Screen state -> ${on ? "on" : "off"} (${source})`);
       this.setCapabilityValue(CAPABILITY_SCREEN_ON, on).catch(this.error.bind(this));
       void this.driverApi()
         .triggerScreenChangedTrigger(this, { enabled: on })
@@ -1077,7 +1083,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   private async onCapabilityScreenOnSet(value: boolean): Promise<void> {
     try {
       await this.api.setScreenState(value ? "On" : "Off");
-      this.log(`Sent: screen ${value ? "on" : "off"}`);
+      this.logToReport(`Sent: screen ${value ? "on" : "off"}`);
     } catch (err) {
       this.error(`setScreenState(${value}) failed`, err);
       throw err;
@@ -1263,7 +1269,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     if (!slider || !this.hasCapability(capabilityId)) throw new Error(`This TV has no ${capabilityId}`);
     const clamped = snapSliderValue(slider, value);
     await this.api.setMenuSliderValue(slider.nodeId, clamped);
-    this.log(`Sent: ${capabilityId} ${clamped}`);
+    this.logToReport(`Sent: ${capabilityId} ${clamped}`);
     await this.setCapabilityValue(capabilityId, clamped).catch(this.error.bind(this));
   }
 
@@ -1340,7 +1346,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     const option = this.menuOption(this.menuCapabilities()?.pictureStyle?.options, id);
     if (!option) throw new Error(`This TV has no picture style "${id}"`);
     await this.api.setMenuListValue(option.nodeId, option.enumId);
-    this.log(`Sent: picture style ${id}`);
+    this.logToReport(`Sent: picture style ${id}`);
     this.applyPictureStyle(option, "set");
   }
 
@@ -1435,7 +1441,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       const currentVolume = (this.getCapabilityValue("volume_set") as number | null) ?? fallback;
       try {
         await this.api.setVolume(currentVolume, value);
-        this.log(`Sent: mute ${value ? "on" : "off"}`);
+        this.logToReport(`Sent: mute ${value ? "on" : "off"}`);
       } catch (err) {
         this.error(`volume_mute(${value}) failed`, err);
         throw err;
@@ -1471,9 +1477,10 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
     }
     try {
       await this.api.setPowerState(value);
-      this.log(`Successfully sent power ${value ? "on" : "off"}`);
+      this.logToReport(`Sent: power ${value ? "on" : "off"}`);
     } catch (err) {
-      this.log("setPowerState failed", err);
+      this.error("setPowerState failed", err);
+      throw err;
     }
   }
 
@@ -1489,9 +1496,9 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
       intervalMs: WAKE_ATTEMPT_INTERVAL_MS,
     });
     if (outcome === "no-answer") {
-      log(`TV did not answer after ${attempt} wake attempts; check that Wake-on-LAN is enabled on the TV`);
+      this.error(`[wake] TV did not answer after ${attempt} wake attempts; check that Wake-on-LAN is enabled on the TV`);
     } else {
-      log(`Power on: ${outcome} (attempt ${attempt})`);
+      this.logToReport(`[wake] Power on: ${outcome} (attempt ${attempt})`);
     }
   }
 
@@ -1537,7 +1544,7 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
           },
         ],
       });
-      this.log(`Sent: AmbiHue ${value ? "on" : "off"} (menu setting)`);
+      this.logToReport(`Sent: AmbiHue ${value ? "on" : "off"} (menu setting)`);
     } catch (err) {
       this.error(`ambihue_onoff(${value}) failed`, err);
       throw err;
@@ -1555,18 +1562,20 @@ class PhilipsTvDevice extends Homey.Device implements StateChangeListener {
   private async sendKey(key: string): Promise<void> {
     try {
       await this.api.sendKey(key);
-      this.log(`Sent: key ${key}`);
+      this.logToReport(`Sent: key ${key}`);
     } catch (err) {
       this.error(`sendKey(${key}) failed:`, err);
+      throw err;
     }
   }
 
   private async setVolume(volume: number, mute = false): Promise<void> {
     try {
       await this.api.setVolume(volume, mute);
-      this.log(`Sent: volume ${volume}${mute ? " (muted)" : ""}`);
+      this.logToReport(`Sent: volume ${volume}${mute ? " (muted)" : ""}`);
     } catch (err) {
       this.error(`setVolume(${volume}) failed:`, err);
+      throw err;
     }
   }
 }

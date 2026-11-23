@@ -169,7 +169,7 @@ export async function generateDeviceReport(opts: {
     ports,
     probes,
     activity: [
-      { title: "Device log (errors and failed requests)", entries: recentActivity(deviceScope(snapshot.id)) },
+      { title: "Device log (commands, errors and failed requests)", entries: recentActivity(deviceScope(snapshot.id)) },
       { title: "Last pairing / repair attempts", entries: recentActivity(PAIRING_SCOPE) },
     ],
   };
